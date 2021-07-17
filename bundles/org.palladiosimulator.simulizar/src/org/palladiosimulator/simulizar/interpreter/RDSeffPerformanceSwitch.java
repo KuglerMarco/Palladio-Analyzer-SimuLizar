@@ -39,7 +39,7 @@ public class RDSeffPerformanceSwitch extends SeffPerformanceSwitch<InterpreterRe
     private final InterpreterDefaultContext context;
     private final IAssemblyAllocationLookup<EntityReference<ResourceContainer>> allocationLookup;
     private final ISimulatedModelEntityAccess<ResourceContainer, AbstractSimulatedResourceContainer> rcAccess;
-    private final ComposedStructureInnerSwitch.Factory composedSwitchFactory;
+    private final StereotypeComposedStructureInnerSwitchFactory composedSwitchFactory;
     
 
     @AssistedInject
@@ -47,7 +47,7 @@ public class RDSeffPerformanceSwitch extends SeffPerformanceSwitch<InterpreterRe
             @Assisted RDSeffElementDispatcher parentSwitch,
             IAssemblyAllocationLookup<EntityReference<ResourceContainer>> allocationLookup,
             ISimulatedModelEntityAccess<ResourceContainer, AbstractSimulatedResourceContainer> rcAccess,
-            ComposedStructureInnerSwitch.Factory composedSwitchFactory) {
+            StereotypeComposedStructureInnerSwitchFactory composedSwitchFactory) {
         this.context = context;
         this.allocationLookup = allocationLookup;
         this.rcAccess = rcAccess;
@@ -114,7 +114,7 @@ public class RDSeffPerformanceSwitch extends SeffPerformanceSwitch<InterpreterRe
                 infrastructureCall.getNumberOfCalls__InfrastructureCall().getSpecification(), Integer.class,
                 currentStackFrame);
         for (int i = 0; i < repetitions; i++) {
-            final ComposedStructureInnerSwitch composedStructureSwitch = composedSwitchFactory.create(this.context,
+            final var composedStructureSwitch = composedSwitchFactory.create(this.context,
                     infrastructureCall.getSignature__InfrastructureCall(),
                     infrastructureCall.getRequiredRole__InfrastructureCall());
             // create new stack frame for input parameter

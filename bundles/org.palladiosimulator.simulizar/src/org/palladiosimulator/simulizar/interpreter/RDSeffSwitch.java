@@ -77,7 +77,7 @@ public class RDSeffSwitch extends SeffSwitch<InterpreterResult> {
 
     private final SimulatedBasicComponentInstance basicComponentInstance;
     private final IResourceTableManager resourceTableManager;
-    private final ComposedStructureInnerSwitch.Factory composedSwitchFactory;
+    private final StereotypeComposedStructureInnerSwitchFactory composedSwitchFactory;
     private final EventDispatcher eventHelper;
     private final InterpreterResultHandler issueHandler;
     private final InterpreterResultMerger resultMerger;
@@ -90,7 +90,7 @@ public class RDSeffSwitch extends SeffSwitch<InterpreterResult> {
     RDSeffSwitch(@Assisted final InterpreterDefaultContext context, @Assisted RDSeffElementDispatcher parentSwitch,
             IResourceTableManager resourceTableManager,
             ComponentInstanceRegistry componentInstanceRegistry,
-            ComposedStructureInnerSwitch.Factory composedSwitchFactory,
+            StereotypeComposedStructureInnerSwitchFactory composedSwitchFactory,
             ForkedBehaviorProcessFactory forkFactory,
             EventDispatcher eventHelper,
             InterpreterResultHandler issueHandler,
@@ -195,7 +195,7 @@ public class RDSeffSwitch extends SeffSwitch<InterpreterResult> {
      */
     @Override
     public InterpreterResult caseExternalCallAction(final ExternalCallAction externalCall) {
-        final ComposedStructureInnerSwitch composedStructureSwitch = composedSwitchFactory.create(this.context,
+        final var composedStructureSwitch = composedSwitchFactory.create(this.context,
                 externalCall.getCalledService_ExternalService(), externalCall.getRole_ExternalService());
 
         if (externalCall instanceof DelegatingExternalCallAction) {
