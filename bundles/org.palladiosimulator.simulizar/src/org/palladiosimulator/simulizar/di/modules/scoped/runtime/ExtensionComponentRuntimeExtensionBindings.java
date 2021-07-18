@@ -10,6 +10,7 @@ import org.palladiosimulator.simulizar.di.extension.RegisteredComponent;
 import org.palladiosimulator.simulizar.di.extension.RuntimeExtensions;
 import org.palladiosimulator.simulizar.di.modules.component.extensions.SimulationRuntimeExtensions;
 import org.palladiosimulator.simulizar.di.modules.stateless.extension.ExtensionSupportModule;
+import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.listener.IInterpreterListener;
 import org.palladiosimulator.simulizar.modelobserver.IModelObserver;
@@ -77,6 +78,13 @@ public interface ExtensionComponentRuntimeExtensionBindings {
     @ElementsIntoSet
     static Set<RDSeffSwitchContributionFactory> rdseffSwitchFactories(ExtensionLookup lookup) {
         return lookup.lookup(RDSeffSwitchContributionFactory.class);
+    }
+    
+    @Provides
+    @SimulationRuntimeScope
+    @ElementsIntoSet
+    static Set<ComposedStructureInnerSwitchContributionFactory> stereotypeComposedStructureInnerSwitchFactories(ExtensionLookup lookup) {
+        return lookup.lookup(ComposedStructureInnerSwitchContributionFactory.class);
     }
 
 }

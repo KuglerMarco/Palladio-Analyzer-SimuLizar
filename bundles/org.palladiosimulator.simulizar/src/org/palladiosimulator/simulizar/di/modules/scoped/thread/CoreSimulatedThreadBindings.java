@@ -3,12 +3,15 @@ package org.palladiosimulator.simulizar.di.modules.scoped.thread;
 import java.util.Set;
 
 import org.palladiosimulator.simulizar.interpreter.ComposedRDSeffSwitchFactory;
-import org.palladiosimulator.simulizar.interpreter.ExtensibleStereotypeComposedStructureInnerSwitchFactory;
+import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.RDSeffPerformanceSwitch;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitch;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.StereotypeComposedStructureInnerSwitchFactory;
+import org.palladiosimulator.simulizar.interpreter.StereotypeQualitygateSwitch;
+import org.palladiosimulator.simulizar.interpreter.StereotypeSwitch;
 import org.palladiosimulator.simulizar.interpreter.impl.ExtensibleComposedRDSeffSwitchFactory;
+import org.palladiosimulator.simulizar.interpreter.impl.ExtensibleStereotypeComposedStructureInnerSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
@@ -40,11 +43,24 @@ public interface CoreSimulatedThreadBindings {
     @Binds
     @SimulatedThreadScope
     StereotypeComposedStructureInnerSwitchFactory bindStereotypeComposedStructureInnerSwitchFactory(ExtensibleStereotypeComposedStructureInnerSwitchFactory impl);
+    
+    //Test, StereotypeSwitch zu StereotypeQualityGateSwitch binden
+    @Binds
+    @SimulatedThreadScope
+    StereotypeSwitch bindStereotypeQualitygateSwitch(StereotypeQualitygateSwitch impl);
 
+    
     @Provides
     @ElementsIntoSet
     static Set<RDSeffSwitchContributionFactory> provideCoreRDSeffSwitchFactories(
             RDSeffPerformanceSwitch.Factory performanceSwitchFactory, RDSeffSwitch.Factory rdseffSwitchFactory) {
         return ImmutableSet.of(rdseffSwitchFactory, performanceSwitchFactory);
+    }
+    
+    @Provides
+    @ElementsIntoSet
+    static Set<ComposedStructureInnerSwitchContributionFactory> provideStereotypeComposedStructureInnerSwitchFactories(
+            StereotypeQualitygateSwitch.Factory stereotypeQualityGateSwitchFactory) {
+        return ImmutableSet.of(stereotypeQualityGateSwitchFactory);
     }
 }

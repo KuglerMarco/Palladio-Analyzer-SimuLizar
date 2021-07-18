@@ -9,5 +9,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="src" path="xtend-gen"/>
 	<classpathentry kind="src" path="src-gen"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/org.palladiosimulator.qualitygatemodel"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

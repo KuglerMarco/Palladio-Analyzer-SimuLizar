@@ -29,10 +29,10 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
     private ComposedStructureInnerSwitch composedStructureInnerSwitch;
     
     //identifiziert werden die Switches mithilfe eines Stereotype-Feldes (noch nicht ganz sicher, vllt auch nur String?)
-    private final Map<Stereotype, Switch<InterpreterResult>> registry = new HashMap<Stereotype, Switch<InterpreterResult>>();
+    private final Map<Stereotype, StereotypeSwitch> registry = new HashMap<Stereotype, StereotypeSwitch>();
     
     //hier werden die Switches registriert (Menge an verfügbaren Stereotype-Switches)
-    private final List<Switch<InterpreterResult>> switches = new ArrayList<Switch<InterpreterResult>>();
+    private final List<StereotypeSwitch> switches = new ArrayList<StereotypeSwitch>();
     
     public StereotypeDispatchComposedStructureInnerSwitch() {
     }
@@ -59,8 +59,12 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
          * Sollte immer wieder zurückkehren
          * Danach wird dann der Default-Switch aufgerufen
          */
+        
+        StereotypeSwitch delegate = findDelegate(StereotypeAPI.getAppliedStereotypes(theEObject).get(0));
+        
         if(StereotypeAPI.hasStereotypeApplications(theEObject)) {
             System.out.println("Has Stereotype." + StereotypeAPI.getAppliedStereotypes(theEObject).get(0));
+            
         }
         
         
@@ -72,6 +76,38 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
     protected boolean isSwitchFor(EPackage ePackage) {
         // TODO Auto-generated method stub
         return false;
+    }
+    
+    
+
+    public void addSwitch(StereotypeSwitch sw) {
+        
+        synchronized (switches) {
+          if (!switches.contains(sw)){
+            switches.add(sw);
+          }
+        }
+    }
+    
+    protected StereotypeSwitch findDelegate(Stereotype stereotype)
+    {
+      synchronized (switches)
+      {
+        StereotypeSwitch delegate = registry.get(stereotype);
+        if (delegate == null && !registry.containsKey(stereotype))
+        {
+          for (StereotypeSwitch sw : switches)
+          {
+            if (sw.isSwitchForStereotype(stereotype))
+            {
+              delegate = sw;
+              break;
+            }
+          }
+          registry.put(stereotype, delegate);
+        }
+        return delegate;
+      }
     }
 
 }

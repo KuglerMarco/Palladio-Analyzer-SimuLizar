@@ -28,7 +28,7 @@ public interface ComposedStructureInnerSwitchContributionFactory extends Extensi
      *              The composed switch which is containing the created switch
      * @return a composable switch
      */
-    public Switch<InterpreterResult> create(final InterpreterDefaultContext context, final ComposedStructureInnerSwitchElementDispatcher parentSwitch, final Signature operationSignature,
+    public Switch<InterpreterResult> createComposedStructureInnerSwitch(final InterpreterDefaultContext context, final ComposedStructureInnerSwitchElementDispatcher parentSwitch, final Signature operationSignature,
             final RequiredRole requiredRole);
     
     
