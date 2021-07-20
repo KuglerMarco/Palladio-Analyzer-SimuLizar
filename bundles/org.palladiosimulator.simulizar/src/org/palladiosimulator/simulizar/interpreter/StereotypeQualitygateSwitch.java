@@ -3,10 +3,10 @@ package org.palladiosimulator.simulizar.interpreter;
 import javax.inject.Inject;
 
 import org.eclipse.emf.ecore.util.Switch;
+import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
+import org.palladiosimulator.failuremodel.qualitygate.util.QualitygateSwitch;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
-import org.palladiosimulator.qualitygatemodel.QualityGate;
-import org.palladiosimulator.qualitygatemodel.util.QualitygatemodelSwitch;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchContributionFactory.ComposedStructureInnerSwitchElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchContributionFactory.RDSeffElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
@@ -16,7 +16,7 @@ import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
-public class StereotypeQualitygateSwitch extends QualitygatemodelSwitch<InterpreterResult> implements StereotypeSwitch {
+public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterResult> implements StereotypeSwitch {
 
     @AssistedFactory
     public interface Factory extends ComposedStructureInnerSwitchContributionFactory {
