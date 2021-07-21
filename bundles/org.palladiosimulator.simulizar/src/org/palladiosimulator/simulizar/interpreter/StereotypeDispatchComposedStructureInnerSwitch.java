@@ -5,81 +5,132 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.inject.Inject;
-
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.util.Switch;
 import org.modelversioning.emfprofile.Stereotype;
 import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
-import org.palladiosimulator.pcm.repository.RequiredRole;
-import org.palladiosimulator.pcm.repository.Signature;
+import org.palladiosimulator.pcm.core.composition.CompositionPackage;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchContributionFactory.ComposedStructureInnerSwitchElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 
-import dagger.assisted.Assisted;
-import dagger.assisted.AssistedInject;
-
+/**
+ * Dispatch for handling the Stereotypes attached to System-Model.
+ * 
+ * @author Marco Kugler
+ *
+ */
 public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<InterpreterResult> implements ComposedStructureInnerSwitchElementDispatcher {
     
 
-    
-    //default-Switch, an den wieder delegiert wird
+   
+    /**
+     * Default-Switch after handling the Stereotypes at the system-element
+     */
     private ComposedStructureInnerSwitch composedStructureInnerSwitch;
     
-    //identifiziert werden die Switches mithilfe eines Stereotype-Feldes (noch nicht ganz sicher, vllt auch nur String?)
+    /**
+     * Registry of registered StereotypeSwitches
+     */
     private final Map<Stereotype, StereotypeSwitch> registry = new HashMap<Stereotype, StereotypeSwitch>();
     
-    //hier werden die Switches registriert (Menge an verfügbaren Stereotype-Switches)
+    /**
+     * Set of StreotypeSwitches inheriting from ComposedStructureInnerSwitchContributionFactory
+     */
     private final List<StereotypeSwitch> switches = new ArrayList<StereotypeSwitch>();
     
+    protected static CompositionPackage modelPackage;
+    
+    
+    /**
+     * Creates instance.
+     */
     public StereotypeDispatchComposedStructureInnerSwitch() {
+        if (modelPackage == null) {
+            modelPackage = CompositionPackage.eINSTANCE;
+        }
     }
     
+    
+    /**
+     * Setting the DefaultSwitch, in this case ComposedStructureInnerSwitch.
+     * @param composedStructureInnerSwitch
+     */
     public void setDefaultSwitch(ComposedStructureInnerSwitch composedStructureInnerSwitch) {
         this.composedStructureInnerSwitch = composedStructureInnerSwitch;
     }
     
     
+    
+    
+    /**
+     * Calls first the Stereotype-Switches for the Stereotypes attached to the element.
+     * Then calls the default ComposedStructureInnerSwitch.
+     */
     @Override
     public InterpreterResult doSwitch(EClass theEClass, EObject theEObject) {
-        /*
-         * erstmal nur von hier aus den Default-Switch aufrufen, dann  später die Funktionalität
-         * für die Auswahl des richtigen Switches implementieren
-         * 
-         * if für den angehängten Stereotyp ein Switch vorhanden, rufe den entsprechenden Switch auf und verarbeite diesen
-         * falls nicht, default-Switch aufrufen
-         * 
-         * von dem Qualitygate Switch dann den default Switch aufrufen
-         */
         
-        /*
-         * Hier in einer Schleife alle Switches der Stereotypes aufrufen (Alle Switches aus der Map, für die es ein Stereotype an dem Element gibt
-         * Sollte immer wieder zurückkehren
-         * Danach wird dann der Default-Switch aufgerufen
-         */
         
-        StereotypeSwitch delegate = findDelegate(StereotypeAPI.getAppliedStereotypes(theEObject).get(0));
-        
+        //Handling the Stereotypes
         if(StereotypeAPI.hasStereotypeApplications(theEObject)) {
-            System.out.println("Has Stereotype." + StereotypeAPI.getAppliedStereotypes(theEObject).get(0));
             
+            EList<Stereotype> appliedStereotypes = StereotypeAPI.getAppliedStereotypes(theEObject);
+            
+            for(Stereotype stereotype : appliedStereotypes) {
+                
+                if(this.isSwitchRegistered(stereotype)) {
+                    
+                    StereotypeQualitygateSwitch delegate = (StereotypeQualitygateSwitch) this.findDelegate(stereotype);
+                    delegate.handleStereotype(stereotype, theEObject);
+                    
+                } 
+            }
         }
         
         
+        //Default-Switch after handling the Stereotypes
         return composedStructureInnerSwitch.doSwitch(theEObject);
         
     }
 
-    @Override
-    protected boolean isSwitchFor(EPackage ePackage) {
-        // TODO Auto-generated method stub
-        return false;
+    
+    /**
+     * Checks whether there's any registered StereotypeSwitch for this Stereotype.
+     * 
+     * @param stereotype
+     *              Stereotype, for which it needs to find a StereotypeSwitch
+     * @return
+     *              Boolean, whether there's one StereotypeSwitch registered
+     */
+    public boolean isSwitchRegistered(Stereotype stereotype) {
+        
+        return this.findDelegate(stereotype) != null;
+        
     }
     
     
+    /**
+     * Checks whether this is a switch for given package.
+     * @param ePackage the package in question.
+     * @return whether this is a switch for the given package.
+     */
+    @Override
+    protected boolean isSwitchFor(EPackage ePackage) {
+        return ePackage == modelPackage;
+    }
+    
+    
+    
+    
 
+    /**
+     * Adds StereotypeSwitch to registered Switches.
+     * 
+     * @param sw
+     *              To be added StereotypeSwitch
+     */
     public void addSwitch(StereotypeSwitch sw) {
         
         synchronized (switches) {
@@ -89,24 +140,36 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
         }
     }
     
-    protected StereotypeSwitch findDelegate(Stereotype stereotype)
-    {
-      synchronized (switches)
-      {
-        StereotypeSwitch delegate = registry.get(stereotype);
-        if (delegate == null && !registry.containsKey(stereotype))
-        {
-          for (StereotypeSwitch sw : switches)
-          {
-            if (sw.isSwitchForStereotype(stereotype))
-            {
-              delegate = sw;
-              break;
+    
+    
+    
+    
+    /**
+     * Finds the right registered Switch to handle the Stereotype.
+     * 
+     * @param stereotype 
+     *              Stereotype, which needs to be handled
+     * @return 
+     *              StereotypeSwitch, which can handle the Stereotype
+     */
+    protected StereotypeSwitch findDelegate(Stereotype stereotype) {
+      
+        synchronized (switches) {
+            
+            StereotypeSwitch delegate = registry.get(stereotype);
+            
+            if (delegate == null && !registry.containsKey(stereotype)) {
+              
+                for (StereotypeSwitch sw : switches) {
+                    
+                if (sw.isSwitchForStereotype(stereotype)) {
+                  delegate = sw;
+                  break;
+                }
+              }
+              registry.put(stereotype, delegate);
             }
-          }
-          registry.put(stereotype, delegate);
-        }
-        return delegate;
+            return delegate;
       }
     }
 

@@ -2,7 +2,6 @@ package org.palladiosimulator.simulizar.interpreter;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.util.Switch;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.simulizar.di.extension.Extension;
@@ -10,6 +9,8 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 
 public interface ComposedStructureInnerSwitchContributionFactory extends Extension {
     
+    
+    //TODO Refactor (Generalize)
     public interface ComposedStructureInnerSwitchElementDispatcher {
         InterpreterResult doSwitch(EClass theEClass, EObject theEObject);
         

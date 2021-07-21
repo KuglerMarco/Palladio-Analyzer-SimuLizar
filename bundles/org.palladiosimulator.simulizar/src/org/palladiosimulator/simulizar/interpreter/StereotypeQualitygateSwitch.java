@@ -1,14 +1,14 @@
 package org.palladiosimulator.simulizar.interpreter;
 
-import javax.inject.Inject;
 
-import org.eclipse.emf.ecore.util.Switch;
+import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.ecore.EObject;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.failuremodel.qualitygate.util.QualitygateSwitch;
+import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchContributionFactory.ComposedStructureInnerSwitchElementDispatcher;
-import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchContributionFactory.RDSeffElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.modelversioning.emfprofile.Stereotype;
 
@@ -25,7 +25,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
                 final RequiredRole requiredRole);
     }
     
-    public final String stereotypeName = "Qualitygate";
+    public final String stereotypeName = "QualitygateElement";
     final InterpreterDefaultContext context;
     final ComposedStructureInnerSwitchElementDispatcher parentSwitch;
     final Signature operationSignature;
@@ -46,8 +46,8 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         
         
         System.out.println("Qualitygate erkannt.");
-        
-        
+        System.out.println(object.getScope());
+   
         
         
         return InterpreterResult.OK;
@@ -56,7 +56,20 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     @Override
     public boolean isSwitchForStereotype(Stereotype stereotype) {
         
-        return stereotype.getName() == this.stereotypeName;
+        return stereotype.getName().equals(stereotypeName);
+    }
+
+    @Override
+    public InterpreterResult handleStereotype(Stereotype stereotype, EObject theEObject) {
+        
+        EList<EObject> obj1 = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
+        
+        EObject obj2 = obj1.get(0);
+        
+        this.doSwitch(obj2);
+        
+        
+        return InterpreterResult.OK;
     }
     
     

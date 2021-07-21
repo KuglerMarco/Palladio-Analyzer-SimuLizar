@@ -8,6 +8,7 @@ import org.palladiosimulator.simulizar.interpreter.RDSeffPerformanceSwitch;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitch;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.StereotypeComposedStructureInnerSwitchFactory;
+import org.palladiosimulator.simulizar.interpreter.StereotypeQualitygateSwitch;
 //import org.palladiosimulator.simulizar.interpreter.StereotypeQualitygateSwitch;
 import org.palladiosimulator.simulizar.interpreter.StereotypeSwitch;
 import org.palladiosimulator.simulizar.interpreter.impl.ExtensibleComposedRDSeffSwitchFactory;
@@ -57,10 +58,10 @@ public interface CoreSimulatedThreadBindings {
         return ImmutableSet.of(rdseffSwitchFactory, performanceSwitchFactory);
     }
     
-//    @Provides
-//    @ElementsIntoSet
-//    static Set<ComposedStructureInnerSwitchContributionFactory> provideStereotypeComposedStructureInnerSwitchFactories(
-//            StereotypeQualitygateSwitch.Factory stereotypeQualityGateSwitchFactory) {
-//        return ImmutableSet.of(stereotypeQualityGateSwitchFactory);
-//    }
+    @Provides
+    @ElementsIntoSet
+    static Set<ComposedStructureInnerSwitchContributionFactory> provideStereotypeComposedStructureInnerSwitchFactories(
+            StereotypeQualitygateSwitch.Factory stereotypeQualityGateSwitchFactory) {
+        return ImmutableSet.of(stereotypeQualityGateSwitchFactory);
+    }
 }
