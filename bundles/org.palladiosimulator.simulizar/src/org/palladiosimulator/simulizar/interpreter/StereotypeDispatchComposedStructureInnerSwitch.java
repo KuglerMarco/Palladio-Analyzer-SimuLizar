@@ -41,16 +41,18 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
      */
     private final List<StereotypeSwitch> switches = new ArrayList<StereotypeSwitch>();
     
+    
     protected static CompositionPackage modelPackage;
     
     
     /**
      * Creates instance.
      */
-    public StereotypeDispatchComposedStructureInnerSwitch() {
+    public StereotypeDispatchComposedStructureInnerSwitch(InterpreterDefaultContext context) {
         if (modelPackage == null) {
             modelPackage = CompositionPackage.eINSTANCE;
         }
+        
     }
     
     
@@ -72,8 +74,32 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
     @Override
     public InterpreterResult doSwitch(EClass theEClass, EObject theEObject) {
         
+        InterpreterResult interpreterResult = InterpreterResult.OK;
         
-        //Handling the Stereotypes
+        
+        //Stereotype-Handling in Request-Scope
+        interpreterResult = this.handleAttachedStereotypes(theEObject, CallScope.REQUEST);
+        
+
+        //Default-Switch
+        interpreterResult = composedStructureInnerSwitch.doSwitch(theEObject);
+        
+        
+        //Stereotype-Handling in Response-Scope
+        interpreterResult = this.handleAttachedStereotypes(theEObject, CallScope.RESPONSE);
+        
+        
+        
+        return interpreterResult;
+        
+    }
+    
+    
+    public InterpreterResult handleAttachedStereotypes(EObject theEObject, CallScope callScope) {
+        
+        InterpreterResult interpreterResult = InterpreterResult.OK;
+        
+        //Handling the Stereotypes (Request)
         if(StereotypeAPI.hasStereotypeApplications(theEObject)) {
             
             EList<Stereotype> appliedStereotypes = StereotypeAPI.getAppliedStereotypes(theEObject);
@@ -83,17 +109,16 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
                 if(this.isSwitchRegistered(stereotype)) {
                     
                     StereotypeQualitygateSwitch delegate = (StereotypeQualitygateSwitch) this.findDelegate(stereotype);
-                    delegate.handleStereotype(stereotype, theEObject);
+                    interpreterResult = delegate.handleStereotype(stereotype, theEObject, callScope);
                     
                 } 
             }
         }
         
-        
-        //Default-Switch after handling the Stereotypes
-        return composedStructureInnerSwitch.doSwitch(theEObject);
-        
+        return interpreterResult;
     }
+    
+    
 
     
     /**

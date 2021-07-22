@@ -8,6 +8,6 @@ public interface StereotypeSwitch {
     
     public boolean isSwitchForStereotype(Stereotype stereotype);
     
-    public InterpreterResult handleStereotype(Stereotype stereotype, EObject theEObject);
+    public InterpreterResult handleStereotype(Stereotype stereotype, EObject theEObject, CallScope callScope);
 
 }

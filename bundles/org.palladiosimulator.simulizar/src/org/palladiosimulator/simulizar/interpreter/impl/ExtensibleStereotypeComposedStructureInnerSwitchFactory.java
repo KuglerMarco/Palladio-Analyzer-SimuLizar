@@ -49,7 +49,10 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
     @Override
     public Switch<InterpreterResult> create(InterpreterDefaultContext context, final Signature operationSignature,
             final RequiredRole requiredRole) {
-        final  StereotypeDispatchComposedStructureInnerSwitch interpreter = new StereotypeDispatchComposedStructureInnerSwitch();
+        
+        //TODO Factory?
+        final  StereotypeDispatchComposedStructureInnerSwitch interpreter = new StereotypeDispatchComposedStructureInnerSwitch(context);
+        
         interpreter.setDefaultSwitch(composedStructureInnerSwitchFactory.create(context, operationSignature, requiredRole, interpreter));
         
         var elementFactories = elementFactoriesProvider.get();
