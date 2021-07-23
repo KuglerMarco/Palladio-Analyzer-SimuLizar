@@ -1,8 +1,6 @@
 package org.palladiosimulator.simulizar.interpreter;
 
 
-import java.util.Map.Entry;
-
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
@@ -21,12 +19,10 @@ import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 import de.uka.ipd.sdq.simucomframework.variables.StackContext;
-import de.uka.ipd.sdq.simucomframework.variables.exceptions.ValueNotInFrameException;
-import de.uka.ipd.sdq.simucomframework.variables.stackframe.SimulatedStackframe;
 import de.uka.ipd.sdq.simucomframework.variables.stoexvisitor.VariableMode;
 
 /**
- * Switch processing the Qualitygate-Stereotype
+ * Switch processing the attached Qualitygate-Stereotype.
  * 
  * @author Marco Kugler
  *
@@ -98,37 +94,49 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     public InterpreterResult caseRequestParameterScope(RequestParameterScope object) {
         
         interpreterResult = InterpreterResult.OK;
-        SimulatedStackframe<Object> stack = context.getStack().currentStackFrame();
         
-        //Which Parameter?
-        String parameterSpecification = object.getParameterSpecification().getSpecification();
+        String[] splittedParameter = premise.getSpecification().split(" ");
+        
+        String parameterSpecification = splittedParameter[0];
+        String operator = splittedParameter[1];
+        int premiseValue = Integer.parseInt(splittedParameter[2]);
         
         //Checking the processing time of the Qualitygate: Request or Response?
         if(callScope.equals(CallScope.REQUEST)) {
             
             
             //Checking whether Parameter is on Stack 
-            //TODO nicht optimal, dass 0 dafür verwendet wird, dass Parameter nicht auf Stack (NULL-Mode Bug - StackContext debuggen?)
             if(StackContext.evaluateStatic(parameterSpecification,
                 this.context.getStack().currentStackFrame(), VariableMode.RETURN_NULL_ON_NOT_FOUND) != null) {
-            
-                int parameterValue = StackContext.evaluateStatic(parameterSpecification, Integer.class,
+                
+                int valueOnStack = StackContext.evaluateStatic(parameterSpecification, Integer.class,
                     this.context.getStack().currentStackFrame());
             
             
                 //TODO delete later
-                System.out.println(parameterValue);
-                System.out.println(Integer.parseInt(premise.getSpecification()));
-    
+                System.out.println(valueOnStack);
+                System.out.println(premiseValue);
                 
-                if(parameterValue <= Integer.parseInt(premise.getSpecification())) {
-                    
-                    //TODO wenn kleiner, dann Fehlerhistorie anlegen (Identifikation des Qualitygates?
-                    
-                    //TODO delete later
-                    System.out.println("kleiner");
-                    
+                //Distinguishing between Operators
+                
+                switch(operator) {
+                
+                case "<": 
+                    if(premiseValue < valueOnStack) {
+                        
+                        //TODO wenn kleiner, dann Fehlerhistorie anlegen (Identifikation des Qualitygates?)
+                        
+                        //TODO als Methode auslagern
+                        
+                        //TODO delete later
+                        System.out.println("Breaking Qualitygate");
+                        
+                    }
+                    break;
                 }
+                
+                
+                
             
             }
         }

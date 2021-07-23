@@ -9,8 +9,6 @@ import org.palladiosimulator.simulizar.interpreter.RDSeffSwitch;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.StereotypeComposedStructureInnerSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.StereotypeQualitygateSwitch;
-//import org.palladiosimulator.simulizar.interpreter.StereotypeQualitygateSwitch;
-import org.palladiosimulator.simulizar.interpreter.StereotypeSwitch;
 import org.palladiosimulator.simulizar.interpreter.impl.ExtensibleComposedRDSeffSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.impl.ExtensibleStereotypeComposedStructureInnerSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
@@ -44,11 +42,6 @@ public interface CoreSimulatedThreadBindings {
     @Binds
     @SimulatedThreadScope
     StereotypeComposedStructureInnerSwitchFactory bindStereotypeComposedStructureInnerSwitchFactory(ExtensibleStereotypeComposedStructureInnerSwitchFactory impl);
-    
-//    //Test, StereotypeSwitch zu StereotypeQualityGateSwitch binden
-//    @Binds
-//    @SimulatedThreadScope
-//    StereotypeSwitch bindStereotypeQualitygateSwitch(StereotypeQualitygateSwitch impl);
 
     
     @Provides
