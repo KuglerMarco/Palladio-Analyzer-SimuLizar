@@ -23,6 +23,7 @@ import dagger.assisted.AssistedInject;
 import de.uka.ipd.sdq.simucomframework.variables.StackContext;
 import de.uka.ipd.sdq.simucomframework.variables.exceptions.ValueNotInFrameException;
 import de.uka.ipd.sdq.simucomframework.variables.stackframe.SimulatedStackframe;
+import de.uka.ipd.sdq.simucomframework.variables.stoexvisitor.VariableMode;
 
 /**
  * Switch processing the Qualitygate-Stereotype
@@ -51,7 +52,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     /*
      * Qualitygate-Information
      */
-    Scope scope = null;
+    Scope qualitygateScope = null;
     PCMRandomVariable premise = null;
     //Request or Response-Processing?
     CallScope callScope = CallScope.REQUEST;
@@ -80,7 +81,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         interpreterResult = InterpreterResult.OK;
         
         //Initializing the Qualitygate-Information
-        scope = object.getScope();
+        qualitygateScope = object.getScope();
         premise = object.getPremise();
         
         //TODO delete later
@@ -99,27 +100,50 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         interpreterResult = InterpreterResult.OK;
         SimulatedStackframe<Object> stack = context.getStack().currentStackFrame();
         
-        //TODO Vergleich Parameter Spezifikation und Wert mit Stack
-        if(scope.equals(CallScope.REQUEST)) {
-            
-            for (Entry<String, Object> e : this.context.getStack().currentStackFrame().getContents()) {
-                
-                
-                System.out.println(e);
+        //Which Parameter?
+        String parameterSpecification = object.getParameterSpecification().getSpecification();
+        
+        //Checking the processing time of the Qualitygate: Request or Response?
+        if(callScope.equals(CallScope.REQUEST)) {
             
             
-          final int numberOfLoops = StackContext.evaluateStatic("file.BYTESIZE", Integer.class,
+            //Checking whether Parameter is on Stack 
+            //TODO nicht optimal, dass 0 dafür verwendet wird, dass Parameter nicht auf Stack (NULL-Mode Bug - StackContext debuggen?)
+            if(StackContext.evaluateStatic(parameterSpecification,
+                this.context.getStack().currentStackFrame(), VariableMode.RETURN_NULL_ON_NOT_FOUND) != null) {
+            
+                int parameterValue = StackContext.evaluateStatic(parameterSpecification, Integer.class,
                     this.context.getStack().currentStackFrame());
-//            
-//            System.out.println(numberOfLoops);
+            
+            
+                //TODO delete later
+                System.out.println(parameterValue);
+                System.out.println(Integer.parseInt(premise.getSpecification()));
+    
+                
+                if(parameterValue <= Integer.parseInt(premise.getSpecification())) {
+                    
+                    //TODO wenn kleiner, dann Fehlerhistorie anlegen (Identifikation des Qualitygates?
+                    
+                    //TODO delete later
+                    System.out.println("kleiner");
+                    
+                }
+            
             }
         }
         
         
+        //TODO delete later
+//        if(scope.equals(CallScope.REQUEST)) {
+//            
+//            for (Entry<String, Object> e : this.context.getStack().currentStackFrame().getContents()) {
+//            
+////            System.out.println(numberOfLoops);
+//            }
+//        }
         
-        
-        
-        
+
         
         return interpreterResult;
         
