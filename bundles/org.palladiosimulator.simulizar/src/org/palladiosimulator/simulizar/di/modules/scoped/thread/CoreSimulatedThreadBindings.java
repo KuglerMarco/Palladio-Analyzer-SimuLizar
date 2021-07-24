@@ -16,6 +16,7 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerge
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.impl.NoIssuesHandler;
 import org.palladiosimulator.simulizar.scopes.SimulatedThreadScope;
+import org.palladiosimulator.simulizar.interpreter.result.impl.QualitygateInterpreterResultMerger;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -33,7 +34,7 @@ public interface CoreSimulatedThreadBindings {
     
     @Binds
     @SimulatedThreadScope
-    InterpreterResultMerger bindResultMerger(BasicInterpreterResultMerger impl);
+    InterpreterResultMerger bindResultMerger(QualitygateInterpreterResultMerger impl);
     
     @Binds
     @SimulatedThreadScope

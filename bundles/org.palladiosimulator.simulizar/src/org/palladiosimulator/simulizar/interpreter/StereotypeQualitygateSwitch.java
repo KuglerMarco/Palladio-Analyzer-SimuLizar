@@ -1,6 +1,8 @@
 package org.palladiosimulator.simulizar.interpreter;
 
 
+import java.util.Iterator;
+
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
@@ -13,6 +15,10 @@ import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchContributionFactory.ComposedStructureInnerSwitchElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
+import org.palladiosimulator.simulizar.interpreter.result.ParameterIssue;
+import org.palladiosimulator.simulizar.interpreter.result.QualitygateIssue;
+import org.palladiosimulator.simulizar.interpreter.result.impl.QualitygateInterpreterResult;
+import org.palladiosimulator.simulizar.interpreter.result.impl.QualitygateInterpreterResultMerger;
 import org.modelversioning.emfprofile.Stereotype;
 
 import dagger.assisted.Assisted;
@@ -39,18 +45,16 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     //TODO Deklarationen richtig
     public final String stereotypeName = "QualitygateElement";
     final InterpreterDefaultContext context;
-    final ComposedStructureInnerSwitchElementDispatcher parentSwitch;
+    final ComposedStructureInnerSwitchElementDispatcher parentSwitch; //TODO brauch ich nicht
     final Signature operationSignature;
     final RequiredRole requiredRole;
-    
-    InterpreterResult interpreterResult = InterpreterResult.OK;
     
     /*
      * Qualitygate-Information
      */
     Scope qualitygateScope = null;
     PCMRandomVariable premise = null;
-    //Request or Response-Processing?
+    //Request or Response-Processing
     CallScope callScope = CallScope.REQUEST;
     
     
@@ -74,8 +78,6 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     @Override
     public InterpreterResult caseQualityGate(QualityGate object) {
         
-        interpreterResult = InterpreterResult.OK;
-        
         //Initializing the Qualitygate-Information
         qualitygateScope = object.getScope();
         premise = object.getPremise();
@@ -84,16 +86,13 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         System.out.println("Qualitygate erkannt.");
         System.out.println(premise.getSpecification());
         
-        interpreterResult = this.doSwitch(object.getScope());
+        return this.doSwitch(object.getScope());
 
-        return interpreterResult;
     }
     
     
     @Override
     public InterpreterResult caseRequestParameterScope(RequestParameterScope object) {
-        
-        interpreterResult = InterpreterResult.OK;
         
         String[] splittedParameter = premise.getSpecification().split(" ");
         
@@ -105,7 +104,8 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         if(callScope.equals(CallScope.REQUEST)) {
             
             
-            //Checking whether Parameter is on Stack 
+            //Checking whether Parameter is on Stack
+            //TODO .getValue benutzen?
             if(StackContext.evaluateStatic(parameterSpecification,
                 this.context.getStack().currentStackFrame(), VariableMode.RETURN_NULL_ON_NOT_FOUND) != null) {
                 
@@ -118,7 +118,6 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
                 System.out.println(premiseValue);
                 
                 //Distinguishing between Operators
-                
                 switch(operator) {
                 
                 case "<": 
@@ -130,6 +129,10 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
                         
                         //TODO delete later
                         System.out.println("Breaking Qualitygate");
+                        
+                        return QualitygateInterpreterResult.of(new ParameterIssue(premise, callScope, valueOnStack));
+                        
+                        
                         
                     }
                     break;
@@ -153,7 +156,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         
 
         
-        return interpreterResult;
+        return InterpreterResult.OK;
         
     }
     
@@ -182,11 +185,20 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         //Getting the Qualitygate-Element from the Stereotype
         EList<EObject> taggedValues = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
         
-        if(!taggedValues.get(0).equals(null)) {
-            return this.doSwitch(taggedValues.get(0));
+        if(taggedValues.get(0) != null) {
+            InterpreterResult result = this.doSwitch(taggedValues.get(0));
+//            if(result instanceof QualitygateInterpreterResult) {
+//
+//                for (QualitygateIssue e : ((QualitygateInterpreterResult) result).getQualitygateIssues()) {
+//                    System.out.println("Premise is " + e.getPremise().getSpecification());
+//                }
+//                System.out.println(((QualitygateInterpreterResult) result).getQualitygateIssues().iterator());
+//            }
+//            
+            return result;
         }
 
-        return interpreterResult;
+        return InterpreterResult.OK;
     }
     
     
