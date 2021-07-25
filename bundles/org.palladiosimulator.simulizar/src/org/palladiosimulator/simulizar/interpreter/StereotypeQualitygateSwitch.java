@@ -2,20 +2,23 @@ package org.palladiosimulator.simulizar.interpreter;
 
 
 
+import java.util.ArrayList;
+
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.failuremodel.qualitygate.RequestParameterScope;
-import org.palladiosimulator.failuremodel.qualitygate.Scope;
+import org.palladiosimulator.failuremodel.qualitygate.ResultParameterScope;
 import org.palladiosimulator.failuremodel.qualitygate.util.QualitygateSwitch;
 import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
-import org.palladiosimulator.pcm.repository.RequiredRole;
-import org.palladiosimulator.pcm.repository.Signature;
-import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.ParameterIssue;
+import org.palladiosimulator.simulizar.interpreter.result.QualitygateIssue;
 import org.palladiosimulator.simulizar.interpreter.result.impl.QualitygateInterpreterResult;
+
+import com.google.common.collect.Lists;
+
 import org.modelversioning.emfprofile.Stereotype;
 
 import dagger.assisted.Assisted;
@@ -38,18 +41,13 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         StereotypeQualitygateSwitch createStereotypeSwitch(final InterpreterDefaultContext context);
     }
     
-    //TODO Deklarationen richtig
     private final String stereotypeName = "QualitygateElement";
     private final String profileName = "QualitygateProfile";
-    final InterpreterDefaultContext context;
+    private final InterpreterDefaultContext context;
     
-    /*
-     * Qualitygate-Information
-     */
-    Scope qualitygateScope = null;
-    PCMRandomVariable premise = null;
-    //Request or Response-Processing
-    CallScope callScope = CallScope.REQUEST;
+    
+    private PCMRandomVariable premise = null;
+    private CallScope callScope = CallScope.REQUEST;
     
     
     @AssistedInject
@@ -68,7 +66,6 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     public InterpreterResult caseQualityGate(QualityGate object) {
         
         //Initializing the Qualitygate-Information
-        qualitygateScope = object.getScope();
         premise = object.getPremise();
         
         //TODO delete later
@@ -80,6 +77,9 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     }
     
     
+    /**
+     * Checking the values on the parameter-stack against the premise-specification within the Qualitygate.
+     */
     @Override
     public InterpreterResult caseRequestParameterScope(RequestParameterScope object) {
         
@@ -89,61 +89,108 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         String operator = splittedParameter[1];
         int premiseValue = Integer.parseInt(splittedParameter[2]);
         
-        //Checking the processing time of the Qualitygate: Request or Response?
         if(callScope.equals(CallScope.REQUEST)) {
+            InterpreterResult result = this.checkParameterOnStack(parameterSpecification, operator, premiseValue);
             
-            
-            //Checking whether Parameter is on Stack
-            //TODO .getValue benutzen?
-            if(StackContext.evaluateStatic(parameterSpecification,
-                this.context.getStack().currentStackFrame(), VariableMode.RETURN_NULL_ON_NOT_FOUND) != null) {
-                
-                int valueOnStack = StackContext.evaluateStatic(parameterSpecification, Integer.class,
-                    this.context.getStack().currentStackFrame());
-            
-            
-                //TODO delete later
-                System.out.println(valueOnStack);
-                System.out.println(premiseValue);
-                
-                //Distinguishing between Operators
-                switch(operator) {
-                
-                case "<": 
-                    if(premiseValue < valueOnStack) {
-                        
-                        //TODO wenn kleiner, dann Fehlerhistorie anlegen (welche Infos sind nötig?)
-                        
-                        //TODO delete later
-                        System.out.println("Breaking Qualitygate");
-                        
-                        return QualitygateInterpreterResult.of(new ParameterIssue(premise, callScope, valueOnStack));
-                        
-                        
-                        
-                    }
-                    break;
-                }
-                
-                
-                
-            
+            //TODO delete later
+            if(result instanceof QualitygateInterpreterResult) {
+                ArrayList<QualitygateIssue> list = Lists.newArrayList(((QualitygateInterpreterResult) result).getQualitygateIssues());
+                System.out.println("Liste beinhaltet:" + ((ParameterIssue) list.get(0)).getValueOnStack());
             }
+            
+            return result;
         }
-        
-        
-        //TODO delete later
-//        if(scope.equals(CallScope.REQUEST)) {
-//            
-//            for (Entry<String, Object> e : this.context.getStack().currentStackFrame().getContents()) {
-//            
-////            System.out.println(numberOfLoops);
-//            }
-//        }
-        
-
-        
         return InterpreterResult.OK;
+     
+    }
+    
+    /**
+     * Checking the values on the parameter-stack against the premise-specification within the Qualitygate.
+     */
+    @Override
+    public InterpreterResult caseResultParameterScope(ResultParameterScope object) {
+        
+        String[] splittedParameter = premise.getSpecification().split(" ");
+        
+        String parameterSpecification = splittedParameter[0];
+        String operator = splittedParameter[1];
+        int premiseValue = Integer.parseInt(splittedParameter[2]);
+        
+        if(callScope.equals(CallScope.RESPONSE)) {
+            return this.checkParameterOnStack(parameterSpecification, operator, premiseValue);
+        }
+        return InterpreterResult.OK;
+        
+    }
+    
+    
+    
+    /**
+     * Checks the premise against the values of parameter on stack.
+     * 
+     * @param parameterSpecification
+     *          Parameter which needs to be checked on stack
+     * @param operator
+     * @param premiseValue
+     * @return
+     */
+    public InterpreterResult checkParameterOnStack(String parameterSpecification, String operator, int premiseValue) {
+        
+            
+            
+        //Checking whether Parameter is on Stack
+        if(StackContext.evaluateStatic(parameterSpecification,
+                this.context.getStack().currentStackFrame(), VariableMode.RETURN_NULL_ON_NOT_FOUND) != null) {
+                        
+            int valueOnStack = StackContext.evaluateStatic(parameterSpecification, Integer.class,
+                    this.context.getStack().currentStackFrame());
+                        
+            //Distinguishing between Operators
+            switch(operator) {
+                
+            case "<": 
+                if(valueOnStack >= premiseValue) {
+                    return QualitygateInterpreterResult.of(new ParameterIssue(premise, callScope, valueOnStack));
+
+                }
+                break;
+                    
+            case "<=":
+                if(valueOnStack > premiseValue) {
+                    return QualitygateInterpreterResult.of(new ParameterIssue(premise, callScope, valueOnStack));
+
+                }
+                break;
+                    
+            case "=":    
+                if(valueOnStack != premiseValue) {
+                    return QualitygateInterpreterResult.of(new ParameterIssue(premise, callScope, valueOnStack));
+
+                }
+                break;
+                    
+            case ">":    
+                if(valueOnStack <= premiseValue) {  
+                    return QualitygateInterpreterResult.of(new ParameterIssue(premise, callScope, valueOnStack));
+
+                }
+                break;
+                    
+            case ">=":    
+                if(valueOnStack < premiseValue) {
+                    return QualitygateInterpreterResult.of(new ParameterIssue(premise, callScope, valueOnStack));
+
+                }
+                break;
+            }
+                
+                
+                
+            
+        } 
+
+        return InterpreterResult.OK;
+        
         
     }
     
@@ -170,14 +217,16 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     @Override
     public InterpreterResult handleStereotype(Stereotype stereotype, EObject theEObject, CallScope callScope) {
         
+        
         //Call- or Return-Processing ?
         this.callScope = callScope;
         
         //Getting the Qualitygate-Element from the Stereotype
         EList<EObject> taggedValues = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
-        
-        if(taggedValues.get(0) != null) {
-            InterpreterResult result = this.doSwitch(taggedValues.get(0));
+
+        return this.doSwitch(taggedValues.get(0));
+            
+
 //            if(result instanceof QualitygateInterpreterResult) {
 //
 //                for (QualitygateIssue e : ((QualitygateInterpreterResult) result).getQualitygateIssues()) {
@@ -186,10 +235,8 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
 //                System.out.println(((QualitygateInterpreterResult) result).getQualitygateIssues().iterator());
 //            }
 //            
-            return result;
-        }
 
-        return InterpreterResult.OK;
+
     }
     
     

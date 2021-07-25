@@ -10,12 +10,21 @@ import org.palladiosimulator.simulizar.interpreter.result.QualitygateIssue;
 
 import com.google.common.collect.ImmutableList;
 
+/**
+ * Traces beside the InterpretationIssues also the QualitygateIssues within a simulation run.
+ * 
+ * @author Marco Kugler
+ *
+ */
 public class QualitygateInterpreterResult implements InterpreterResult {
 
     List<InterpretationIssue> issues;
     
-    //List of broken Qualitygates in this simulation run
+    /**
+     * List of broken Qualitygates in this simulation run
+     */
     List<QualitygateIssue> qualitygateIssues;
+    
     
     QualitygateInterpreterResult(){
         issues = new ArrayList<>();

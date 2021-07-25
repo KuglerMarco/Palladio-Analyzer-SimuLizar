@@ -6,7 +6,7 @@ import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 
 /**
- * Factory for the StereotypeDispatchSwitch.
+ * Factory for the superior StereotypeDispatchSwitch.
  * 
  * @author Marco Kugler
  *

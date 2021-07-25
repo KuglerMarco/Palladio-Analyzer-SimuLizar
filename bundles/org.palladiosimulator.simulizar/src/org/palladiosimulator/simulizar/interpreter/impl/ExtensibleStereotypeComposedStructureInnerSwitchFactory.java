@@ -16,6 +16,12 @@ import org.palladiosimulator.simulizar.interpreter.StereotypeDispatchComposedStr
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 
 
+/**
+ * Factory for the StereotypeDispatchComposedStructureInnerSwitch.
+ * 
+ * @author Marco Kugler
+ *
+ */
 public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
         implements StereotypeComposedStructureInnerSwitchFactory {
 

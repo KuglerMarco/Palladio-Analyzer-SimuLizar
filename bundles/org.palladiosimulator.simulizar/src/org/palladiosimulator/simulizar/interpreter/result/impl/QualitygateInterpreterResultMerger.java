@@ -1,6 +1,5 @@
 package org.palladiosimulator.simulizar.interpreter.result.impl;
 
-import java.util.ArrayList;
 
 import javax.inject.Inject;
 
@@ -9,6 +8,12 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerge
 
 import com.google.common.collect.Iterables;
 
+/**
+ * Merger for QualitygateInterpreterResults.
+ * 
+ * @author Marco Kugler
+ *
+ */
 public class QualitygateInterpreterResultMerger implements InterpreterResultMerger {
 
     @Inject
@@ -16,6 +21,9 @@ public class QualitygateInterpreterResultMerger implements InterpreterResultMerg
         
     }
     
+    /**
+     * Merges beside the InterpreterIssues, also the QualitygateIssues.
+     */
     @Override
     public InterpreterResult merge(InterpreterResult previousResult, InterpreterResult newResult) {
         

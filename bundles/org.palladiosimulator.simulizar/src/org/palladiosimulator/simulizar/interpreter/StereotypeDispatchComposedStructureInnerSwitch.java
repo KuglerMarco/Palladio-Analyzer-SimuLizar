@@ -47,7 +47,7 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
     protected static CompositionPackage modelPackage;
     
     
-    NoIssuesHandler handler = new NoIssuesHandler();
+    private NoIssuesHandler handler = new NoIssuesHandler();
     
     
     /**

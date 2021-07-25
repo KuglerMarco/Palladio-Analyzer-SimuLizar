@@ -1,38 +1,36 @@
 package org.palladiosimulator.simulizar.interpreter.result;
 
-import org.palladiosimulator.pcm.core.PCMRandomVariable;
+import org.eclipse.emf.ecore.EObject;
 import org.palladiosimulator.simulizar.interpreter.CallScope;
 
 public class ParameterIssue implements QualitygateIssue {
     
     
 
-    PCMRandomVariable premise;
-    CallScope callScope;
-    int stackValue;
+    private final EObject stereotypedObject;
+    private final CallScope callScope;
+    private final int valueOnStack;
     
     
-    
-    
-    
-    
-    public ParameterIssue(PCMRandomVariable premise, CallScope callScope, int stackValue) {
+    public ParameterIssue(EObject stereotypedObject, CallScope callScope, int valueOnStack) {
         
-        this.premise = premise;
+        this.stereotypedObject = stereotypedObject;
         this.callScope = callScope;
-        this.stackValue = stackValue;
-        
-        
+        this.valueOnStack = valueOnStack;
+
     }
 
 
+    public EObject getStereotypedObject() {
+        return stereotypedObject;
+    }
 
+    public CallScope getCallScope() {
+        return callScope;
+    }
+    
 
-
-
-    @Override
-    public PCMRandomVariable getPremise() {
-        // TODO Auto-generated method stub
-        return premise;
+    public int getValueOnStack() {
+        return valueOnStack;
     }
 }
