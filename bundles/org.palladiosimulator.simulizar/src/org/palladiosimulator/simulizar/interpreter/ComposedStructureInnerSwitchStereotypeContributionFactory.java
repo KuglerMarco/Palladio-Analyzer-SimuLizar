@@ -2,6 +2,8 @@ package org.palladiosimulator.simulizar.interpreter;
 
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
+import org.palladiosimulator.pcm.repository.RequiredRole;
+import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.simulizar.di.extension.Extension;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 
@@ -30,7 +32,8 @@ public interface ComposedStructureInnerSwitchStereotypeContributionFactory exten
      *              Default context for the PCM-interpreter.
      * @return StereotypeSwitch
      */
-    public StereotypeSwitch createStereotypeSwitch(final InterpreterDefaultContext context);
+    public StereotypeSwitch createStereotypeSwitch(final InterpreterDefaultContext context, Signature operationSignature,
+            RequiredRole requiredRole);
     
     
     

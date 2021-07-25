@@ -9,9 +9,4 @@ package org.palladiosimulator.simulizar.interpreter.result;
  *
  */
 public interface QualitygateIssue {
-    
-
-    
-    
-
 }

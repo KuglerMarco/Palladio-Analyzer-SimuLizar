@@ -12,6 +12,8 @@ import org.palladiosimulator.failuremodel.qualitygate.ResultParameterScope;
 import org.palladiosimulator.failuremodel.qualitygate.util.QualitygateSwitch;
 import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
+import org.palladiosimulator.pcm.repository.RequiredRole;
+import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.ParameterIssue;
 import org.palladiosimulator.simulizar.interpreter.result.QualitygateIssue;
@@ -38,12 +40,15 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     @AssistedFactory
     public interface Factory extends ComposedStructureInnerSwitchStereotypeContributionFactory {
         @Override
-        StereotypeQualitygateSwitch createStereotypeSwitch(final InterpreterDefaultContext context);
+        StereotypeQualitygateSwitch createStereotypeSwitch(final InterpreterDefaultContext context, Signature operationSignature,
+                RequiredRole requiredRole);
     }
     
     private final String stereotypeName = "QualitygateElement";
     private final String profileName = "QualitygateProfile";
     private final InterpreterDefaultContext context;
+    private final Signature operationSignature;
+    private final RequiredRole requiredRole;
     
     
     private PCMRandomVariable premise = null;
@@ -51,9 +56,11 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     
     
     @AssistedInject
-    StereotypeQualitygateSwitch(@Assisted final InterpreterDefaultContext context){
+    StereotypeQualitygateSwitch(@Assisted final InterpreterDefaultContext context, @Assisted Signature operationSignature, @Assisted RequiredRole requiredRole){
         
         this.context = context;
+        this.operationSignature = operationSignature;
+        this.requiredRole = requiredRole;
         
         
     }
@@ -83,13 +90,16 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     @Override
     public InterpreterResult caseRequestParameterScope(RequestParameterScope object) {
         
+        Signature signatureOfQualitygate = object.getSignature();
+        
         String[] splittedParameter = premise.getSpecification().split(" ");
         
         String parameterSpecification = splittedParameter[0];
         String operator = splittedParameter[1];
         int premiseValue = Integer.parseInt(splittedParameter[2]);
         
-        if(callScope.equals(CallScope.REQUEST)) {
+        
+        if(callScope.equals(CallScope.REQUEST) && (signatureOfQualitygate == this.operationSignature)) {
             InterpreterResult result = this.checkParameterOnStack(parameterSpecification, operator, premiseValue);
             
             //TODO delete later
