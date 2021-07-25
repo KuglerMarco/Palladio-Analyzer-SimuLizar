@@ -20,7 +20,7 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
         implements StereotypeComposedStructureInnerSwitchFactory {
 
     /**
-     * Includes the registered ComposedStructureInnerSwitchContributionFactory by Dagger.
+     * Includes the registered ComposedStructureInnerSwitchContributionFactorys
      */
     private final Provider<Set<ComposedStructureInnerSwitchStereotypeContributionFactory>> elementFactoriesProvider;
     
@@ -29,12 +29,7 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
      */
     private final ComposedStructureInnerSwitch.Factory composedStructureInnerSwitchFactory;
 
-    /**
-     * Dagger creates the set of ComposedStructureInnerSwitchContributionFactorys and the ComposedStructureInnerSwitch.
-     * 
-     * @param elementFactoriesProvider
-     * @param composedStructureInnerSwitchFactory
-     */
+
     @Inject
     public ExtensibleStereotypeComposedStructureInnerSwitchFactory(Provider<Set<ComposedStructureInnerSwitchStereotypeContributionFactory>> elementFactoriesProvider, ComposedStructureInnerSwitch.Factory composedStructureInnerSwitchFactory) {
         this.composedStructureInnerSwitchFactory = composedStructureInnerSwitchFactory;
@@ -44,23 +39,23 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
     
     
     /**
-     * Creates the ComposedStructureInnerSwitch.
+     * Creates the StereotypeDispatchComposedStructureInnerSwitch.
      */
     @Override
     public Switch<InterpreterResult> create(InterpreterDefaultContext context, final Signature operationSignature,
             final RequiredRole requiredRole) {
         
         //TODO Factory?
-        final  StereotypeDispatchComposedStructureInnerSwitch interpreter = new StereotypeDispatchComposedStructureInnerSwitch(context);
+        StereotypeDispatchComposedStructureInnerSwitch interpreter = new StereotypeDispatchComposedStructureInnerSwitch(context);
         
         interpreter.setDefaultSwitch(composedStructureInnerSwitchFactory.create(context, operationSignature, requiredRole, interpreter));
         
         var elementFactories = elementFactoriesProvider.get();
         if (elementFactories.isEmpty()) {
-            throw new IllegalStateException("No ComposedStructureInnerSwitches are registered.");
+            throw new IllegalStateException("No StereotypeSwitches for ComposedStructures are registered.");
         }
         elementFactories.stream().forEach(s -> interpreter.addSwitch(
-                s.createComposedStructureInnerSwitch(context, interpreter, operationSignature, requiredRole)));
+                s.createStereotypeSwitch(context)));
         
         return interpreter;
     }

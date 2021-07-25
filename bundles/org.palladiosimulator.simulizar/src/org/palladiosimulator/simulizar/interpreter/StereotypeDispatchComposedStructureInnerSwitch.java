@@ -15,9 +15,11 @@ import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
 import org.palladiosimulator.pcm.core.composition.CompositionPackage;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
+import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
+import org.palladiosimulator.simulizar.interpreter.result.impl.NoIssuesHandler;
 
 /**
- * Dispatch for handling the Stereotypes attached to System-Model.
+ * Dispatch for handling the Stereotypes attached to Composed Structure.
  * 
  * @author Marco Kugler
  *
@@ -45,6 +47,9 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
     protected static CompositionPackage modelPackage;
     
     
+    NoIssuesHandler handler = new NoIssuesHandler();
+    
+    
     /**
      * Creates instance.
      */
@@ -68,8 +73,7 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
     
     
     /**
-     * Calls first the Stereotype-Switches for the Stereotypes attached to the element.
-     * Then calls the default ComposedStructureInnerSwitch.
+     * Processes attached stereotype before and after calling the ComposedStructureInnerSwitch (Request- and Response-Scope)
      */
     @Override
     public InterpreterResult doSwitch(EClass theEClass, EObject theEObject) {
@@ -80,13 +84,15 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
         //Stereotype-Handling in Request-Scope
         interpreterResult = this.handleAttachedStereotypes(theEObject, CallScope.REQUEST);
         
-
-        //Default-Switch
-        interpreterResult = composedStructureInnerSwitch.doSwitch(theEObject);
+        if(handler.handleIssues(interpreterResult).equals(InterpreterResumptionPolicy.CONTINUE)) {
+            //Default-Switch
+            interpreterResult = composedStructureInnerSwitch.doSwitch(theEObject);
+        }
         
-        
-        //Stereotype-Handling in Response-Scope
-        interpreterResult = this.handleAttachedStereotypes(theEObject, CallScope.RESPONSE);
+        if(handler.handleIssues(interpreterResult).equals(InterpreterResumptionPolicy.CONTINUE)) {
+            //Stereotype-Handling in Response-Scope
+            interpreterResult = this.handleAttachedStereotypes(theEObject, CallScope.RESPONSE);
+        }
         
         
         
@@ -95,23 +101,38 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
     }
     
     
+    /**
+     * Searches and calls the registered StereotypeSwitches for the attached Stereotypes
+     * 
+     * @param theEObject
+     *          The EObject to be analysed.
+     * @param callScope
+     *          Request-Scope or Response-Scope
+     * @return
+     */
     public InterpreterResult handleAttachedStereotypes(EObject theEObject, CallScope callScope) {
         
         InterpreterResult interpreterResult = InterpreterResult.OK;
         
-        //Handling the Stereotypes (Request)
+        
         if(StereotypeAPI.hasStereotypeApplications(theEObject)) {
             
             EList<Stereotype> appliedStereotypes = StereotypeAPI.getAppliedStereotypes(theEObject);
+            
             
             for(Stereotype stereotype : appliedStereotypes) {
                 
                 if(this.isSwitchRegistered(stereotype)) {
                     
-                    StereotypeQualitygateSwitch delegate = (StereotypeQualitygateSwitch) this.findDelegate(stereotype);
+                    StereotypeSwitch delegate = this.findDelegate(stereotype);
                     interpreterResult = delegate.handleStereotype(stereotype, theEObject, callScope);
                     
                 } 
+                
+                
+                if(handler.handleIssues(interpreterResult).equals(InterpreterResumptionPolicy.ABORT)) {
+                    break;
+                }
             }
         }
         
@@ -122,7 +143,7 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
 
     
     /**
-     * Checks whether there's any registered StereotypeSwitch for this Stereotype.
+     * Checks whether there's any StereotypeSwitch for this Stereotype registered.
      * 
      * @param stereotype
      *              Stereotype, for which it needs to find a StereotypeSwitch
@@ -138,8 +159,10 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
     
     /**
      * Checks whether this is a switch for given package.
-     * @param ePackage the package in question.
-     * @return whether this is a switch for the given package.
+     * 
+     * @param ePackage 
+     *              The package in question.
+     * @return Boolean, whether this is a switch for the given package.
      */
     @Override
     protected boolean isSwitchFor(EPackage ePackage) {

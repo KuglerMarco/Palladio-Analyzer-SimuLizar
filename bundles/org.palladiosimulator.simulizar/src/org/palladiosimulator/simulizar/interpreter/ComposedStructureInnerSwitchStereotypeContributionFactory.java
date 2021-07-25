@@ -7,6 +7,12 @@ import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.simulizar.di.extension.Extension;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 
+/**
+ * Interface to contribute StereotypeSwitches to handle attached Stereotypes to the ComposedStructure-elements.
+ * 
+ * @author Marco Kugler
+ *
+ */
 public interface ComposedStructureInnerSwitchStereotypeContributionFactory extends Extension {
     
     
@@ -21,16 +27,16 @@ public interface ComposedStructureInnerSwitchStereotypeContributionFactory exten
     
     /**
      * 
+     * 
      * @param context
-     *              Default context for the pcm interpreter.
+     *              Default context for the PCM-interpreter.
      * @param basicComponentInstance
      *              Simulated component
      * @param parentSwitch
-     *              The composed switch which is containing the created switch
-     * @return a composable switch
+     *              The Dispatch-Switch which is containing the created switch
+     * @return StereotypeSwitch
      */
-    public StereotypeSwitch createComposedStructureInnerSwitch(final InterpreterDefaultContext context, final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch, final Signature operationSignature,
-            final RequiredRole requiredRole);
+    public StereotypeSwitch createStereotypeSwitch(final InterpreterDefaultContext context);
     
     
     

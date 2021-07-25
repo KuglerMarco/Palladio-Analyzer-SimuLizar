@@ -5,6 +5,12 @@ import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 
+/**
+ * Factory for the StereotypeDispatchSwitch.
+ * 
+ * @author Marco Kugler
+ *
+ */
 public interface StereotypeComposedStructureInnerSwitchFactory {
 
     

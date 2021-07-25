@@ -1,7 +1,6 @@
 package org.palladiosimulator.simulizar.interpreter;
 
 
-import java.util.Iterator;
 
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
@@ -16,9 +15,7 @@ import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.ParameterIssue;
-import org.palladiosimulator.simulizar.interpreter.result.QualitygateIssue;
 import org.palladiosimulator.simulizar.interpreter.result.impl.QualitygateInterpreterResult;
-import org.palladiosimulator.simulizar.interpreter.result.impl.QualitygateInterpreterResultMerger;
 import org.modelversioning.emfprofile.Stereotype;
 
 import dagger.assisted.Assisted;
@@ -38,16 +35,13 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     @AssistedFactory
     public interface Factory extends ComposedStructureInnerSwitchStereotypeContributionFactory {
         @Override
-        StereotypeQualitygateSwitch createComposedStructureInnerSwitch(final InterpreterDefaultContext context, final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch, final Signature operationSignature,
-                final RequiredRole requiredRole);
+        StereotypeQualitygateSwitch createStereotypeSwitch(final InterpreterDefaultContext context);
     }
     
     //TODO Deklarationen richtig
-    public final String stereotypeName = "QualitygateElement";
+    private final String stereotypeName = "QualitygateElement";
+    private final String profileName = "QualitygateProfile";
     final InterpreterDefaultContext context;
-    final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch; //TODO brauch ich nicht
-    final Signature operationSignature;
-    final RequiredRole requiredRole;
     
     /*
      * Qualitygate-Information
@@ -59,15 +53,10 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     
     
     @AssistedInject
-    StereotypeQualitygateSwitch(@Assisted final InterpreterDefaultContext context, @Assisted final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch, @Assisted final Signature operationSignature,
-            @Assisted final RequiredRole requiredRole){
+    StereotypeQualitygateSwitch(@Assisted final InterpreterDefaultContext context){
         
         this.context = context;
         
-        //TODO Nötig?
-        this.parentSwitch = parentSwitch;
-        this.operationSignature = operationSignature;
-        this.requiredRole = requiredRole;
         
     }
     
@@ -166,7 +155,11 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     @Override
     public boolean isSwitchForStereotype(Stereotype stereotype) {
         
-        return stereotype.getName().equals(stereotypeName);
+        boolean result = stereotype.getProfile().getName().equals(profileName);
+        if(result) {
+            return stereotype.getName().equals(stereotypeName);
+        }
+        return result;
         
     }
     
