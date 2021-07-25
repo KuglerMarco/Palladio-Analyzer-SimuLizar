@@ -13,7 +13,7 @@ import org.eclipse.emf.ecore.util.Switch;
 import org.modelversioning.emfprofile.Stereotype;
 import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
 import org.palladiosimulator.pcm.core.composition.CompositionPackage;
-import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchContributionFactory.ComposedStructureInnerSwitchElementDispatcher;
+import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 
 /**
@@ -22,7 +22,7 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
  * @author Marco Kugler
  *
  */
-public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<InterpreterResult> implements ComposedStructureInnerSwitchElementDispatcher {
+public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<InterpreterResult> implements ComposedStructureInnerSwitchStereotypeElementDispatcher {
     
 
    

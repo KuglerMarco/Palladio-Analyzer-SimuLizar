@@ -17,7 +17,7 @@ import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
 import org.palladiosimulator.simulizar.entity.EntityReference;
 import org.palladiosimulator.simulizar.exceptions.PCMModelInterpreterException;
-import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchContributionFactory.ComposedStructureInnerSwitchElementDispatcher;
+import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.linking.ITransmissionInterpreter;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.runtimestate.FQComponentID;
@@ -40,7 +40,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
     @AssistedFactory
     public static interface Factory {
         ComposedStructureInnerSwitch create(final InterpreterDefaultContext context, final Signature operationSignature,
-                final RequiredRole requiredRole, ComposedStructureInnerSwitchElementDispatcher parentSwitch);
+                final RequiredRole requiredRole, ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch);
     }
 
     /**
@@ -58,7 +58,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
     private final ITransmissionInterpreter<EntityReference<ResourceContainer>, SimulatedStackframe<Object>, InterpreterDefaultContext> transmissionInterpreter;
     private final IAssemblyAllocationLookup<EntityReference<ResourceContainer>> resourceContainerLookup;
     private final StereotypeComposedStructureInnerSwitchFactory composedStructureSwitchFactory;
-    private final ComposedStructureInnerSwitchElementDispatcher parentSwitch;
+    private final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch;
 
     private final RepositoryComponentSwitch.Factory repositoryComponentSwitchFactory;
 
@@ -70,7 +70,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
             @Assisted final InterpreterDefaultContext context,
             @Assisted final Signature operationSignature,
             @Assisted final RequiredRole requiredRole,
-            @Assisted final ComposedStructureInnerSwitchElementDispatcher parentSwitch,
+            @Assisted final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch,
             ITransmissionInterpreter<EntityReference<ResourceContainer>, SimulatedStackframe<Object>, InterpreterDefaultContext> transmissionInterpreter,
             IAssemblyAllocationLookup<EntityReference<ResourceContainer>> resourceContainerLookup,
             StereotypeComposedStructureInnerSwitchFactory composedStructureSwitchFactory,

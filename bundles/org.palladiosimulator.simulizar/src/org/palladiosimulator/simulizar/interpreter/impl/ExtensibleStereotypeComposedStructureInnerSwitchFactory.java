@@ -9,7 +9,7 @@ import org.eclipse.emf.ecore.util.Switch;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitch;
-import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchContributionFactory;
+import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
 import org.palladiosimulator.simulizar.interpreter.StereotypeComposedStructureInnerSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.StereotypeDispatchComposedStructureInnerSwitch;
@@ -22,7 +22,7 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
     /**
      * Includes the registered ComposedStructureInnerSwitchContributionFactory by Dagger.
      */
-    private final Provider<Set<ComposedStructureInnerSwitchContributionFactory>> elementFactoriesProvider;
+    private final Provider<Set<ComposedStructureInnerSwitchStereotypeContributionFactory>> elementFactoriesProvider;
     
     /**
      * Factory for the default ComposedStructureInnerSwitch, which needs be set in the StereotypeDispatchComposedStructureInnerSwitch.
@@ -36,7 +36,7 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
      * @param composedStructureInnerSwitchFactory
      */
     @Inject
-    public ExtensibleStereotypeComposedStructureInnerSwitchFactory(Provider<Set<ComposedStructureInnerSwitchContributionFactory>> elementFactoriesProvider, ComposedStructureInnerSwitch.Factory composedStructureInnerSwitchFactory) {
+    public ExtensibleStereotypeComposedStructureInnerSwitchFactory(Provider<Set<ComposedStructureInnerSwitchStereotypeContributionFactory>> elementFactoriesProvider, ComposedStructureInnerSwitch.Factory composedStructureInnerSwitchFactory) {
         this.composedStructureInnerSwitchFactory = composedStructureInnerSwitchFactory;
         this.elementFactoriesProvider = elementFactoriesProvider;
     }

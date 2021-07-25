@@ -7,11 +7,11 @@ import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.simulizar.di.extension.Extension;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 
-public interface ComposedStructureInnerSwitchContributionFactory extends Extension {
+public interface ComposedStructureInnerSwitchStereotypeContributionFactory extends Extension {
     
     
     //TODO Refactor (Generalize)
-    public interface ComposedStructureInnerSwitchElementDispatcher {
+    public interface ComposedStructureInnerSwitchStereotypeElementDispatcher {
         InterpreterResult doSwitch(EClass theEClass, EObject theEObject);
         
         default InterpreterResult doSwitch(EObject theEObject) {
@@ -29,7 +29,7 @@ public interface ComposedStructureInnerSwitchContributionFactory extends Extensi
      *              The composed switch which is containing the created switch
      * @return a composable switch
      */
-    public StereotypeSwitch createComposedStructureInnerSwitch(final InterpreterDefaultContext context, final ComposedStructureInnerSwitchElementDispatcher parentSwitch, final Signature operationSignature,
+    public StereotypeSwitch createComposedStructureInnerSwitch(final InterpreterDefaultContext context, final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch, final Signature operationSignature,
             final RequiredRole requiredRole);
     
     

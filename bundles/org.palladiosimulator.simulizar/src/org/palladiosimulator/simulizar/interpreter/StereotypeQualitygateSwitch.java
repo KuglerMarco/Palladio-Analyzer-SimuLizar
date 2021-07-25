@@ -13,7 +13,7 @@ import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
-import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchContributionFactory.ComposedStructureInnerSwitchElementDispatcher;
+import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.ParameterIssue;
 import org.palladiosimulator.simulizar.interpreter.result.QualitygateIssue;
@@ -36,16 +36,16 @@ import de.uka.ipd.sdq.simucomframework.variables.stoexvisitor.VariableMode;
 public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterResult> implements StereotypeSwitch {
 
     @AssistedFactory
-    public interface Factory extends ComposedStructureInnerSwitchContributionFactory {
+    public interface Factory extends ComposedStructureInnerSwitchStereotypeContributionFactory {
         @Override
-        StereotypeQualitygateSwitch createComposedStructureInnerSwitch(final InterpreterDefaultContext context, final ComposedStructureInnerSwitchElementDispatcher parentSwitch, final Signature operationSignature,
+        StereotypeQualitygateSwitch createComposedStructureInnerSwitch(final InterpreterDefaultContext context, final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch, final Signature operationSignature,
                 final RequiredRole requiredRole);
     }
     
     //TODO Deklarationen richtig
     public final String stereotypeName = "QualitygateElement";
     final InterpreterDefaultContext context;
-    final ComposedStructureInnerSwitchElementDispatcher parentSwitch; //TODO brauch ich nicht
+    final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch; //TODO brauch ich nicht
     final Signature operationSignature;
     final RequiredRole requiredRole;
     
@@ -59,7 +59,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     
     
     @AssistedInject
-    StereotypeQualitygateSwitch(@Assisted final InterpreterDefaultContext context, @Assisted final ComposedStructureInnerSwitchElementDispatcher parentSwitch, @Assisted final Signature operationSignature,
+    StereotypeQualitygateSwitch(@Assisted final InterpreterDefaultContext context, @Assisted final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch, @Assisted final Signature operationSignature,
             @Assisted final RequiredRole requiredRole){
         
         this.context = context;
@@ -123,9 +123,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
                 case "<": 
                     if(premiseValue < valueOnStack) {
                         
-                        //TODO wenn kleiner, dann Fehlerhistorie anlegen (Identifikation des Qualitygates?)
-                        
-                        //TODO als Methode auslagern
+                        //TODO wenn kleiner, dann Fehlerhistorie anlegen (welche Infos sind nötig?)
                         
                         //TODO delete later
                         System.out.println("Breaking Qualitygate");

@@ -2,7 +2,7 @@ package org.palladiosimulator.simulizar.di.modules.component.extensions;
 
 import java.util.Set;
 
-import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchContributionFactory;
+import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.listener.IInterpreterListener;
 import org.palladiosimulator.simulizar.modelobserver.IModelObserver;
@@ -31,6 +31,6 @@ public interface SimulationRuntimeExtensions {
     Set<RDSeffSwitchContributionFactory> rdseffSwitchFactories();
     
     @Multibinds
-    Set<ComposedStructureInnerSwitchContributionFactory> stereotypeComposedStructureInnerSwitchFactories();
+    Set<ComposedStructureInnerSwitchStereotypeContributionFactory> stereotypeComposedStructureInnerSwitchFactories();
 
 }

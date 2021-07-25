@@ -3,7 +3,7 @@ package org.palladiosimulator.simulizar.di.modules.scoped.thread;
 import java.util.Set;
 
 import org.palladiosimulator.simulizar.interpreter.ComposedRDSeffSwitchFactory;
-import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchContributionFactory;
+import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.RDSeffPerformanceSwitch;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitch;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchContributionFactory;
@@ -54,7 +54,7 @@ public interface CoreSimulatedThreadBindings {
     
     @Provides
     @ElementsIntoSet
-    static Set<ComposedStructureInnerSwitchContributionFactory> provideStereotypeComposedStructureInnerSwitchFactories(
+    static Set<ComposedStructureInnerSwitchStereotypeContributionFactory> provideStereotypeComposedStructureInnerSwitchFactories(
             StereotypeQualitygateSwitch.Factory stereotypeQualityGateSwitchFactory) {
         return ImmutableSet.of(stereotypeQualityGateSwitchFactory);
     }
