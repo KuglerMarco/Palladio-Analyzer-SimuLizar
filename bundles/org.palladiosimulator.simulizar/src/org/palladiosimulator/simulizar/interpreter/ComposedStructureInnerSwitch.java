@@ -17,6 +17,7 @@ import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
 import org.palladiosimulator.simulizar.entity.EntityReference;
 import org.palladiosimulator.simulizar.exceptions.PCMModelInterpreterException;
+import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.linking.ITransmissionInterpreter;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
@@ -39,10 +40,13 @@ import de.uka.ipd.sdq.simucomframework.variables.stackframe.SimulatedStackframe;
  *
  */
 public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterResult> {
+    //TODO Interface auch für meine Factory-Implementierun nutzen (zuerst rausziehen)
     @AssistedFactory
     public static interface Factory {
+        
+        //Added the ComposedStructureInnerSwitchStereotypeElementDispatcher
         ComposedStructureInnerSwitch create(final InterpreterDefaultContext context, final Signature operationSignature,
-                final RequiredRole requiredRole);
+                final RequiredRole requiredRole, ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch);
     }
 
     /**
@@ -59,7 +63,8 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
 
     private final ITransmissionInterpreter<EntityReference<ResourceContainer>, SimulatedStackframe<Object>, InterpreterDefaultContext> transmissionInterpreter;
     private final IAssemblyAllocationLookup<EntityReference<ResourceContainer>> resourceContainerLookup;
-    private final ComposedStructureInnerSwitch.Factory composedStructureSwitchFactory;
+    private final StereotypeComposedStructureInnerSwitchFactory composedStructureSwitchFactory;
+    private final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch;
 
     private final RepositoryComponentSwitch.Factory repositoryComponentSwitchFactory;
 
@@ -73,10 +78,10 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
      */
     @AssistedInject
     ComposedStructureInnerSwitch(@Assisted final InterpreterDefaultContext context,
-            @Assisted final Signature operationSignature, @Assisted final RequiredRole requiredRole,
+            @Assisted final Signature operationSignature, @Assisted final RequiredRole requiredRole, @Assisted final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch,
             ITransmissionInterpreter<EntityReference<ResourceContainer>, SimulatedStackframe<Object>, InterpreterDefaultContext> transmissionInterpreter,
             IAssemblyAllocationLookup<EntityReference<ResourceContainer>> resourceContainerLookup,
-            ComposedStructureInnerSwitch.Factory composedStructureSwitchFactory,
+            StereotypeComposedStructureInnerSwitchFactory composedStructureSwitchFactory,
             RepositoryComponentSwitch.Factory repositoryComponentSwitchFactory, InterpreterResultHandler issueHandler,
             InterpreterResultMerger resultMerger) {
         super();
@@ -89,6 +94,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
         this.repositoryComponentSwitchFactory = repositoryComponentSwitchFactory;
         this.issueHandler = issueHandler;
         this.resultMerger = resultMerger;
+        this.parentSwitch = parentSwitch;
     }
 
     @Override
@@ -155,7 +161,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
             final RequiredDelegationConnector requiredDelegationConnector) {
         final AssemblyContext parentContext = this.context.getAssemblyContextStack()
             .pop();
-        final ComposedStructureInnerSwitch composedStructureInnerSwitch = composedStructureSwitchFactory.create(
+        final var composedStructureInnerSwitch = composedStructureSwitchFactory.create(
                 this.context, this.signature,
                 requiredDelegationConnector.getOuterRequiredRole_RequiredDelegationConnector());
         final var result = composedStructureInnerSwitch.doSwitch(parentContext);
@@ -169,7 +175,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
             final RequiredInfrastructureDelegationConnector requiredInfrastructureDelegationConnector) {
         final AssemblyContext parentContext = this.context.getAssemblyContextStack()
             .pop();
-        final ComposedStructureInnerSwitch composedStructureInnerSwitch = composedStructureSwitchFactory
+        final var composedStructureInnerSwitch = composedStructureSwitchFactory
             .create(this.context, this.signature, requiredInfrastructureDelegationConnector
                 .getOuterRequiredRole__RequiredInfrastructureDelegationConnector());
         final var result = composedStructureInnerSwitch.doSwitch(parentContext);
@@ -181,7 +187,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
     @Override
     public InterpreterResult caseAssemblyContext(final AssemblyContext assemblyContext) {
         final Connector connector = getConnectedConnector(assemblyContext, this.requiredRole);
-        return this.doSwitch(connector);
+        return this.parentSwitch.doSwitch(connector);
     }
 
     /**

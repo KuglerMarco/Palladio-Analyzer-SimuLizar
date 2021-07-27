@@ -45,7 +45,7 @@ public class RDSeffPerformanceSwitch extends SeffPerformanceSwitch<InterpreterRe
     private final InterpreterDefaultContext context;
     private final IAssemblyAllocationLookup<EntityReference<ResourceContainer>> allocationLookup;
     private final ISimulatedModelEntityAccess<ResourceContainer, AbstractSimulatedResourceContainer> rcAccess;
-    private final ComposedStructureInnerSwitch.Factory composedSwitchFactory;
+    private final StereotypeComposedStructureInnerSwitchFactory composedSwitchFactory;
     private final PreInterpretationBehaviorManager pibManager;
     private final InterpreterResultHandler issueHandler;
     private final InterpreterResultMerger resultMerger;
@@ -55,7 +55,7 @@ public class RDSeffPerformanceSwitch extends SeffPerformanceSwitch<InterpreterRe
             @Assisted RDSeffElementDispatcher parentSwitch,
             IAssemblyAllocationLookup<EntityReference<ResourceContainer>> allocationLookup,
             ISimulatedModelEntityAccess<ResourceContainer, AbstractSimulatedResourceContainer> rcAccess,
-            ComposedStructureInnerSwitch.Factory composedSwitchFactory, InterpreterResultHandler issueHandler,
+            StereotypeComposedStructureInnerSwitchFactory composedSwitchFactory, InterpreterResultHandler issueHandler,
             InterpreterResultMerger resultMerger, PreInterpretationBehaviorManager pibManager) {
         this.context = context;
         this.allocationLookup = allocationLookup;
@@ -144,7 +144,7 @@ public class RDSeffPerformanceSwitch extends SeffPerformanceSwitch<InterpreterRe
         final int repetitions = StackContext.evaluateStatic(infrastructureCall.getNumberOfCalls__InfrastructureCall()
             .getSpecification(), Integer.class, currentStackFrame);
         for (int i = 0; i < repetitions; i++) {
-            final ComposedStructureInnerSwitch composedStructureSwitch = composedSwitchFactory.create(this.context,
+            final var composedStructureSwitch = composedSwitchFactory.create(this.context,
                     infrastructureCall.getSignature__InfrastructureCall(),
                     infrastructureCall.getRequiredRole__InfrastructureCall());
             // create new stack frame for input parameter
