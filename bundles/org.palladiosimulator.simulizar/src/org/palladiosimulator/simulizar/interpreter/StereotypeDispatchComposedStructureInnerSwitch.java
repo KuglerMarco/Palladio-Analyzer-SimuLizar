@@ -224,7 +224,7 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
             
             if (delegate == null && !registry.containsKey(stereotype)) {
                 
-                //TODO testen mit mehreren Stereotype-Switches
+                //TODO testen mit mehreren Stereotype-Switches (break-Anweisung korrigiert)
                 if(!switches.isEmpty()) {
                     
                     int i = 0;
