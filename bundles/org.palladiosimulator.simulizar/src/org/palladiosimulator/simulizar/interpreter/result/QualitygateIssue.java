@@ -8,5 +8,5 @@ package org.palladiosimulator.simulizar.interpreter.result;
  * @author Marco Kugler
  *
  */
-public interface QualitygateIssue {
+public interface QualitygateIssue extends InterpretationIssue{
 }

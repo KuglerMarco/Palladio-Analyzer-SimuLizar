@@ -14,14 +14,13 @@ import org.modelversioning.emfprofile.Stereotype;
 import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
 import org.palladiosimulator.pcm.core.composition.CompositionPackage;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
+import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
 import org.palladiosimulator.simulizar.interpreter.result.ParameterIssue;
-import org.palladiosimulator.simulizar.interpreter.result.QualitygateIssue;
+import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.impl.NoIssuesHandler;
-import org.palladiosimulator.simulizar.interpreter.result.impl.QualitygateInterpreterResult;
-import org.palladiosimulator.simulizar.interpreter.result.impl.QualitygateInterpreterResultMerger;
 
 import com.google.common.collect.Lists;
 
@@ -87,18 +86,17 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
         
         InterpreterResult interpreterResult = InterpreterResult.OK;
         
-        InterpreterResultMerger merger = new QualitygateInterpreterResultMerger();
+        InterpreterResultMerger merger = new BasicInterpreterResultMerger();
         //Stereotype-Handling in Request-Scope
         interpreterResult = merger.merge(interpreterResult, this.handleAttachedStereotypes(theEObject, CallScope.REQUEST));
         
         //TODO delete later
-        if(interpreterResult instanceof QualitygateInterpreterResult) {
-            ArrayList<QualitygateIssue> list = Lists.newArrayList(((QualitygateInterpreterResult) interpreterResult).getQualitygateIssues());
+            ArrayList<InterpretationIssue> list = Lists.newArrayList(interpreterResult.getIssues());
             if(!list.isEmpty()) {
-                System.out.println("StereotypeDispatch:" + ((ParameterIssue) list.get(0)).getValueOnStack());
+                System.out.println("StereotypeDispatch:" + ((ParameterIssue) list.get(0)).getUri());
             }
             
-        }
+        
         
         if(handler.handleIssues(interpreterResult).equals(InterpreterResumptionPolicy.CONTINUE)) {
             //Default-Switch

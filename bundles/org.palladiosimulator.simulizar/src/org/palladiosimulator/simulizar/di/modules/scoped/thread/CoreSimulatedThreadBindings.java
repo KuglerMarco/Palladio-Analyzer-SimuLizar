@@ -14,9 +14,9 @@ import org.palladiosimulator.simulizar.interpreter.impl.ExtensibleStereotypeComp
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
-import org.palladiosimulator.simulizar.interpreter.result.impl.NoIssuesHandler;
-import org.palladiosimulator.simulizar.interpreter.result.impl.QualitygateInterpreterResultMerger;
+import org.palladiosimulator.simulizar.interpreter.result.impl.QualitygateIssueHandler;
 import org.palladiosimulator.simulizar.scopes.SimulatedThreadScope;
+
 
 import com.google.common.collect.ImmutableSet;
 
@@ -30,11 +30,11 @@ public interface CoreSimulatedThreadBindings {
     
     @Binds
     @SimulatedThreadScope
-    InterpreterResultHandler bindIssuesHandler(NoIssuesHandler impl);
+    InterpreterResultHandler bindIssuesHandler(QualitygateIssueHandler impl);
     
     @Binds
     @SimulatedThreadScope
-    InterpreterResultMerger bindResultMerger(QualitygateInterpreterResultMerger impl);
+    InterpreterResultMerger bindResultMerger(BasicInterpreterResultMerger impl);
     
     @Binds
     @SimulatedThreadScope

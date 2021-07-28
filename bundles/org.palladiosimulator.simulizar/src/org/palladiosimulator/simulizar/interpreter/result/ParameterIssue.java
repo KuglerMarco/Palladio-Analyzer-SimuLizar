@@ -1,36 +1,32 @@
 package org.palladiosimulator.simulizar.interpreter.result;
 
-import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.modelversioning.emfprofile.Stereotype;
 import org.palladiosimulator.simulizar.interpreter.CallScope;
 
 public class ParameterIssue implements QualitygateIssue {
-    
-    
 
-    private final EObject stereotypedObject;
-    private final CallScope callScope;
-    private final int valueOnStack;
+    private URI uri;
     
     
-    public ParameterIssue(EObject stereotypedObject, CallScope callScope, int valueOnStack) {
+    public ParameterIssue(Stereotype stereotype) {
         
-        this.stereotypedObject = stereotypedObject;
-        this.callScope = callScope;
-        this.valueOnStack = valueOnStack;
+        this.uri = EcoreUtil.getURI(stereotype);
 
     }
 
-    //TODO URI speichern nicht Pointer
-    public EObject getStereotypedObject() {
-        return stereotypedObject;
+
+
+    @Override
+    public boolean isHandled() {
+        // TODO Auto-generated method stub
+        return false;
     }
 
-    public CallScope getCallScope() {
-        return callScope;
-    }
-    
 
-    public int getValueOnStack() {
-        return valueOnStack;
+
+    public URI getUri() {
+        return uri;
     }
 }
