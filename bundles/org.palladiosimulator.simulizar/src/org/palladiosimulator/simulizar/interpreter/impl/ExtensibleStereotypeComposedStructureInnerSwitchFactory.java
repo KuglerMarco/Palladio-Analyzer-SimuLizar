@@ -61,7 +61,7 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
             throw new IllegalStateException("No StereotypeSwitches for ComposedStructures are registered.");
         }
         elementFactories.stream().forEach(s -> interpreter.addSwitch(
-                s.createStereotypeSwitch(context, operationSignature, requiredRole)));
+                s.createStereotypeSwitch(context, operationSignature, requiredRole, interpreter)));
         
         return interpreter;
     }

@@ -5,6 +5,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.simulizar.di.extension.Extension;
+import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 
 /**
@@ -32,8 +33,8 @@ public interface ComposedStructureInnerSwitchStereotypeContributionFactory exten
      * @param requiredRole
      * @return StereotypeSwitch
      */
-    public StereotypeSwitch createStereotypeSwitch(final InterpreterDefaultContext context, Signature operationSignature,
-            RequiredRole requiredRole);
+    public StereotypeSwitch createStereotypeSwitch(final InterpreterDefaultContext context, final Signature operationSignature,
+            final RequiredRole requiredRole, ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch);
     
     
     

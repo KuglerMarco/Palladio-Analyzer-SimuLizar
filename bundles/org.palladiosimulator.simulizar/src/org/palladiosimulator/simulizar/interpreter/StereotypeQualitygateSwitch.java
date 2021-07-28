@@ -14,6 +14,7 @@ import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
+import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.ParameterIssue;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
@@ -36,8 +37,8 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     @AssistedFactory
     public interface Factory extends ComposedStructureInnerSwitchStereotypeContributionFactory {
         @Override
-        StereotypeQualitygateSwitch createStereotypeSwitch(final InterpreterDefaultContext context, Signature operationSignature,
-                RequiredRole requiredRole);
+        StereotypeQualitygateSwitch createStereotypeSwitch(final InterpreterDefaultContext context, final Signature operationSignature,
+                final RequiredRole requiredRole, ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch);
     }
     
     private final String stereotypeName = "QualitygateElement";
@@ -46,6 +47,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     private final Signature operationSignature;
     private final RequiredRole requiredRole;
     private Stereotype stereotype;
+    private final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch;
     
     
     private PCMRandomVariable premise = null;
@@ -53,11 +55,12 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     
     
     @AssistedInject
-    StereotypeQualitygateSwitch(@Assisted final InterpreterDefaultContext context, @Assisted Signature operationSignature, @Assisted RequiredRole requiredRole){
+    StereotypeQualitygateSwitch(@Assisted final InterpreterDefaultContext context, @Assisted Signature operationSignature, @Assisted RequiredRole requiredRole, @Assisted ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch){
         
         this.context = context;
         this.operationSignature = operationSignature;
         this.requiredRole = requiredRole;
+        this.parentSwitch = parentSwitch;
         
         
     }
