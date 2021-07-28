@@ -2,6 +2,7 @@ package org.palladiosimulator.simulizar.interpreter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -19,7 +20,6 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
 import org.palladiosimulator.simulizar.interpreter.result.ParameterIssue;
-import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.impl.NoIssuesHandler;
 
 import com.google.common.collect.Lists;
@@ -55,14 +55,18 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
     
     private NoIssuesHandler handler = new NoIssuesHandler();
     
+    private InterpreterResultMerger merger;
+    
     
     /**
      * Creates instance.
      */
-    public StereotypeDispatchComposedStructureInnerSwitch(InterpreterDefaultContext context) {
+    public StereotypeDispatchComposedStructureInnerSwitch(InterpreterResultMerger merger) {
         if (modelPackage == null) {
             modelPackage = CompositionPackage.eINSTANCE;
         }
+        
+        this.merger = merger;
         
     }
     
@@ -86,9 +90,8 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
         
         InterpreterResult interpreterResult = InterpreterResult.OK;
         
-        InterpreterResultMerger merger = new BasicInterpreterResultMerger();
         //Stereotype-Handling in Request-Scope
-        interpreterResult = merger.merge(interpreterResult, this.handleAttachedStereotypes(theEObject, CallScope.REQUEST));
+        interpreterResult = this.handleAttachedStereotypes(theEObject, CallScope.REQUEST);
         
         //TODO delete later
             ArrayList<InterpretationIssue> list = Lists.newArrayList(interpreterResult.getIssues());
@@ -133,21 +136,20 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
             
             EList<Stereotype> appliedStereotypes = StereotypeAPI.getAppliedStereotypes(theEObject);
             
+            Iterator<Stereotype> stereotypeIter = appliedStereotypes.iterator();
             
-            for(Stereotype stereotype : appliedStereotypes) {
+            while(stereotypeIter.hasNext() && !handler.handleIssues(interpreterResult).equals(InterpreterResumptionPolicy.ABORT)) {
                 
-                if(this.isSwitchRegistered(stereotype)) {
+                Stereotype stereo = stereotypeIter.next();
+                
+                if(this.isSwitchRegistered(stereo)) {
                     
-                    StereotypeSwitch delegate = this.findDelegate(stereotype);
-                    interpreterResult = delegate.handleStereotype(stereotype, theEObject, callScope);
+                    StereotypeSwitch delegate = this.findDelegate(stereo);
+                    interpreterResult = merger.merge(interpreterResult, delegate.handleStereotype(stereo, theEObject, callScope));
                     
                 } 
-                
-                
-                if(handler.handleIssues(interpreterResult).equals(InterpreterResumptionPolicy.ABORT)) {
-                    break;
-                }
             }
+            
         }
         
         return interpreterResult;

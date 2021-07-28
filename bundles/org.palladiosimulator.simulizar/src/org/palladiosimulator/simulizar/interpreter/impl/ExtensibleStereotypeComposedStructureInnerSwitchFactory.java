@@ -14,6 +14,7 @@ import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
 import org.palladiosimulator.simulizar.interpreter.StereotypeComposedStructureInnerSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.StereotypeDispatchComposedStructureInnerSwitch;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
+import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 
 
 /**
@@ -34,12 +35,16 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
      * Factory for the default ComposedStructureInnerSwitch, which needs be set in the StereotypeDispatchComposedStructureInnerSwitch.
      */
     private final ComposedStructureInnerSwitch.Factory composedStructureInnerSwitchFactory;
+    
+    private final InterpreterResultMerger merger;
 
 
     @Inject
-    public ExtensibleStereotypeComposedStructureInnerSwitchFactory(Provider<Set<ComposedStructureInnerSwitchStereotypeContributionFactory>> elementFactoriesProvider, ComposedStructureInnerSwitch.Factory composedStructureInnerSwitchFactory) {
+    public ExtensibleStereotypeComposedStructureInnerSwitchFactory(Provider<Set<ComposedStructureInnerSwitchStereotypeContributionFactory>> elementFactoriesProvider, ComposedStructureInnerSwitch.Factory composedStructureInnerSwitchFactory, 
+            InterpreterResultMerger merger) {
         this.composedStructureInnerSwitchFactory = composedStructureInnerSwitchFactory;
         this.elementFactoriesProvider = elementFactoriesProvider;
+        this.merger = merger;
     }
 
     
@@ -52,7 +57,7 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
             final RequiredRole requiredRole) {
         
         //TODO Factory?
-        StereotypeDispatchComposedStructureInnerSwitch interpreter = new StereotypeDispatchComposedStructureInnerSwitch(context);
+        StereotypeDispatchComposedStructureInnerSwitch interpreter = new StereotypeDispatchComposedStructureInnerSwitch(merger);
         
         interpreter.setDefaultSwitch(composedStructureInnerSwitchFactory.create(context, operationSignature, requiredRole, interpreter));
         
