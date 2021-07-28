@@ -223,15 +223,24 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
             StereotypeSwitch delegate = registry.get(stereotype);
             
             if (delegate == null && !registry.containsKey(stereotype)) {
-              
-                for (StereotypeSwitch sw : switches) {
+                
+                //TODO testen mit mehreren Stereotype-Switches
+                if(!switches.isEmpty()) {
                     
-                if (sw.isSwitchForStereotype(stereotype)) {
-                  delegate = sw;
-                  break;
+                    int i = 0;
+                    
+                    do {
+                        delegate = switches.get(i);
+                    }while ((!switches.get(i).isSwitchForStereotype(stereotype)) && (++i < switches.size()));
+                    
+                    if(!delegate.isSwitchForStereotype(stereotype)) {
+                        delegate = null;
+                    }
+
                 }
-              }
-              registry.put(stereotype, delegate);
+                registry.put(stereotype, delegate);
+                
+
             }
             return delegate;
       }
