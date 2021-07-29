@@ -6,6 +6,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
@@ -26,7 +28,7 @@ import com.google.common.collect.Lists;
 
 
 /**
- * Dispatch for handling the Stereotypes attached to Composed Structure.
+ * Dispatch for searching the right StereotypeSwitch to handle attached Stereotypes at ComposedStructure-elements.
  * 
  * @author Marco Kugler
  *
@@ -56,7 +58,10 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
     
     private InterpreterResultMerger merger;
     
+    private static final Logger LOGGER = Logger.getLogger(StereotypeDispatchComposedStructureInnerSwitch.class);
     
+    
+
     public StereotypeDispatchComposedStructureInnerSwitch(InterpreterResultMerger merger, InterpreterResultHandler handler) {
         if (modelPackage == null) {
             modelPackage = CompositionPackage.eINSTANCE;
@@ -64,6 +69,8 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
         
         this.merger = merger;
         this.handler = handler;
+        
+        LOGGER.setLevel(Level.DEBUG);
         
     }
     
@@ -90,25 +97,24 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
         //Stereotype-Handling in Request-Scope
         interpreterResult = this.handleAttachedStereotypes(theEObject, CallScope.REQUEST);
         
-        //TODO delete later
-            ArrayList<InterpretationIssue> list = Lists.newArrayList(interpreterResult.getIssues());
-            if(!list.isEmpty()) {
-                System.out.println("StereotypeDispatch:" + ((ParameterIssue) list.get(0)).getQualitygateRef().toString());
-            }
-            
-        
-        
         if(handler.handleIssues(interpreterResult).equals(InterpreterResumptionPolicy.CONTINUE)) {
             //Default-Switch
-            interpreterResult = composedStructureInnerSwitch.doSwitch(theEObject);
+            interpreterResult = merger.merge(interpreterResult, composedStructureInnerSwitch.doSwitch(theEObject));
         }
         
         if(handler.handleIssues(interpreterResult).equals(InterpreterResumptionPolicy.CONTINUE)) {
             //Stereotype-Handling in Response-Scope
-            interpreterResult = this.handleAttachedStereotypes(theEObject, CallScope.RESPONSE);
+            interpreterResult = merger.merge(interpreterResult, this.handleAttachedStereotypes(theEObject, CallScope.RESPONSE));
         }
         
-        
+        if (LOGGER.isDebugEnabled()) {
+            ArrayList<InterpretationIssue> list1 = Lists.newArrayList(interpreterResult.getIssues());
+            for(InterpretationIssue e : list1) {
+                if(e instanceof ParameterIssue) {
+                    LOGGER.debug("(StereotypeDispatchComposedStructureInnerSwitch, doSwitch) stackContents der ParameterIssues: " + ((ParameterIssue) e).getStackContent());
+                }
+            }
+        }
         
         return interpreterResult;
         
