@@ -32,5 +32,9 @@ public interface StereotypeSwitch {
      * @return InterpreterResult
      */
     public InterpreterResult handleStereotype(Stereotype stereotype, EObject theEObject, CallScope callScope);
+    
+    public String getStereotypeName();
+    
+    public String getProfileName();
 
 }

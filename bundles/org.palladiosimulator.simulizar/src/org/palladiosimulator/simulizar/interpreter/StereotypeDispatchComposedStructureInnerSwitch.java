@@ -28,7 +28,9 @@ import com.google.common.collect.Lists;
 
 
 /**
- * Dispatch for searching the right StereotypeSwitch to handle attached Stereotypes at ComposedStructure-elements.
+ * Dispatch searching for the right StereotypeSwitch to handle attached Stereotypes at ComposedStructure-elements.
+ * Classes implementing the ComposedStrucutreInnerSwitchStereotypeContributionFactory are registered here and called, if the relevant Stereotype
+ * is attached to the element of a ComposedStructure.
  * 
  * @author Marco Kugler
  *
@@ -60,9 +62,9 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
     
     private static final Logger LOGGER = Logger.getLogger(StereotypeDispatchComposedStructureInnerSwitch.class);
     
-    
-
+    //TODO OPTIONAL Factory for StereotypeDispatchComposedStructureInnerSwitch (but already constructed in Factory, so not urgent)
     public StereotypeDispatchComposedStructureInnerSwitch(InterpreterResultMerger merger, InterpreterResultHandler handler) {
+        
         if (modelPackage == null) {
             modelPackage = CompositionPackage.eINSTANCE;
         }
@@ -111,7 +113,7 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
             ArrayList<InterpretationIssue> list1 = Lists.newArrayList(interpreterResult.getIssues());
             for(InterpretationIssue e : list1) {
                 if(e instanceof ParameterIssue) {
-                    LOGGER.debug("(StereotypeDispatchComposedStructureInnerSwitch, doSwitch) stackContents der ParameterIssues: " + ((ParameterIssue) e).getStackContent());
+                    LOGGER.debug("(StereotypeDispatchComposedStructureInnerSwitch, doSwitch) StackContents der ParameterIssues: " + ((ParameterIssue) e).getStackContent());
                 }
             }
         }
@@ -148,6 +150,11 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
                 if(this.isSwitchRegistered(stereo)) {
                     
                     StereotypeSwitch delegate = this.findDelegate(stereo);
+                    
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Following StereotypeSwitch is called: " + delegate.getClass().getName());
+                    }
+                    
                     interpreterResult = merger.merge(interpreterResult, delegate.handleStereotype(stereo, theEObject, callScope));
                     
                 } 
@@ -205,6 +212,7 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
             switches.add(sw);
           }
         }
+        
     }
     
     
@@ -212,7 +220,7 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
     
     
     /**
-     * Finds the right registered Switch to handle the Stereotype.
+     * Finds the right registered Switch for this Stereotype.
      * 
      * @param stereotype 
      *              Stereotype, which needs to be handled
@@ -227,21 +235,26 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
             
             if (delegate == null && !registry.containsKey(stereotype)) {
                 
-                //TODO testen mit mehreren Stereotype-Switches (break-Anweisung korrigiert)
                 if(!switches.isEmpty()) {
                     
                     int i = 0;
                     
                     do {
                         delegate = switches.get(i);
-                    }while ((!switches.get(i).isSwitchForStereotype(stereotype)) && (++i < switches.size()));
+                    } while ((!switches.get(i).isSwitchForStereotype(stereotype)) && (++i < switches.size()));
                     
                     if(!delegate.isSwitchForStereotype(stereotype)) {
                         delegate = null;
                     }
 
                 }
+                
+                //the Switch is registered in registry for next search
                 registry.put(stereotype, delegate);
+                
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Following StereotypeSwitch is registered: " + delegate.getClass().getName());
+                }
                 
 
             }
