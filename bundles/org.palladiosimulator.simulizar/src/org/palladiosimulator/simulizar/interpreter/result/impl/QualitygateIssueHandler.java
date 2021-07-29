@@ -27,7 +27,7 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
     
     
     /**
-     * To this time: Checks whether in Issue list is only consisting of QualitygateIssues
+     * To this time: Checks whether in Issue list is only consisting of QualitygateIssues, later: impact of QualitygateIssues
      */
     @Override
     public InterpreterResumptionPolicy handleIssues(InterpreterResult result) {

@@ -2,41 +2,40 @@ package org.palladiosimulator.simulizar.interpreter.result;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.ecore.EObject;
-import org.modelversioning.emfprofile.Stereotype;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
-import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
 import org.palladiosimulator.pcm.core.entity.Entity;
 import org.palladiosimulator.simulizar.entity.EntityReference;
 import org.palladiosimulator.simulizar.entity.SimuLizarEntityReferenceFactories;
 
 /**
- * Records the broken Qualitygates with Request- and ResponseParameterScope.
+ * Records the broken Qualitygates with Request- or ResponseParameterScope.
  * 
  * @author Marco Kugler
  *
  */
 public class ParameterIssue implements QualitygateIssue {
 
+    //Stack-Content of the time, the Qualitygate was broken
     private String stackContent;
+    
+    //Reference of the stereotyped Object
     private EntityReference<Entity> stereotypedObjectRef;
+    
+    //Reference of the Qualitygate-element, which was broken
     private EntityReference<QualityGate> qualitygateRef;
+    
+    
     private static final Logger LOGGER = Logger.getLogger(ParameterIssue.class);
 
     
-    public ParameterIssue(Entity object, Stereotype stereotype, String stackContent) {
+    public ParameterIssue(Entity object, QualityGate qualitygate, String stackContent) {
         
         //Factories for EntityReferences
-        EntityReference.AbstractEntityReferenceFactory<org.palladiosimulator.pcm.core.entity.Entity> ref = new SimuLizarEntityReferenceFactories.Entity();
+        EntityReference.AbstractEntityReferenceFactory<org.palladiosimulator.pcm.core.entity.Entity> stereotypedObjectFac = new SimuLizarEntityReferenceFactories.Entity();
         EntityReference.AbstractEntityReferenceFactory<org.palladiosimulator.failuremodel.qualitygate.QualityGate> qualitygateFac = new SimuLizarEntityReferenceFactories.Qualitygate();
         
-        this.stereotypedObjectRef = ref.createCached(object);
         
-        
-        
-        EList<EObject> taggedValues = StereotypeAPI.getTaggedValue(object, "qualitygate", stereotype.getName());
-        QualityGate qualitygate = (QualityGate) taggedValues.get(0);
+        this.stereotypedObjectRef = stereotypedObjectFac.createCached(object);
         
         this.qualitygateRef = qualitygateFac.createCached(qualitygate);
         
@@ -45,7 +44,7 @@ public class ParameterIssue implements QualitygateIssue {
         LOGGER.setLevel(Level.DEBUG);
         
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("ParameterIssue includes StackContent: " + stackContent);
+            LOGGER.debug("New ParameterIssue StackContent: " + stackContent);
         }
         
     }

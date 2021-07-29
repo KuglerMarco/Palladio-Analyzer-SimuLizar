@@ -53,6 +53,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
 
     //Information about the stereotype attachment and processing time
     private Stereotype stereotype;
+    private QualityGate qualitygate;
     private Entity object;
     private PCMRandomVariable premise;
     private CallScope callScope = CallScope.REQUEST;
@@ -99,16 +100,14 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         Signature signatureOfQualitygate = object.getSignature();
 
         if(callScope.equals(CallScope.REQUEST) && (signatureOfQualitygate == (this.operationSignature))) {
-            if(LOGGER.isDebugEnabled()) {
-                LOGGER.debug("stackframe is: " + this.context.getStack().currentStackFrame().toString());
-            }
+            
             if(!((boolean) context.evaluate(premise.getSpecification(), this.context.getStack().currentStackFrame()))) {
 
                 if(LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Following StoEx is broken: " + premise.getSpecification() + " because stackframe is: " + this.context.getStack().currentStackFrame().toString());
                 }
                     
-                return BasicInterpreterResult.of(new ParameterIssue(this.object, stereotype, this.context.getStack().currentStackFrame().toString()));
+                return BasicInterpreterResult.of(new ParameterIssue(this.object, this.qualitygate, this.context.getStack().currentStackFrame().toString()));
 
             }
             
@@ -129,16 +128,14 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         Signature signatureOfQualitygate = object.getSignature();
 
         if(callScope.equals(CallScope.RESPONSE) && (signatureOfQualitygate == (this.operationSignature))) {
-            if(LOGGER.isDebugEnabled()) {
-                LOGGER.debug("stackframe is: " + this.context.getStack().currentStackFrame().toString());
-            }
+            
             if(!((boolean) context.evaluate(premise.getSpecification(), this.context.getStack().currentStackFrame()))) {
 
                 if(LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Following StoEx is broken: " + premise.getSpecification() + " because stackframe is: " + this.context.getStack().currentStackFrame().toString());
+                    LOGGER.debug("Following StoEx is broken: " + premise.getSpecification() + " because resultframe is: " + this.context.getResultFrameStack().toString());
                 }
                     
-                return BasicInterpreterResult.of(new ParameterIssue(this.object, stereotype, this.context.getStack().currentStackFrame().toString()));
+                return BasicInterpreterResult.of(new ParameterIssue(this.object, this.qualitygate, this.context.getResultFrameStack().toString()));
 
             }
             
@@ -147,10 +144,8 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         return InterpreterResult.OK;
         
     }
-    
-    
 
-
+    
     /**
      * Returns whether Switch is for Stereotype
      */
@@ -187,6 +182,8 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         
         //Processing all the attached Qualitygates
         for(QualityGate e : taggedValues) {
+            
+            this.qualitygate = e;
             
             result = merger.merge(result, this.doSwitch(e));
             
