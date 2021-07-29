@@ -17,12 +17,13 @@ import org.palladiosimulator.pcm.core.composition.CompositionPackage;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
+import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
 import org.palladiosimulator.simulizar.interpreter.result.ParameterIssue;
-import org.palladiosimulator.simulizar.interpreter.result.impl.NoIssuesHandler;
 
 import com.google.common.collect.Lists;
+
 
 /**
  * Dispatch for handling the Stereotypes attached to Composed Structure.
@@ -49,24 +50,20 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
      */
     private final List<StereotypeSwitch> switches = new ArrayList<StereotypeSwitch>();
     
-    
     protected static CompositionPackage modelPackage;
     
-    
-    private NoIssuesHandler handler = new NoIssuesHandler();
+    private final InterpreterResultHandler handler;
     
     private InterpreterResultMerger merger;
     
     
-    /**
-     * Creates instance.
-     */
-    public StereotypeDispatchComposedStructureInnerSwitch(InterpreterResultMerger merger) {
+    public StereotypeDispatchComposedStructureInnerSwitch(InterpreterResultMerger merger, InterpreterResultHandler handler) {
         if (modelPackage == null) {
             modelPackage = CompositionPackage.eINSTANCE;
         }
         
         this.merger = merger;
+        this.handler = handler;
         
     }
     
@@ -96,7 +93,7 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
         //TODO delete later
             ArrayList<InterpretationIssue> list = Lists.newArrayList(interpreterResult.getIssues());
             if(!list.isEmpty()) {
-                System.out.println("StereotypeDispatch:" + ((ParameterIssue) list.get(0)).getUri());
+                System.out.println("StereotypeDispatch:" + ((ParameterIssue) list.get(0)).getQualitygateRef().toString());
             }
             
         

@@ -2,16 +2,18 @@ package org.palladiosimulator.simulizar.interpreter;
 
 
 
-import java.util.ArrayList;
-
+import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.failuremodel.qualitygate.RequestParameterScope;
 import org.palladiosimulator.failuremodel.qualitygate.ResultParameterScope;
 import org.palladiosimulator.failuremodel.qualitygate.util.QualitygateSwitch;
 import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
+import org.palladiosimulator.pcm.core.composition.AssemblyConnector;
+import org.palladiosimulator.pcm.core.entity.Entity;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
@@ -48,6 +50,9 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     private final RequiredRole requiredRole;
     private Stereotype stereotype;
     private final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch;
+    private static final Logger LOGGER = Logger.getLogger(StereotypeQualitygateSwitch.class);
+    Entity object = null;
+//    ParameterIssue.Factory parameterIssueFactory;
     
     
     private PCMRandomVariable premise = null;
@@ -55,12 +60,14 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     
     
     @AssistedInject
-    StereotypeQualitygateSwitch(@Assisted final InterpreterDefaultContext context, @Assisted Signature operationSignature, @Assisted RequiredRole requiredRole, @Assisted ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch){
+    StereotypeQualitygateSwitch(@Assisted final InterpreterDefaultContext context, @Assisted Signature operationSignature, @Assisted RequiredRole requiredRole,
+            @Assisted ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch){
         
         this.context = context;
         this.operationSignature = operationSignature;
         this.requiredRole = requiredRole;
         this.parentSwitch = parentSwitch;
+//        this.parameterIssueFactory = parameterIssueFactory;
         
         
     }
@@ -76,6 +83,9 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         premise = object.getPremise();
         
         //TODO delete later
+        LOGGER.info("");
+
+        
         System.out.println("Qualitygate erkannt.");
         System.out.println(premise.getSpecification());
         
@@ -96,19 +106,20 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         
         if(callScope.equals(CallScope.REQUEST) && (signatureOfQualitygate == this.operationSignature)) {
             
-            try {
+//            try {
                 if((boolean) context.evaluate(premise.getSpecification(), this.context.getStack().currentStackFrame())) {
                     
 
                     
-                    System.out.println("Stoex ist wahr");
+                    System.out.println("Stoex ist wahr: " + stereotype.toString());
                     
-                    return BasicInterpreterResult.of(new ParameterIssue(stereotype));
+                    return BasicInterpreterResult.of(new ParameterIssue(this.object, stereotype, this.context.getStack().currentStackFrame().toString()));
 
                 }
-            } catch(ClassCastException e) {
-                throw new IllegalArgumentException("Invalid Model: Premise needs to be a boolean specification.");
-            }
+//            } 
+//                catch(ClassCastException e) {
+//                throw new IllegalArgumentException("Invalid Model: Premise needs to be a boolean specification.");
+//            }
             
             
         }
@@ -124,20 +135,18 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     @Override
     public InterpreterResult caseResultParameterScope(ResultParameterScope object) {
         
-Signature signatureOfQualitygate = object.getSignature();
+        Signature signatureOfQualitygate = object.getSignature();
         
         
         
         if(callScope.equals(CallScope.RESPONSE) && (signatureOfQualitygate == this.operationSignature)) {
             
             try {
-                if((boolean) context.evaluate(premise.getSpecification(), this.context.getStack().currentStackFrame())) {
-                    
+                if((boolean) context.evaluate(premise.getSpecification(), this.context.getCurrentResultFrame())) {
 
-                    
                     System.out.print("Stoex ist wahr");
                     
-                    return BasicInterpreterResult.of(new ParameterIssue(stereotype));
+                    return BasicInterpreterResult.of(new ParameterIssue(this.object, stereotype, this.context.getCurrentResultFrame().toString()));
 
                 }
             } catch(ClassCastException e) {
@@ -179,14 +188,14 @@ Signature signatureOfQualitygate = object.getSignature();
         this.callScope = callScope;
         
         this.stereotype = stereotype;
-        
+        this.object = (Entity) theEObject;
         
         //Qualitygate-Element from the Stereotype
         EList<EObject> taggedValues = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
         
         //Model validation
         if(taggedValues.isEmpty()){
-            throw new IllegalArgumentException("Qualitygate-Model not valid: Qualitygate-Stereotype needs to have at least one Qualitygate-element.");
+            throw new IllegalArgumentException("Qualitygate-Model not valid: Qualitygate-Stereotype needs to have at least one Qualitygate element.");
         }
         
         //Calling the Switch with Qualitygate-element

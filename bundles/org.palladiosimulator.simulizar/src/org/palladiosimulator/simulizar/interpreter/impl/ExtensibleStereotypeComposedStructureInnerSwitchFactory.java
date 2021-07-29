@@ -14,6 +14,7 @@ import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
 import org.palladiosimulator.simulizar.interpreter.StereotypeComposedStructureInnerSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.StereotypeDispatchComposedStructureInnerSwitch;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
+import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 
 
@@ -37,14 +38,17 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
     private final ComposedStructureInnerSwitch.Factory composedStructureInnerSwitchFactory;
     
     private final InterpreterResultMerger merger;
+    
+    private final InterpreterResultHandler handler;
 
 
     @Inject
     public ExtensibleStereotypeComposedStructureInnerSwitchFactory(Provider<Set<ComposedStructureInnerSwitchStereotypeContributionFactory>> elementFactoriesProvider, ComposedStructureInnerSwitch.Factory composedStructureInnerSwitchFactory, 
-            InterpreterResultMerger merger) {
+            InterpreterResultMerger merger, InterpreterResultHandler handler) {
         this.composedStructureInnerSwitchFactory = composedStructureInnerSwitchFactory;
         this.elementFactoriesProvider = elementFactoriesProvider;
         this.merger = merger;
+        this.handler = handler;
     }
 
     
@@ -57,7 +61,7 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
             final RequiredRole requiredRole) {
         
         //TODO Factory?
-        StereotypeDispatchComposedStructureInnerSwitch interpreter = new StereotypeDispatchComposedStructureInnerSwitch(merger);
+        StereotypeDispatchComposedStructureInnerSwitch interpreter = new StereotypeDispatchComposedStructureInnerSwitch(merger, handler);
         
         interpreter.setDefaultSwitch(composedStructureInnerSwitchFactory.create(context, operationSignature, requiredRole, interpreter));
         

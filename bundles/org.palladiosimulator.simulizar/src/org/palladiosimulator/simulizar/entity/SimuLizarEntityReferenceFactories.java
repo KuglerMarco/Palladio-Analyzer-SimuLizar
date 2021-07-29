@@ -49,5 +49,35 @@ public final class SimuLizarEntityReferenceFactories {
             return new UsageScenarioReference(id);
         }
     }
+    
+    //Added by Marco (BA)
+    public static final class Entity
+    extends AbstractEntityReferenceFactory<org.palladiosimulator.pcm.core.entity.Entity> {
+        @Inject
+        public Entity() {
+        }
+
+        @Override
+        public EntityReference<org.palladiosimulator.pcm.core.entity.Entity> create(String id) {
+            return new EntityReference<org.palladiosimulator.pcm.core.entity.Entity>(id, org.palladiosimulator.pcm.core.entity.Entity.class);
+        }
+        
+
+    }
+    
+    //Added by Marco (BA)
+    public static final class Qualitygate
+    extends AbstractEntityReferenceFactory<org.palladiosimulator.failuremodel.qualitygate.QualityGate> {
+        @Inject
+        public Qualitygate() {
+        }
+
+        @Override
+        public EntityReference<org.palladiosimulator.failuremodel.qualitygate.QualityGate> create(String id) {
+            return new EntityReference<org.palladiosimulator.failuremodel.qualitygate.QualityGate>(id, org.palladiosimulator.failuremodel.qualitygate.QualityGate.class);
+        }
+        
+
+    }
 
 }

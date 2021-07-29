@@ -12,13 +12,23 @@ import org.palladiosimulator.simulizar.interpreter.result.QualitygateIssue;
 
 import com.google.common.collect.Lists;
 
+/**
+ * Handler to process the impact of QualitygateIssues in the InterpreterResult.
+ * 
+ * @author Marco Kugler
+ *
+ */
 public class QualitygateIssueHandler implements InterpreterResultHandler {
     
+
     @Inject
     public QualitygateIssueHandler() {
     }
     
     
+    /**
+     * To this time: Checks whether in Issue list is only consisting of QualitygateIssues
+     */
     @Override
     public InterpreterResumptionPolicy handleIssues(InterpreterResult result) {
         
