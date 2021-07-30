@@ -11,6 +11,7 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionP
 import org.palladiosimulator.simulizar.interpreter.result.QualitygateIssue;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Streams;
 
 /**
  * Handler to process the impact of QualitygateIssues in the InterpreterResult.
@@ -32,7 +33,9 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
     @Override
     public InterpreterResumptionPolicy handleIssues(InterpreterResult result) {
         
+        //TODO Streams.of
         ArrayList<InterpretationIssue> list = Lists.newArrayList(result.getIssues());
+        Streams.stream(result.getIssues()).filter(QualitygateIssue.class::isInstance).findAny();
         
         for(InterpretationIssue e : list) {
             if(!(e instanceof QualitygateIssue)) {

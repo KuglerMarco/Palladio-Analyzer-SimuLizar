@@ -49,7 +49,6 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     private final InterpreterDefaultContext context;
     private final Signature operationSignature;
     private final RequiredRole requiredRole;
-    private final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch;
 
     //Information about the stereotype attachment and processing time
     private Stereotype stereotype;
@@ -71,7 +70,6 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         this.context = context;
         this.operationSignature = operationSignature;
         this.requiredRole = requiredRole;
-        this.parentSwitch = parentSwitch;
         
         LOGGER.setLevel(Level.DEBUG);
         
@@ -128,21 +126,18 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         Signature signatureOfQualitygate = object.getSignature();
 
         if(callScope.equals(CallScope.RESPONSE) && (signatureOfQualitygate == (this.operationSignature))) {
-            
-            if(!((boolean) context.evaluate(premise.getSpecification(), this.context.getStack().currentStackFrame()))) {
+            System.out.println(this.context.getCurrentResultFrame().toString());
+            //TODO ResultStack
+            if(!((boolean) context.evaluate(premise.getSpecification(), this.context.getCurrentResultFrame()))) {
 
                 if(LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Following StoEx is broken: " + premise.getSpecification() + " because resultframe is: " + this.context.getResultFrameStack().toString());
+                    LOGGER.debug("Following StoEx is broken: " + premise.getSpecification() + " because resultframe is: " + this.context.getCurrentResultFrame().toString());
                 }
                     
                 return BasicInterpreterResult.of(new ParameterIssue(this.object, this.qualitygate, this.context.getResultFrameStack().toString()));
-
             }
-            
-            
         }
         return InterpreterResult.OK;
-        
     }
 
     
@@ -191,9 +186,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
                 LOGGER.debug("Qualitygate " + e.getEntityName() + " was processed with premise " + this.premise.getSpecification());
             }
         }
-
         return result;
-        
     }
 
 

@@ -62,7 +62,6 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
     
     private static final Logger LOGGER = Logger.getLogger(StereotypeDispatchComposedStructureInnerSwitch.class);
     
-    //TODO OPTIONAL Factory for StereotypeDispatchComposedStructureInnerSwitch (but already constructed in Factory, so not urgent)
     public StereotypeDispatchComposedStructureInnerSwitch(InterpreterResultMerger merger, InterpreterResultHandler handler) {
         
         if (modelPackage == null) {
@@ -96,6 +95,7 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
         
         InterpreterResult interpreterResult = InterpreterResult.OK;
         
+        //Factory.create
         //Stereotype-Handling in Request-Scope
         interpreterResult = this.handleAttachedStereotypes(theEObject, CallScope.REQUEST);
         
@@ -104,10 +104,13 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
             interpreterResult = merger.merge(interpreterResult, composedStructureInnerSwitch.doSwitch(theEObject));
         }
         
+        
+      //Factory.create
         if(handler.handleIssues(interpreterResult).equals(InterpreterResumptionPolicy.CONTINUE)) {
             //Stereotype-Handling in Response-Scope
             interpreterResult = merger.merge(interpreterResult, this.handleAttachedStereotypes(theEObject, CallScope.RESPONSE));
         }
+        
         
         if (LOGGER.isDebugEnabled()) {
             ArrayList<InterpretationIssue> list1 = Lists.newArrayList(interpreterResult.getIssues());
