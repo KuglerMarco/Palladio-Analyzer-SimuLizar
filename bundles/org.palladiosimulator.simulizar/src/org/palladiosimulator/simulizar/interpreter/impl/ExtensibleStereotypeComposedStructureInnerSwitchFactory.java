@@ -9,6 +9,7 @@ import org.eclipse.emf.ecore.util.Switch;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitch;
+import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
 import org.palladiosimulator.simulizar.interpreter.StereotypeComposedStructureInnerSwitchFactory;
@@ -35,7 +36,7 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
     /**
      * Factory for the default ComposedStructureInnerSwitch, which needs be set in the StereotypeDispatchComposedStructureInnerSwitch.
      */
-    private final ComposedStructureInnerSwitch.Factory composedStructureInnerSwitchFactory;
+    private final ComposedStructureInnerSwitchFactory composedStructureInnerSwitchFactory;
     
     private final InterpreterResultMerger merger;
     
@@ -43,7 +44,7 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
 
 
     @Inject
-    public ExtensibleStereotypeComposedStructureInnerSwitchFactory(Provider<Set<ComposedStructureInnerSwitchStereotypeContributionFactory>> elementFactoriesProvider, ComposedStructureInnerSwitch.Factory composedStructureInnerSwitchFactory, 
+    public ExtensibleStereotypeComposedStructureInnerSwitchFactory(Provider<Set<ComposedStructureInnerSwitchStereotypeContributionFactory>> elementFactoriesProvider, ComposedStructureInnerSwitchFactory composedStructureInnerSwitchFactory, 
             InterpreterResultMerger merger, InterpreterResultHandler handler) {
         this.composedStructureInnerSwitchFactory = composedStructureInnerSwitchFactory;
         this.elementFactoriesProvider = elementFactoriesProvider;

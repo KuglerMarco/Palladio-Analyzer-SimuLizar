@@ -40,6 +40,7 @@ public interface CoreSimulatedThreadBindings {
     @SimulatedThreadScope
     ComposedRDSeffSwitchFactory bindComposedRDSeffSwitchFactory(ExtensibleComposedRDSeffSwitchFactory impl);
     
+    //TODO Interface austauschen
     @Binds
     @SimulatedThreadScope
     StereotypeComposedStructureInnerSwitchFactory bindStereotypeComposedStructureInnerSwitchFactory(ExtensibleStereotypeComposedStructureInnerSwitchFactory impl);

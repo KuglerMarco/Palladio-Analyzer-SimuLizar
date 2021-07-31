@@ -17,7 +17,6 @@ import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.pcm.resourceenvironment.ResourceContainer;
 import org.palladiosimulator.simulizar.entity.EntityReference;
 import org.palladiosimulator.simulizar.exceptions.PCMModelInterpreterException;
-import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.linking.ITransmissionInterpreter;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
@@ -40,14 +39,14 @@ import de.uka.ipd.sdq.simucomframework.variables.stackframe.SimulatedStackframe;
  *
  */
 public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterResult> {
-    //TODO Interface auch für meine Factory-Implementierun nutzen (zuerst rausziehen)
-    @AssistedFactory
-    public static interface Factory {
-        
-        //Added the ComposedStructureInnerSwitchStereotypeElementDispatcher
-        ComposedStructureInnerSwitch create(final InterpreterDefaultContext context, final Signature operationSignature,
-                final RequiredRole requiredRole);
-    }
+//    //TODO Interface auch für meine Factory-Implementierun nutzen (zuerst rausziehen)
+//    @AssistedFactory
+//    public static interface Factory {
+//        
+//        //Added the ComposedStructureInnerSwitchStereotypeElementDispatcher
+//        ComposedStructureInnerSwitch create(final InterpreterDefaultContext context, final Signature operationSignature,
+//                final RequiredRole requiredRole);
+//    }
 
     /**
      * Logger of this class
