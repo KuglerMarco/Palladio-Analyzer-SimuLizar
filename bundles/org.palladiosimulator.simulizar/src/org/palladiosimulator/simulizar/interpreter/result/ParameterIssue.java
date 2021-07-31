@@ -1,5 +1,8 @@
 package org.palladiosimulator.simulizar.interpreter.result;
 
+import java.util.ArrayList;
+import java.util.Map.Entry;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
@@ -16,7 +19,7 @@ import org.palladiosimulator.simulizar.entity.SimuLizarEntityReferenceFactories;
 public class ParameterIssue implements QualitygateIssue {
 
     //Stack-Content of the time, the Qualitygate was broken
-    private String stackContent;
+    private ArrayList<Entry<String, Object>> stackContent;
     
     //Reference of the stereotyped Object
     private EntityReference<Entity> stereotypedObjectRef;
@@ -28,7 +31,7 @@ public class ParameterIssue implements QualitygateIssue {
     private static final Logger LOGGER = Logger.getLogger(ParameterIssue.class);
 
     
-    public ParameterIssue(Entity object, QualityGate qualitygate, String stackContent) {
+    public ParameterIssue(Entity object, QualityGate qualitygate, ArrayList<Entry<String, Object>> stackContent) {
         
         //Factories for EntityReferences
         EntityReference.AbstractEntityReferenceFactory<org.palladiosimulator.pcm.core.entity.Entity> stereotypedObjectFac = new SimuLizarEntityReferenceFactories.Entity();
@@ -59,7 +62,7 @@ public class ParameterIssue implements QualitygateIssue {
 
 
 
-    public String getStackContent() {
+    public ArrayList<Entry<String, Object>> getStackContent() {
         return stackContent;
     }
 

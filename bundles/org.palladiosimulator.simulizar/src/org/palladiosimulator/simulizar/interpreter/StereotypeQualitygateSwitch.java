@@ -102,7 +102,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
                     LOGGER.debug("Following StoEx is broken: " + premise.getSpecification() + " because stackframe is: " + this.context.getStack().currentStackFrame().toString());
                 }
                     
-                return BasicInterpreterResult.of(new ParameterIssue(this.object, this.qualitygate, this.context.getStack().currentStackFrame().toString()));
+                return BasicInterpreterResult.of(new ParameterIssue(this.object, this.qualitygate, this.context.getStack().currentStackFrame().getContents()));
 
             }
             
@@ -129,7 +129,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
                     LOGGER.debug("Following StoEx is broken: " + premise.getSpecification() + " because resultframe is: " + this.context.getCurrentResultFrame().toString());
                 }
                     
-                return BasicInterpreterResult.of(new ParameterIssue(this.object, this.qualitygate, this.context.getResultFrameStack().toString()));
+                return BasicInterpreterResult.of(new ParameterIssue(this.object, this.qualitygate, this.context.getCurrentResultFrame().getContents()));
             }
         }
         return InterpreterResult.OK;
