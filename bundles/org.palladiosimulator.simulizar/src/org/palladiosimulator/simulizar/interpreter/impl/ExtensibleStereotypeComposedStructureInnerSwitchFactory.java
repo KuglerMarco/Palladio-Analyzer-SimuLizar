@@ -61,9 +61,8 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
             final RequiredRole requiredRole) {
         
         //TODO Factory?
-        StereotypeDispatchComposedStructureInnerSwitch interpreter = new StereotypeDispatchComposedStructureInnerSwitch(merger, handler);
+        StereotypeDispatchComposedStructureInnerSwitch interpreter = new StereotypeDispatchComposedStructureInnerSwitch(merger, handler, composedStructureInnerSwitchFactory.create(context, operationSignature, requiredRole));
         
-        interpreter.setDefaultSwitch(composedStructureInnerSwitchFactory.create(context, operationSignature, requiredRole, interpreter));
         
         var elementFactories = elementFactoriesProvider.get();
         if (elementFactories.isEmpty()) {

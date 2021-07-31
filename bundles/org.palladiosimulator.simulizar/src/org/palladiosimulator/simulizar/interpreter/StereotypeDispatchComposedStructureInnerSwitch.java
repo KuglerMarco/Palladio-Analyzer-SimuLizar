@@ -62,7 +62,7 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
     
     private static final Logger LOGGER = Logger.getLogger(StereotypeDispatchComposedStructureInnerSwitch.class);
     
-    public StereotypeDispatchComposedStructureInnerSwitch(InterpreterResultMerger merger, InterpreterResultHandler handler) {
+    public StereotypeDispatchComposedStructureInnerSwitch(InterpreterResultMerger merger, InterpreterResultHandler handler, ComposedStructureInnerSwitch composedStructureInnerSwitch) {
         
         if (modelPackage == null) {
             modelPackage = CompositionPackage.eINSTANCE;
@@ -73,16 +73,12 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
         
         LOGGER.setLevel(Level.DEBUG);
         
-    }
-    
-    
-    /**
-     * Setting the DefaultSwitch, in this case ComposedStructureInnerSwitch.
-     * @param composedStructureInnerSwitch
-     */
-    public void setDefaultSwitch(ComposedStructureInnerSwitch composedStructureInnerSwitch) {
         this.composedStructureInnerSwitch = composedStructureInnerSwitch;
+        
     }
+    
+    
+
     
     
     
@@ -197,9 +193,7 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
     protected boolean isSwitchFor(EPackage ePackage) {
         return ePackage == modelPackage;
     }
-    
-    
-    
+
     
 
     /**
@@ -217,10 +211,7 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
         }
         
     }
-    
-    
-    
-    
+
     
     /**
      * Finds the right registered Switch for this Stereotype.

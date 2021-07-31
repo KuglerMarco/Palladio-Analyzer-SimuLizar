@@ -1,7 +1,9 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Simulizar Qualitygate Support
-Bundle-SymbolicName: org.palladiosimulator.simulizar.qualitygate
-Bundle-Version: 1.0.0.qualifier
+Bundle-SymbolicName: org.palladiosimulator.simulizar.qualitygate;singleton:=true
+Bundle-Version: 5.0.0.qualifier
 Automatic-Module-Name: org.palladiosimulator.simulizar.qualitygate
 Bundle-RequiredExecutionEnvironment: JavaSE-11
+Require-Bundle: de.uka.ipd.sdq.dsexplore.analysis.simulizar;bundle-version="5.0.0",
+ org.palladiosimulator.pcm;bundle-version="5.0.0"

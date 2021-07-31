@@ -46,7 +46,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
         
         //Added the ComposedStructureInnerSwitchStereotypeElementDispatcher
         ComposedStructureInnerSwitch create(final InterpreterDefaultContext context, final Signature operationSignature,
-                final RequiredRole requiredRole, ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch);
+                final RequiredRole requiredRole);
     }
 
     /**
@@ -64,7 +64,6 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
     private final ITransmissionInterpreter<EntityReference<ResourceContainer>, SimulatedStackframe<Object>, InterpreterDefaultContext> transmissionInterpreter;
     private final IAssemblyAllocationLookup<EntityReference<ResourceContainer>> resourceContainerLookup;
     private final StereotypeComposedStructureInnerSwitchFactory composedStructureSwitchFactory;
-    private final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch;
 
     private final RepositoryComponentSwitch.Factory repositoryComponentSwitchFactory;
 
@@ -78,7 +77,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
      */
     @AssistedInject
     ComposedStructureInnerSwitch(@Assisted final InterpreterDefaultContext context,
-            @Assisted final Signature operationSignature, @Assisted final RequiredRole requiredRole, @Assisted final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch,
+            @Assisted final Signature operationSignature, @Assisted final RequiredRole requiredRole,
             ITransmissionInterpreter<EntityReference<ResourceContainer>, SimulatedStackframe<Object>, InterpreterDefaultContext> transmissionInterpreter,
             IAssemblyAllocationLookup<EntityReference<ResourceContainer>> resourceContainerLookup,
             StereotypeComposedStructureInnerSwitchFactory composedStructureSwitchFactory,
@@ -94,7 +93,6 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
         this.repositoryComponentSwitchFactory = repositoryComponentSwitchFactory;
         this.issueHandler = issueHandler;
         this.resultMerger = resultMerger;
-        this.parentSwitch = parentSwitch;
     }
 
     @Override
@@ -187,7 +185,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
     @Override
     public InterpreterResult caseAssemblyContext(final AssemblyContext assemblyContext) {
         final Connector connector = getConnectedConnector(assemblyContext, this.requiredRole);
-        return this.parentSwitch.doSwitch(connector);
+        return this.composedStructureSwitchFactory.create(context, signature, requiredRole).doSwitch(connector);
     }
 
     /**
