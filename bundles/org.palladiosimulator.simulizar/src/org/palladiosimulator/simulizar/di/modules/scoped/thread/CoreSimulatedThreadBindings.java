@@ -43,10 +43,10 @@ public interface CoreSimulatedThreadBindings {
     
     @Binds
     @SimulatedThreadScope @StandardComposedStructureInnerSwitch
-    ComposedStructureInnerSwitchFactory bindStereotypeComposedStructureInnerSwitchFactory(ComposedStructureInnerSwitch.Factory impl);
+    ComposedStructureInnerSwitchFactory bindComposedStructureInnerSwitchFactory(ComposedStructureInnerSwitch.Factory impl);
     /*
      * An Sebastian: Kann die Factory aus dem ComposedStructureInnerSwitch nicht als Interface für ExtensibleStereotypeComposedStructureInnerSwitchFactory
-     * verwenden, da ComposedStructureInnerSwitch eine AssistedFactory hat, allerdings keine Oberklasse von StereotypeDispatchComposedStructureInnerSwitch.
+     * verwenden, da ComposedStructureInnerSwitch eine AssistedFactory hat, allerdings keine der Oberklassen von StereotypeDispatchComposedStructureInnerSwitch.
      * Deswegen binde ich die Implementierung ExtensibleStereotypeComposedStructureInnerSwitchFactory oder die AssistedFactory ComposedStructureInnerSwitch.Factory
      * an ComposedStructureInnerSwitch. Dadurch kann Stereotype an und ausgeschaltet werden mittels Dagger ohne was am Code zu ändern.
      */
@@ -54,7 +54,7 @@ public interface CoreSimulatedThreadBindings {
     
     @Binds
     @SimulatedThreadScope 
-    ComposedStructureInnerSwitchFactory bindStereotypeDisptachComposedStructureInnerSwitchFactory2(ExtensibleStereotypeComposedStructureInnerSwitchFactory impl);
+    ComposedStructureInnerSwitchFactory bindStereotypeDispatchComposedStructureInnerSwitchFactory(ExtensibleStereotypeComposedStructureInnerSwitchFactory impl);
 
 
     @Provides

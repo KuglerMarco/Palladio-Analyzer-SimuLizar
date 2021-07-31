@@ -48,10 +48,8 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     //Information about the simulation-context
     private final InterpreterDefaultContext context;
     private final Signature operationSignature;
-    private final RequiredRole requiredRole;
 
     //Information about the stereotype attachment and processing time
-    private Stereotype stereotype;
     private QualityGate qualitygate;
     private Entity object;
     private PCMRandomVariable premise;
@@ -69,7 +67,6 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         this.merger = merger;
         this.context = context;
         this.operationSignature = operationSignature;
-        this.requiredRole = requiredRole;
         
         LOGGER.setLevel(Level.DEBUG);
         
@@ -126,8 +123,6 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         Signature signatureOfQualitygate = object.getSignature();
 
         if(callScope.equals(CallScope.RESPONSE) && (signatureOfQualitygate == (this.operationSignature))) {
-            System.out.println(this.context.getCurrentResultFrame().toString());
-            //TODO ResultStack
             if(!((boolean) context.evaluate(premise.getSpecification(), this.context.getCurrentResultFrame()))) {
 
                 if(LOGGER.isDebugEnabled()) {
@@ -165,7 +160,6 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         InterpreterResult result = InterpreterResult.OK;
         
         this.callScope = callScope;
-        this.stereotype = stereotype;
         this.object = (Entity) theEObject;
         
         EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());

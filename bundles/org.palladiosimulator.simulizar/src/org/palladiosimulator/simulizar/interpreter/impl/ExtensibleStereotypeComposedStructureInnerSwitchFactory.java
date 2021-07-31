@@ -18,7 +18,6 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 
-import dagger.assisted.AssistedInject;
 
 
 /**

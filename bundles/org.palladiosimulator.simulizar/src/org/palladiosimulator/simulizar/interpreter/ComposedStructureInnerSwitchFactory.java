@@ -5,7 +5,6 @@ import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 
-import dagger.assisted.AssistedFactory;
 
 
 
