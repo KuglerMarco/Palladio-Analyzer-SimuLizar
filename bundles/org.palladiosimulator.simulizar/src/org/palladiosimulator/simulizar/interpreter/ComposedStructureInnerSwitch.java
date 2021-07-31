@@ -39,14 +39,14 @@ import de.uka.ipd.sdq.simucomframework.variables.stackframe.SimulatedStackframe;
  *
  */
 public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterResult> {
-//    //TODO Interface auch für meine Factory-Implementierun nutzen (zuerst rausziehen)
-//    @AssistedFactory
-//    public static interface Factory {
-//        
-//        //Added the ComposedStructureInnerSwitchStereotypeElementDispatcher
-//        ComposedStructureInnerSwitch create(final InterpreterDefaultContext context, final Signature operationSignature,
-//                final RequiredRole requiredRole);
-//    }
+    //TODO Interface auch für meine Factory-Implementierun nutzen (zuerst rausziehen)
+    @AssistedFactory
+    public static interface Factory extends ComposedStructureInnerSwitchFactory {
+        
+        //Added the ComposedStructureInnerSwitchStereotypeElementDispatcher
+        ComposedStructureInnerSwitch create(final InterpreterDefaultContext context, final Signature operationSignature,
+                final RequiredRole requiredRole);
+    }
 
     /**
      * Logger of this class
@@ -62,7 +62,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
 
     private final ITransmissionInterpreter<EntityReference<ResourceContainer>, SimulatedStackframe<Object>, InterpreterDefaultContext> transmissionInterpreter;
     private final IAssemblyAllocationLookup<EntityReference<ResourceContainer>> resourceContainerLookup;
-    private final StereotypeComposedStructureInnerSwitchFactory composedStructureSwitchFactory;
+    private final ComposedStructureInnerSwitchFactory composedStructureSwitchFactory;
 
     private final RepositoryComponentSwitch.Factory repositoryComponentSwitchFactory;
 
@@ -79,7 +79,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
             @Assisted final Signature operationSignature, @Assisted final RequiredRole requiredRole,
             ITransmissionInterpreter<EntityReference<ResourceContainer>, SimulatedStackframe<Object>, InterpreterDefaultContext> transmissionInterpreter,
             IAssemblyAllocationLookup<EntityReference<ResourceContainer>> resourceContainerLookup,
-            StereotypeComposedStructureInnerSwitchFactory composedStructureSwitchFactory,
+            ComposedStructureInnerSwitchFactory composedStructureSwitchFactory,
             RepositoryComponentSwitch.Factory repositoryComponentSwitchFactory, InterpreterResultHandler issueHandler,
             InterpreterResultMerger resultMerger) {
         super();

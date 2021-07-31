@@ -47,6 +47,7 @@ import org.palladiosimulator.simulizar.runtimestate.SimulatedBasicComponentInsta
 import org.palladiosimulator.simulizar.utils.SimulatedStackHelper;
 import org.palladiosimulator.simulizar.utils.TransitionDeterminer;
 
+
 import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
@@ -79,7 +80,7 @@ public class RDSeffSwitch extends SeffSwitch<InterpreterResult> {
 
     private final SimulatedBasicComponentInstance basicComponentInstance;
     private final IResourceTableManager resourceTableManager;
-    private final StereotypeComposedStructureInnerSwitchFactory composedSwitchFactory;
+    private final ComposedStructureInnerSwitchFactory composedSwitchFactory;
     private final EventDispatcher eventHelper;
     private final InterpreterResultHandler issueHandler;
     private final InterpreterResultMerger resultMerger;
@@ -93,7 +94,7 @@ public class RDSeffSwitch extends SeffSwitch<InterpreterResult> {
     @AssistedInject
     RDSeffSwitch(@Assisted final InterpreterDefaultContext context, @Assisted RDSeffElementDispatcher parentSwitch,
             IResourceTableManager resourceTableManager, ComponentInstanceRegistry componentInstanceRegistry,
-            StereotypeComposedStructureInnerSwitchFactory composedSwitchFactory, ForkedBehaviorProcessFactory forkFactory,
+            ComposedStructureInnerSwitchFactory composedSwitchFactory, ForkedBehaviorProcessFactory forkFactory,
             EventDispatcher eventHelper, InterpreterResultHandler issueHandler, InterpreterResultMerger resultMerger,
             PreInterpretationBehaviorManager pibManager) {
         super();

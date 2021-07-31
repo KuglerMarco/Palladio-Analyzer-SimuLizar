@@ -8,15 +8,17 @@ import javax.inject.Provider;
 import org.eclipse.emf.ecore.util.Switch;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
+import org.palladiosimulator.simulizar.di.modules.scoped.thread.StandardComposedStructureInnerSwitch;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitch;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
-import org.palladiosimulator.simulizar.interpreter.StereotypeComposedStructureInnerSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.StereotypeDispatchComposedStructureInnerSwitch;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
+
+import dagger.assisted.AssistedInject;
 
 
 /**
@@ -26,7 +28,7 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerge
  *
  */
 public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
-        implements StereotypeComposedStructureInnerSwitchFactory {
+        implements ComposedStructureInnerSwitchFactory {
 
     /**
      * Includes the registered ComposedStructureInnerSwitchContributionFactorys
@@ -44,7 +46,7 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
 
 
     @Inject
-    public ExtensibleStereotypeComposedStructureInnerSwitchFactory(Provider<Set<ComposedStructureInnerSwitchStereotypeContributionFactory>> elementFactoriesProvider, ComposedStructureInnerSwitchFactory composedStructureInnerSwitchFactory, 
+    public ExtensibleStereotypeComposedStructureInnerSwitchFactory(Provider<Set<ComposedStructureInnerSwitchStereotypeContributionFactory>> elementFactoriesProvider, @StandardComposedStructureInnerSwitch ComposedStructureInnerSwitchFactory composedStructureInnerSwitchFactory, 
             InterpreterResultMerger merger, InterpreterResultHandler handler) {
         this.composedStructureInnerSwitchFactory = composedStructureInnerSwitchFactory;
         this.elementFactoriesProvider = elementFactoriesProvider;
@@ -62,7 +64,7 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
             final RequiredRole requiredRole) {
         
         //TODO Factory?
-        StereotypeDispatchComposedStructureInnerSwitch interpreter = new StereotypeDispatchComposedStructureInnerSwitch(merger, handler, composedStructureInnerSwitchFactory.create(context, operationSignature, requiredRole));
+        StereotypeDispatchComposedStructureInnerSwitch interpreter = new StereotypeDispatchComposedStructureInnerSwitch(merger, handler, (ComposedStructureInnerSwitch) composedStructureInnerSwitchFactory.create(context, operationSignature, requiredRole));
         
         
         var elementFactories = elementFactoriesProvider.get();

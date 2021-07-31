@@ -3,11 +3,12 @@ package org.palladiosimulator.simulizar.di.modules.scoped.thread;
 import java.util.Set;
 
 import org.palladiosimulator.simulizar.interpreter.ComposedRDSeffSwitchFactory;
+import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitch;
+import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.RDSeffPerformanceSwitch;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitch;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchContributionFactory;
-import org.palladiosimulator.simulizar.interpreter.StereotypeComposedStructureInnerSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.StereotypeQualitygateSwitch;
 import org.palladiosimulator.simulizar.interpreter.impl.ExtensibleComposedRDSeffSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.impl.ExtensibleStereotypeComposedStructureInnerSwitchFactory;
@@ -40,10 +41,20 @@ public interface CoreSimulatedThreadBindings {
     @SimulatedThreadScope
     ComposedRDSeffSwitchFactory bindComposedRDSeffSwitchFactory(ExtensibleComposedRDSeffSwitchFactory impl);
     
-    //TODO Interface austauschen
     @Binds
-    @SimulatedThreadScope
-    StereotypeComposedStructureInnerSwitchFactory bindStereotypeComposedStructureInnerSwitchFactory(ExtensibleStereotypeComposedStructureInnerSwitchFactory impl);
+    @SimulatedThreadScope @StandardComposedStructureInnerSwitch
+    ComposedStructureInnerSwitchFactory bindStereotypeComposedStructureInnerSwitchFactory(ComposedStructureInnerSwitch.Factory impl);
+    /*
+     * An Sebastian: Kann die Factory aus dem ComposedStructureInnerSwitch nicht als Interface für ExtensibleStereotypeComposedStructureInnerSwitchFactory
+     * verwenden, da ComposedStructureInnerSwitch eine AssistedFactory hat, allerdings keine Oberklasse von StereotypeDispatchComposedStructureInnerSwitch.
+     * Deswegen binde ich die Implementierung ExtensibleStereotypeComposedStructureInnerSwitchFactory oder die AssistedFactory ComposedStructureInnerSwitch.Factory
+     * an ComposedStructureInnerSwitch. Dadurch kann Stereotype an und ausgeschaltet werden mittels Dagger ohne was am Code zu ändern.
+     */
+    
+    
+    @Binds
+    @SimulatedThreadScope 
+    ComposedStructureInnerSwitchFactory bindStereotypeDisptachComposedStructureInnerSwitchFactory2(ExtensibleStereotypeComposedStructureInnerSwitchFactory impl);
 
 
     @Provides
