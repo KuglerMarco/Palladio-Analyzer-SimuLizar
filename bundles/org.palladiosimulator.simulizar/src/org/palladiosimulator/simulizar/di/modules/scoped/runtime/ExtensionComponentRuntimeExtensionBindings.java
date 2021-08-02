@@ -13,6 +13,7 @@ import org.palladiosimulator.simulizar.di.modules.stateless.extension.ExtensionS
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.listener.IInterpreterListener;
+import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.modelobserver.IModelObserver;
 import org.palladiosimulator.simulizar.runtimestate.RuntimeStateEntityManager;
 import org.palladiosimulator.simulizar.runtimestate.RuntimeStateEntityObserver;
@@ -86,5 +87,8 @@ public interface ExtensionComponentRuntimeExtensionBindings {
     static Set<ComposedStructureInnerSwitchStereotypeContributionFactory> stereotypeComposedStructureInnerSwitchFactories(ExtensionLookup lookup) {
         return lookup.lookup(ComposedStructureInnerSwitchStereotypeContributionFactory.class);
     }
+    
+
+
 
 }

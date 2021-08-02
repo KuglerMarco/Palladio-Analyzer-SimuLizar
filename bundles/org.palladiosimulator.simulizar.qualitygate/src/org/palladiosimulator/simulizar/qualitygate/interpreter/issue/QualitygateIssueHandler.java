@@ -1,4 +1,4 @@
-package org.palladiosimulator.simulizar.interpreter.result.impl;
+package org.palladiosimulator.simulizar.qualitygate.interpreter.issue;
 
 
 import javax.inject.Inject;
@@ -6,7 +6,6 @@ import javax.inject.Inject;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
-import org.palladiosimulator.simulizar.interpreter.result.QualitygateIssue;
 
 import com.google.common.collect.Streams;
 

@@ -22,7 +22,7 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
-import org.palladiosimulator.simulizar.interpreter.result.ParameterIssue;
+//import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 
 import com.google.common.collect.Lists;
 
@@ -91,7 +91,6 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
         
         InterpreterResult interpreterResult = InterpreterResult.OK;
         
-        //Factory.create
         //Stereotype-Handling in Request-Scope
         interpreterResult = this.handleAttachedStereotypes(theEObject, CallScope.REQUEST);
         
@@ -101,21 +100,20 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
         }
         
         
-      //Factory.create
         if(handler.handleIssues(interpreterResult).equals(InterpreterResumptionPolicy.CONTINUE)) {
             //Stereotype-Handling in Response-Scope
             interpreterResult = merger.merge(interpreterResult, this.handleAttachedStereotypes(theEObject, CallScope.RESPONSE));
         }
         
         
-        if (LOGGER.isDebugEnabled()) {
-            ArrayList<InterpretationIssue> list1 = Lists.newArrayList(interpreterResult.getIssues());
-            for(InterpretationIssue e : list1) {
-                if(e instanceof ParameterIssue) {
-                    LOGGER.debug("(StereotypeDispatchComposedStructureInnerSwitch, doSwitch) StackContents der ParameterIssues: " + ((ParameterIssue) e).getStackContent());
-                }
-            }
-        }
+//        if (LOGGER.isDebugEnabled()) {
+//            ArrayList<InterpretationIssue> list1 = Lists.newArrayList(interpreterResult.getIssues());
+//            for(InterpretationIssue e : list1) {
+//                if(e instanceof ParameterIssue) {
+//                    LOGGER.debug("(StereotypeDispatchComposedStructureInnerSwitch, doSwitch) StackContents der ParameterIssues: " + ((ParameterIssue) e).getStackContent());
+//                }
+//            }
+//        }
         
         return interpreterResult;
         

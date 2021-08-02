@@ -1,5 +1,6 @@
-package org.palladiosimulator.simulizar.interpreter.result;
+package org.palladiosimulator.simulizar.qualitygate.interpreter.issue;
 
+import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 
 /**
  * Allows to record a broken Qualitygate in the QualitygateInterpreterResult.

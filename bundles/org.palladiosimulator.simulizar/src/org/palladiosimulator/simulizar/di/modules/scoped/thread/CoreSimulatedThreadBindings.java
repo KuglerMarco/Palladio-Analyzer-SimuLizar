@@ -9,13 +9,12 @@ import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchS
 import org.palladiosimulator.simulizar.interpreter.RDSeffPerformanceSwitch;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitch;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchContributionFactory;
-import org.palladiosimulator.simulizar.interpreter.StereotypeQualitygateSwitch;
 import org.palladiosimulator.simulizar.interpreter.impl.ExtensibleComposedRDSeffSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.impl.ExtensibleStereotypeComposedStructureInnerSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
-import org.palladiosimulator.simulizar.interpreter.result.impl.QualitygateIssueHandler;
+import org.palladiosimulator.simulizar.interpreter.result.impl.NoIssuesHandler;
 import org.palladiosimulator.simulizar.scopes.SimulatedThreadScope;
 
 
@@ -29,9 +28,9 @@ import dagger.multibindings.ElementsIntoSet;
 @Module
 public interface CoreSimulatedThreadBindings {
     
-    @Binds
-    @SimulatedThreadScope
-    InterpreterResultHandler bindIssuesHandler(QualitygateIssueHandler impl);
+//    @Binds
+//    @SimulatedThreadScope
+//    InterpreterResultHandler bindIssuesHandler(NoIssuesHandler impl);
     
     @Binds
     @SimulatedThreadScope
@@ -58,10 +57,10 @@ public interface CoreSimulatedThreadBindings {
         return ImmutableSet.of(rdseffSwitchFactory, performanceSwitchFactory);
     }
     
-    @Provides
-    @ElementsIntoSet
-    static Set<ComposedStructureInnerSwitchStereotypeContributionFactory> provideStereotypeComposedStructureInnerSwitchFactories(
-            StereotypeQualitygateSwitch.Factory stereotypeQualityGateSwitchFactory) {
-        return ImmutableSet.of(stereotypeQualityGateSwitchFactory);
-    }
+//    @Provides
+//    @ElementsIntoSet
+//    static Set<ComposedStructureInnerSwitchStereotypeContributionFactory> provideStereotypeComposedStructureInnerSwitchFactories(
+//            StereotypeQualitygateSwitch.Factory stereotypeQualityGateSwitchFactory) {
+//        return ImmutableSet.of(stereotypeQualityGateSwitchFactory);
+//    }
 }

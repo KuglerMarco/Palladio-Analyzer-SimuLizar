@@ -24,7 +24,7 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
-import org.palladiosimulator.simulizar.interpreter.result.ParameterIssue;
+//import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 import org.palladiosimulator.simulizar.utils.SimulatedStackHelper;
 import org.palladiosimulator.simulizar.utils.TransitionDeterminer;
 
@@ -176,14 +176,14 @@ public class UsageScenarioSwitch extends UsagemodelSwitch<InterpreterResult> {
         
         this.context.getResultFrameStack().push(new SimulatedStackframe<>());
         var result = Objects.requireNonNull(providedDelegationSwitch.doSwitch(entryLevelSystemCall.getProvidedRole_EntryLevelSystemCall()));
-        if (LOGGER.isDebugEnabled()) {
-            ArrayList<InterpretationIssue> list1 = Lists.newArrayList(result.getIssues());
-            for(InterpretationIssue e : list1) {
-                if(e instanceof ParameterIssue) {
-                    LOGGER.debug("(UsageScenarioSwitch, caseEntyLevelSystemCall) StackContents der ParameterIssues: " + ((ParameterIssue) e).getStackContent());
-                }
-            }
-        }
+//        if (LOGGER.isDebugEnabled()) {
+//            ArrayList<InterpretationIssue> list1 = Lists.newArrayList(result.getIssues());
+//            for(InterpretationIssue e : list1) {
+//                if(e instanceof ParameterIssue) {
+//                    LOGGER.debug("(UsageScenarioSwitch, caseEntyLevelSystemCall) StackContents der ParameterIssues: " + ((ParameterIssue) e).getStackContent());
+//                }
+//            }
+//        }
         this.context.getStack().removeStackFrame();
         
         SimulatedStackHelper.addParameterToStackFrame(context.getResultFrameStack().pop(),
