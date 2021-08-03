@@ -3,6 +3,7 @@ package org.palladiosimulator.simulizar.qualitygate.interpreter.issue;
 
 import javax.inject.Inject;
 
+import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
@@ -37,5 +38,17 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
         
         return InterpreterResumptionPolicy.CONTINUE;
     }
+
+
+	@Override
+	public boolean supportIssues(InterpretationIssue issue) {
+		
+		if(issue instanceof QualitygateIssue) {
+			return true;
+		}
+		
+		return false;
+		
+	}
 
 }

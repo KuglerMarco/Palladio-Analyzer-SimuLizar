@@ -1,6 +1,5 @@
 package org.palladiosimulator.simulizar.interpreter;
 
-import java.util.ArrayList;
 import java.util.Objects;
 
 import org.apache.log4j.Level;
@@ -19,16 +18,13 @@ import org.palladiosimulator.pcm.usagemodel.util.UsagemodelSwitch;
 import org.palladiosimulator.simulizar.exceptions.PCMModelInterpreterException;
 import org.palladiosimulator.simulizar.interpreter.listener.EventType;
 import org.palladiosimulator.simulizar.interpreter.listener.ModelElementPassedEvent;
-import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
+import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandlerDispatchFactory;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
-//import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 import org.palladiosimulator.simulizar.utils.SimulatedStackHelper;
 import org.palladiosimulator.simulizar.utils.TransitionDeterminer;
-
-import com.google.common.collect.Lists;
 
 import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
@@ -68,12 +64,12 @@ public class UsageScenarioSwitch extends UsagemodelSwitch<InterpreterResult> {
     @AssistedInject
     UsageScenarioSwitch(@Assisted final InterpreterDefaultContext context, RepositoryComponentSwitch.Factory repositoryComponentSwitchFactory,
             EventDispatcher eventHelper,
-            InterpreterResultHandler issueHandler,
+            InterpreterResultHandlerDispatchFactory issueHandler,
             InterpreterResultMerger resultMerger) {
         this.context = context;
         this.repositoryComponentSwitchFactory = repositoryComponentSwitchFactory;
         this.eventHelper = eventHelper;
-        this.issueHandler = issueHandler;
+        this.issueHandler = issueHandler.create();
         this.resultMerger = resultMerger;
         this.transitionDeterminer = new TransitionDeterminer(context);
         LOGGER.setLevel(Level.DEBUG);

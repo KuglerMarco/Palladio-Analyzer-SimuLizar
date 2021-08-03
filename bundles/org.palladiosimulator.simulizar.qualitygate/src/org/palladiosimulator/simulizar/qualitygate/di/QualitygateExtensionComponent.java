@@ -6,15 +6,18 @@ import org.palladiosimulator.simulizar.di.component.core.SimuLizarRuntimeCompone
 import org.palladiosimulator.simulizar.di.component.dependency.SimuComFrameworkComponent;
 import org.palladiosimulator.simulizar.di.extension.ExtensionComponent;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.StereotypeQualitygateSwitch;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.QualitygateIssueHandler;
 import org.palladiosimulator.simulizar.scopes.RuntimeExtensionScope;
 
 import dagger.Component;
 
-@Component(dependencies = { SimuLizarRuntimeComponent.class, SimuComFrameworkComponent.class }, modules = {QualitygateExtensionModule.class})
+@Component(dependencies = { SimuLizarRuntimeComponent.class, SimuComFrameworkComponent.class } //, modules = {QualitygateExtensionModule.class}
+)
 @RuntimeExtensionScope
 public interface QualitygateExtensionComponent extends ExtensionComponent {
 	
 	StereotypeQualitygateSwitch.Factory stereotypeQualitygateFactory();
+	QualitygateIssueHandler issueHandler();
 	
 	@Component.Factory
 	public static interface Factory extends ExtensionComponent.Factory {

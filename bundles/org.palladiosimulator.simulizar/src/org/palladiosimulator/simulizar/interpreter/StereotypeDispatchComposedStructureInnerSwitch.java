@@ -17,14 +17,11 @@ import org.modelversioning.emfprofile.Stereotype;
 import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
 import org.palladiosimulator.pcm.core.composition.CompositionPackage;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
-import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
-//import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 
-import com.google.common.collect.Lists;
 
 
 /**

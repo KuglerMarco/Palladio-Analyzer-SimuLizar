@@ -18,6 +18,7 @@ import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchContributionFacto
 import org.palladiosimulator.simulizar.interpreter.preinterpretation.PreInterpretationBehaviorContainer;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
+import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandlerDispatchFactory;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
 import org.palladiosimulator.simulizar.runtimestate.PreInterpretationBehaviorManager;
@@ -55,13 +56,13 @@ public class RDSeffPerformanceSwitch extends SeffPerformanceSwitch<InterpreterRe
             @Assisted RDSeffElementDispatcher parentSwitch,
             IAssemblyAllocationLookup<EntityReference<ResourceContainer>> allocationLookup,
             ISimulatedModelEntityAccess<ResourceContainer, AbstractSimulatedResourceContainer> rcAccess,
-            ComposedStructureInnerSwitchFactory composedSwitchFactory, InterpreterResultHandler issueHandler,
+            ComposedStructureInnerSwitchFactory composedSwitchFactory, InterpreterResultHandlerDispatchFactory issueHandler,
             InterpreterResultMerger resultMerger, PreInterpretationBehaviorManager pibManager) {
         this.context = context;
         this.allocationLookup = allocationLookup;
         this.rcAccess = rcAccess;
         this.composedSwitchFactory = composedSwitchFactory;
-        this.issueHandler = issueHandler;
+        this.issueHandler = issueHandler.create();
         this.resultMerger = resultMerger;
         this.pibManager = pibManager;
     }

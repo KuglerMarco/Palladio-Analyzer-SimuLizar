@@ -2,6 +2,7 @@ package org.palladiosimulator.simulizar.interpreter.result.impl;
 
 import javax.inject.Inject;
 
+import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
@@ -22,6 +23,11 @@ public class NoIssuesHandler implements InterpreterResultHandler {
     @Override
     public InterpreterResumptionPolicy handleIssues(InterpreterResult result) {
         return result.hasNoIssues() ? InterpreterResumptionPolicy.CONTINUE : InterpreterResumptionPolicy.ABORT;
+    }
+
+    @Override
+    public boolean supportIssues(InterpretationIssue issue) {
+        return false;
     }
 
 }

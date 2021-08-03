@@ -12,6 +12,7 @@ import org.palladiosimulator.simulizar.interpreter.linking.ITransmissionSimulati
 import org.palladiosimulator.simulizar.interpreter.preinterpretation.PreInterpretationBehaviorContainer;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
+import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandlerDispatchFactory;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
 import org.palladiosimulator.simulizar.runtimestate.PreInterpretationBehaviorManager;
@@ -52,12 +53,12 @@ public class DefaultSimuLizarTransmissionInterpreter<NodeType, PayloadType>
             ILinkingResourceRouter<NodeType, EntityReference<LinkingResource>> router,
             ITransmissionPayloadDemandCalculator<PayloadType, Double> calculator,
             ITransmissionSimulationStrategy<EntityReference<LinkingResource>, Double, InterpreterDefaultContext> transmissionSimulation,
-            InterpreterResultHandler issueHandler, InterpreterResultMerger resultMerger,
+            InterpreterResultHandlerDispatchFactory issueHandler, InterpreterResultMerger resultMerger,
             PreInterpretationBehaviorManager pibManager) {
         this.router = router;
         this.calculator = calculator;
         this.transmissionSimulation = transmissionSimulation;
-        this.issueHandler = issueHandler;
+        this.issueHandler = issueHandler.create();
         this.resultMerger = resultMerger;
         this.pibManager = pibManager;
     }

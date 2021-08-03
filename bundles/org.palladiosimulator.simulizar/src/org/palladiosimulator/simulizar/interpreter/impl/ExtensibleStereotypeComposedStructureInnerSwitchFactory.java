@@ -16,6 +16,7 @@ import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
 import org.palladiosimulator.simulizar.interpreter.StereotypeDispatchComposedStructureInnerSwitch;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
+import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandlerDispatchFactory;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 
 
@@ -46,11 +47,11 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory
 
     @Inject
     public ExtensibleStereotypeComposedStructureInnerSwitchFactory(Provider<Set<ComposedStructureInnerSwitchStereotypeContributionFactory>> elementFactoriesProvider, @StandardComposedStructureInnerSwitch ComposedStructureInnerSwitchFactory composedStructureInnerSwitchFactory, 
-            InterpreterResultMerger merger, InterpreterResultHandler handler) {
+            InterpreterResultMerger merger, InterpreterResultHandlerDispatchFactory handler) {
         this.composedStructureInnerSwitchFactory = composedStructureInnerSwitchFactory;
         this.elementFactoriesProvider = elementFactoriesProvider;
         this.merger = merger;
-        this.handler = handler;
+        this.handler = handler.create();
     }
 
     

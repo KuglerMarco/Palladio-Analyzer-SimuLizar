@@ -88,6 +88,13 @@ public interface ExtensionComponentRuntimeExtensionBindings {
         return lookup.lookup(ComposedStructureInnerSwitchStereotypeContributionFactory.class);
     }
     
+    
+    @Provides
+    @SimulationRuntimeScope
+    @ElementsIntoSet
+    static Set<InterpreterResultHandler> interpreterResultHandler(ExtensionLookup lookup) {
+        return lookup.lookup(InterpreterResultHandler.class);
+    }
 
 
 

@@ -20,6 +20,7 @@ import org.palladiosimulator.simulizar.exceptions.PCMModelInterpreterException;
 import org.palladiosimulator.simulizar.interpreter.linking.ITransmissionInterpreter;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
+import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandlerDispatchFactory;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
 import org.palladiosimulator.simulizar.runtimestate.FQComponentID;
@@ -80,7 +81,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
             ITransmissionInterpreter<EntityReference<ResourceContainer>, SimulatedStackframe<Object>, InterpreterDefaultContext> transmissionInterpreter,
             IAssemblyAllocationLookup<EntityReference<ResourceContainer>> resourceContainerLookup,
             ComposedStructureInnerSwitchFactory composedStructureSwitchFactory,
-            RepositoryComponentSwitch.Factory repositoryComponentSwitchFactory, InterpreterResultHandler issueHandler,
+            RepositoryComponentSwitch.Factory repositoryComponentSwitchFactory, InterpreterResultHandlerDispatchFactory issueHandler,
             InterpreterResultMerger resultMerger) {
         super();
         this.context = context;
@@ -90,7 +91,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
         this.resourceContainerLookup = resourceContainerLookup;
         this.composedStructureSwitchFactory = composedStructureSwitchFactory;
         this.repositoryComponentSwitchFactory = repositoryComponentSwitchFactory;
-        this.issueHandler = issueHandler;
+        this.issueHandler = issueHandler.create();
         this.resultMerger = resultMerger;
     }
 

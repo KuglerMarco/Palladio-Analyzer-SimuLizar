@@ -39,6 +39,7 @@ import org.palladiosimulator.simulizar.interpreter.listener.RDSEFFElementPassedE
 import org.palladiosimulator.simulizar.interpreter.preinterpretation.PreInterpretationBehaviorContainer;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
+import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandlerDispatchFactory;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
 import org.palladiosimulator.simulizar.runtimestate.ComponentInstanceRegistry;
@@ -95,14 +96,14 @@ public class RDSeffSwitch extends SeffSwitch<InterpreterResult> {
     RDSeffSwitch(@Assisted final InterpreterDefaultContext context, @Assisted RDSeffElementDispatcher parentSwitch,
             IResourceTableManager resourceTableManager, ComponentInstanceRegistry componentInstanceRegistry,
             ComposedStructureInnerSwitchFactory composedSwitchFactory, ForkedBehaviorProcessFactory forkFactory,
-            EventDispatcher eventHelper, InterpreterResultHandler issueHandler, InterpreterResultMerger resultMerger,
+            EventDispatcher eventHelper, InterpreterResultHandlerDispatchFactory issueHandler, InterpreterResultMerger resultMerger,
             PreInterpretationBehaviorManager pibManager) {
         super();
         this.context = context;
         this.composedSwitchFactory = composedSwitchFactory;
         this.forkFactory = forkFactory;
         this.eventHelper = eventHelper;
-        this.issueHandler = issueHandler;
+        this.issueHandler = issueHandler.create();
         this.resultMerger = resultMerger;
         this.pibManager = pibManager;
         this.transitionDeterminer = new TransitionDeterminer(context);
