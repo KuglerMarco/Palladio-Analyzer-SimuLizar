@@ -71,7 +71,7 @@ public class ModelCompletionsJob extends SequentialBlackboardInteractingJob<MDSD
     
     @Override
     public String getName() {
-        return "Model Completions Composite Job";
+        return "Model Completions Composite Job" + modelCompletionJobs.get().size();
     }
 
 }

@@ -11,8 +11,7 @@ import org.palladiosimulator.simulizar.scopes.RuntimeExtensionScope;
 
 import dagger.Component;
 
-@Component(dependencies = { SimuLizarRuntimeComponent.class, SimuComFrameworkComponent.class } //, modules = {QualitygateExtensionModule.class}
-)
+@Component(dependencies = { SimuLizarRuntimeComponent.class, SimuComFrameworkComponent.class })
 @RuntimeExtensionScope
 public interface QualitygateExtensionComponent extends ExtensionComponent {
 	

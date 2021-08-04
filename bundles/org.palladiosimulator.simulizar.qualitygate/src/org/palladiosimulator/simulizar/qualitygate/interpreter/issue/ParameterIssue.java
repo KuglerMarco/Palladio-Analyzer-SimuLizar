@@ -54,7 +54,7 @@ public class ParameterIssue implements QualitygateIssue {
 
 
 
-    @Override
+
     public boolean isHandled() {
         // TODO Auto-generated method stub
         return false;
@@ -68,7 +68,7 @@ public class ParameterIssue implements QualitygateIssue {
 
 
 
-    public EntityReference<Entity> getAssemblyConnectorRef() {
+    public EntityReference<Entity> getStereotypedObjectRef() {
         return stereotypedObjectRef;
     }
 

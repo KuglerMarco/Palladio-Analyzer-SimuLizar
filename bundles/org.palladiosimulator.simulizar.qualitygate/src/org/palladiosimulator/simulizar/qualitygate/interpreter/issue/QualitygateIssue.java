@@ -1,5 +1,8 @@
 package org.palladiosimulator.simulizar.qualitygate.interpreter.issue;
 
+import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
+import org.palladiosimulator.pcm.core.entity.Entity;
+import org.palladiosimulator.simulizar.entity.EntityReference;
 import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 
 /**
@@ -10,4 +13,10 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
  *
  */
 public interface QualitygateIssue extends InterpretationIssue{
+	
+	public EntityReference<Entity> getStereotypedObjectRef();
+	
+	public EntityReference<QualityGate> getQualitygateRef();
+	
+	
 }

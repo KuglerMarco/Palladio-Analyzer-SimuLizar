@@ -7,4 +7,10 @@
             factory="org.palladiosimulator.simulizar.qualitygate.di.QualitygateExtensionComponent$EclipseFactory">
       </component>
    </extension>
+   <extension
+         point="org.palladiosimulator.simulizar.extension.factory">
+      <component
+            factory="org.palladiosimulator.simulizar.qualitygate.di.QualitygateRootExtensionComponent$EclipseFactory">
+      </component>
+   </extension>
 </plugin>
