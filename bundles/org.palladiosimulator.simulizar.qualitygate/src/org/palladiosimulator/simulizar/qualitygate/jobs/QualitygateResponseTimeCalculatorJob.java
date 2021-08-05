@@ -14,6 +14,9 @@ import de.uka.ipd.sdq.workflow.jobs.IBlackboardInteractingJob;
 import de.uka.ipd.sdq.workflow.jobs.JobFailedException;
 import de.uka.ipd.sdq.workflow.jobs.UserCanceledException;
 import de.uka.ipd.sdq.workflow.mdsd.blackboard.MDSDBlackboard;
+import org.palladiosimulator.pcm.core.composition.CompositionPackage;
+import org.palladiosimulator.pcm.core.composition.Connector;
+import org.palladiosimulator.pcm.system.System;
 
 
 public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteractingJob<MDSDBlackboard>, ModelCompletionJobContributor {
@@ -27,6 +30,7 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
 	Logger LOGGER = Logger.getLogger(QualitygateResponseTimeCalculatorJob.class);
 	
 	private final MDSDBlackboard blackboard;
+	
 	
 	@Inject
 	public QualitygateResponseTimeCalculatorJob(MDSDBlackboard blackboard) {
@@ -43,9 +47,20 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
 		//TODO delegate.contribute(IBlackboardInteractingJob<MDSDBlackboard> contribution)
 		//BlackboardJob wird aufgerufen wenn Modell geladen, hier die Calculators im MonitorRespository setzen
 		
-		System.out.println("System-Model loaded: " + blackboard.hasPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID));
+		LOGGER.debug("System-Model loaded: " + blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID).getElement(CompositionPackage.eINSTANCE.getComposedStructure()).get(0));
 		
-		LOGGER.debug(blackboard.getPartition(ConstantsContainer.SYSTEM_EXTENSION[0]).toString());
+		System systemModel = (System) blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID).getElement(CompositionPackage.eINSTANCE.getComposedStructure()).get(0);
+		LOGGER.debug(systemModel.getConnectors__ComposedStructure().get(0).getEntityName());
+		LOGGER.debug(systemModel.getConnectors__ComposedStructure().get(1).getEntityName());
+		
+		for(Connector e : systemModel.getConnectors__ComposedStructure()) {
+			LOGGER.debug(e.getEntityName());
+		}
+		
+		for(String e : blackboard.getPartitionIds()) {
+			LOGGER.debug(e);
+			
+		}
 		
 		delegate.contribute(this);
 	}
