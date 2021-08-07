@@ -5,7 +5,7 @@ import org.eclipse.core.runtime.IExecutableExtensionFactory;
 import org.palladiosimulator.simulizar.di.component.core.SimuLizarRootComponent;
 import org.palladiosimulator.simulizar.scopes.RootExtensionScope;
 import org.palladiosimulator.simulizar.di.extension.ExtensionComponent;
-import org.palladiosimulator.simulizar.qualitygate.jobs.QualitygateResponseTimeCalculatorJob;
+import org.palladiosimulator.simulizar.qualitygate.jobs.QualitygateCalculatorJobContribution;
 
 import dagger.Component;
 
@@ -13,7 +13,7 @@ import dagger.Component;
 @RootExtensionScope
 public interface QualitygateRootExtensionComponent extends ExtensionComponent {
 	
-	QualitygateResponseTimeCalculatorJob qualitygateCompletionJob();
+	QualitygateCalculatorJobContribution qualitygateCompletionJob();
 	
 	
 	@Component.Factory

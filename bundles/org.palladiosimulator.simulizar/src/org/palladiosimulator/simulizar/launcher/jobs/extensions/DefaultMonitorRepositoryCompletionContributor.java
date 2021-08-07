@@ -43,6 +43,7 @@ public class DefaultMonitorRepositoryCompletionContributor extends AbstractBlack
         resSet.createResource(URI.createURI("model-gen/generated.measuringpoint")).getContents().add(measuringPointRepo);
         resSet.createResource(URI.createURI("model-gen/generated.monitorrepository"))
             .getContents().add(DefaultMonitorRepositoryFactory.createDefaultMonitorRepository(measuringPointRepo));
+        
     }
 
 
