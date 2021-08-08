@@ -16,7 +16,7 @@ public interface StereotypeSwitch {
      * Checks whether this is the StereotypeSwitch for stereotype.
      * 
      * @param stereotype
-     * @return Boolean, whether Switch for STereotype.
+     * @return Boolean, whether Switch for Stereotype.
      */
     public boolean isSwitchForStereotype(Stereotype stereotype);
     

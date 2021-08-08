@@ -7,6 +7,7 @@ import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
+import org.palladiosimulator.failuremodel.qualitygate.RequestMetricScope;
 import org.palladiosimulator.failuremodel.qualitygate.RequestParameterScope;
 import org.palladiosimulator.failuremodel.qualitygate.ResultParameterScope;
 import org.palladiosimulator.failuremodel.qualitygate.util.QualitygateSwitch;
@@ -77,6 +78,11 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     }
     
 
+    
+    @Override
+    public InterpreterResult caseRequestMetricScope(RequestMetricScope object) {
+    	return InterpreterResult.OK;
+    }
     
     /**
      * Processing the attached Qualitygat, Premise and Scope

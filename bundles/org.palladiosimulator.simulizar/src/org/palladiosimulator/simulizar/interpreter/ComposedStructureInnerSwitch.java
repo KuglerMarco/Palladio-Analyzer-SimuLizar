@@ -44,7 +44,6 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
     @AssistedFactory
     public static interface Factory extends ComposedStructureInnerSwitchFactory {
         
-        //Added the ComposedStructureInnerSwitchStereotypeElementDispatcher
         ComposedStructureInnerSwitch create(final InterpreterDefaultContext context, final Signature operationSignature,
                 final RequiredRole requiredRole);
     }
