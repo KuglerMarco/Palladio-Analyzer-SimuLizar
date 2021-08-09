@@ -74,8 +74,8 @@ public class StereotypeQualitygatePreprocessingSwitch extends QualitygateSwitch<
 		
 		if(stereotypeObject instanceof AssemblyConnector) {
 			
-			//Role
-			measuringPoint.setRole(((AssemblyConnector) stereotypeObject).getRequiredRole_AssemblyConnector());
+			//Role TODO Required oder Provided?
+			measuringPoint.setRole(((AssemblyConnector) stereotypeObject).getProvidedRole_AssemblyConnector());
 			
 			//System
 			measuringPoint.setSystem((System) ((AssemblyConnector) stereotypeObject).getParentStructure__Connector());

@@ -81,6 +81,10 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     
     @Override
     public InterpreterResult caseRequestMetricScope(RequestMetricScope object) {
+    	
+    	
+    	
+    	
     	return InterpreterResult.OK;
     }
     

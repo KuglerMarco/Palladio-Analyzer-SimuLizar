@@ -30,10 +30,16 @@ import de.uka.ipd.sdq.workflow.jobs.JobFailedException;
 import de.uka.ipd.sdq.workflow.jobs.UserCanceledException;
 import de.uka.ipd.sdq.workflow.mdsd.blackboard.MDSDBlackboard;
 import org.palladiosimulator.pcm.core.composition.Connector;
+import org.palladiosimulator.pcm.repository.OperationSignature;
+import org.palladiosimulator.pcm.repository.Role;
+import org.palladiosimulator.pcmmeasuringpoint.OperationReference;
+import org.palladiosimulator.pcmmeasuringpoint.SystemOperationMeasuringPoint;
 import org.palladiosimulator.analyzer.workflow.blackboard.PCMResourceSetPartition;
+import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPoint;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringpointPackage;
 import org.eclipse.emf.common.util.URI;
+
 
 
 /**
@@ -63,6 +69,9 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
 	
 	
 
+	/**
+	 * Adds the required Monitors to the MonitorRepository.
+	 */
 	@Override
 	public void execute(IProgressMonitor monitor) throws JobFailedException, UserCanceledException {
 		
@@ -130,15 +139,20 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
 					
 					
 					//List of generated Monitors for the attached Qualitygates (could be more than one)
-					List<Monitor> qualitygateMonitor = preprocessingSwitch.create(res).handleQualitygate(object);
+					List<Monitor> qualitygateMonitors = preprocessingSwitch.create(res).handleQualitygate(object);
 					//Removing the Null-elements, because not every Qualitygate needs a calculator
-					while(qualitygateMonitor.remove(null));
+					while(qualitygateMonitors.remove(null));
 					
 					//Adding the generated Monitors to the repositories
-					for(Monitor e : qualitygateMonitor) {
-						measuringPointRepo.getMeasuringPoints().add(e.getMeasuringPoint());
-						monitorRepo.getMonitors().add(e);
-						e.setMonitorRepository(monitorRepo);
+					for(Monitor e : qualitygateMonitors) {
+						
+						if(!this.isMeasurementSpecificationPresent(e)) {
+							measuringPointRepo.getMeasuringPoints().add(e.getMeasuringPoint());
+							monitorRepo.getMonitors().add(e);
+							e.setMonitorRepository(monitorRepo);
+						}
+						
+						
 							
 					}
 				}
@@ -173,6 +187,41 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
 	public void setBlackboard(MDSDBlackboard blackboard) {
 		this.blackboard = blackboard;
 		
+	}
+	
+	
+	/**
+	 * Testing whether MeasurementSpecification is already in MonitorRepository.
+	 * 
+	 * @param qualitygateMonitor
+	 * @return
+	 */
+	public boolean isMeasurementSpecificationPresent(Monitor qualitygateMonitor) {
+       
+		MonitorRepository monitorRepo = (MonitorRepository) blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID).getElement(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY).get(0);
+		OperationSignature signature = ((SystemOperationMeasuringPoint) qualitygateMonitor.getMeasuringPoint()).getOperationSignature();
+		Role role = ((SystemOperationMeasuringPoint) qualitygateMonitor.getMeasuringPoint()).getRole();
+		
+		for(Monitor e : monitorRepo.getMonitors()) {
+			MeasuringPoint measPoint = e.getMeasuringPoint();
+			if(measPoint instanceof SystemOperationMeasuringPoint) {
+				if(((OperationReference) measPoint).getOperationSignature().equals(signature) && ((OperationReference) measPoint).getRole().equals(role)) {
+					//Same Measuring-Point
+					
+					for(MeasurementSpecification i : e.getMeasurementSpecifications()) {
+						for(MeasurementSpecification j : qualitygateMonitor.getMeasurementSpecifications()) {
+							if(i.getMetricDescription().equals(j.getMetricDescription()) && i.getProcessingType().equals(j.getProcessingType()) && !i.isTriggersSelfAdaptations()) {
+								//Same MeasurementSpecification
+								return true;
+							}
+						}
+					}
+					
+				}
+			}
+			
+		}
+		return false;
 	}
 
 
