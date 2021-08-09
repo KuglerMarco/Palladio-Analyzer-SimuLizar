@@ -3,6 +3,7 @@ package org.palladiosimulator.simulizar.qualitygate.di;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IExecutableExtensionFactory;
 import org.palladiosimulator.simulizar.di.component.core.SimuLizarRuntimeComponent;
+import org.palladiosimulator.simulizar.di.component.dependency.QUALComponent;
 import org.palladiosimulator.simulizar.di.component.dependency.SimuComFrameworkComponent;
 import org.palladiosimulator.simulizar.di.extension.ExtensionComponent;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.StereotypeQualitygateSwitch;
@@ -11,7 +12,7 @@ import org.palladiosimulator.simulizar.scopes.RuntimeExtensionScope;
 
 import dagger.Component;
 
-@Component(dependencies = { SimuLizarRuntimeComponent.class, SimuComFrameworkComponent.class })
+@Component(dependencies = { SimuLizarRuntimeComponent.class, SimuComFrameworkComponent.class, QUALComponent.class })
 @RuntimeExtensionScope
 public interface QualitygateExtensionComponent extends ExtensionComponent {
 	
@@ -20,7 +21,7 @@ public interface QualitygateExtensionComponent extends ExtensionComponent {
 	
 	@Component.Factory
 	public static interface Factory extends ExtensionComponent.Factory {
-		QualitygateExtensionComponent create(SimuLizarRuntimeComponent runtimeComponent, SimuComFrameworkComponent frameworkComponent);
+		QualitygateExtensionComponent create(SimuLizarRuntimeComponent runtimeComponent, SimuComFrameworkComponent frameworkComponent, QUALComponent qualComponent);
 	}
 	
 	

@@ -12,10 +12,13 @@ import org.palladiosimulator.failuremodel.qualitygate.RequestParameterScope;
 import org.palladiosimulator.failuremodel.qualitygate.ResultParameterScope;
 import org.palladiosimulator.failuremodel.qualitygate.util.QualitygateSwitch;
 import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
+import org.palladiosimulator.measurementframework.MeasuringValue;
+import org.palladiosimulator.measurementframework.listener.IMeasurementSourceListener;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
 import org.palladiosimulator.pcm.core.entity.Entity;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
+import org.palladiosimulator.simulizar.di.modules.component.core.QUALModule_ProvideProbeframeworkContextFactory;
 import org.palladiosimulator.simulizar.interpreter.CallScope;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.StereotypeSwitch;
@@ -26,6 +29,7 @@ import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIs
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
 import org.modelversioning.emfprofile.Stereotype;
+import org.palladiosimulator.probeframework.ProbeFrameworkContext;
 
 import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
@@ -37,7 +41,7 @@ import dagger.assisted.AssistedInject;
  * @author Marco Kugler
  *
  */
-public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterResult> implements StereotypeSwitch {
+public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterResult> implements StereotypeSwitch, IMeasurementSourceListener {
 
     @AssistedFactory
     public interface Factory extends ComposedStructureInnerSwitchStereotypeContributionFactory {
@@ -67,7 +71,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     
     @AssistedInject
     StereotypeQualitygateSwitch(@Assisted final InterpreterDefaultContext context, @Assisted Signature operationSignature, @Assisted RequiredRole requiredRole,
-            @Assisted ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch, BasicInterpreterResultMerger merger){
+            @Assisted ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch, BasicInterpreterResultMerger merger, ProbeFrameworkContext frameworkContext){
         
         this.merger = merger;
         this.context = context;
@@ -89,7 +93,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     }
     
     /**
-     * Processing the attached Qualitygat, Premise and Scope
+     * Processing the attached Qualitygate, Premise and Scope
      */
     @Override
     public InterpreterResult caseQualityGate(QualityGate object) {
@@ -208,6 +212,22 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     public String getProfileName() {
         return this.profileName;
     }
+
+
+
+	@Override
+	public void newMeasurementAvailable(MeasuringValue newMeasurement) {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
+	@Override
+	public void preUnregister() {
+		// TODO Auto-generated method stub
+		
+	}
     
     
 }
