@@ -8,23 +8,22 @@ import org.palladiosimulator.simulizar.di.extension.Extension;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 
 /**
- * Interface to contribute StereotypeSwitches handling attached Stereotypes to ComposedStructure-elements.
+ * Interface to contribute StereotypeSwitches handling attached Stereotypes to
+ * ComposedStructure-elements.
  * 
  * @author Marco Kugler
  *
  */
 public interface ComposedStructureInnerSwitchStereotypeContributionFactory extends Extension {
-    
-    
-    //TODO Refactor (Generalize)
+
+    // TODO Refactor (Generalize)
     public interface ComposedStructureInnerSwitchStereotypeElementDispatcher {
         InterpreterResult doSwitch(EClass theEClass, EObject theEObject);
-        
+
         default InterpreterResult doSwitch(EObject theEObject) {
             return doSwitch(theEObject.eClass(), theEObject);
         }
     }
-    
 
     /**
      * @param context
@@ -32,11 +31,8 @@ public interface ComposedStructureInnerSwitchStereotypeContributionFactory exten
      * @param requiredRole
      * @return StereotypeSwitch
      */
-    public StereotypeSwitch createStereotypeSwitch(final InterpreterDefaultContext context, final Signature operationSignature,
-            final RequiredRole requiredRole, ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch);
-    
-    
-    
-    
-    
+    public StereotypeSwitch createStereotypeSwitch(final InterpreterDefaultContext context,
+            final Signature operationSignature, final RequiredRole requiredRole,
+            ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch);
+
 }

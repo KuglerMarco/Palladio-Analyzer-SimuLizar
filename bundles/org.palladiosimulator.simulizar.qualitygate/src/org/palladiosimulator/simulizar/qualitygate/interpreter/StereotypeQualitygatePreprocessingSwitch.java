@@ -33,107 +33,109 @@ import dagger.assisted.AssistedInject;
  *
  */
 public class StereotypeQualitygatePreprocessingSwitch extends QualitygateSwitch<Monitor> {
-	
-	@AssistedFactory
-	public static interface Factory {
-		StereotypeQualitygatePreprocessingSwitch create(MetricDescriptionRepository metricRepo);
-	}
-	
-	Logger LOGGER = Logger.getLogger(StereotypeQualitygatePreprocessingSwitch.class);
-	private EObject stereotypeObject;
-	private final MetricDescriptionRepository metricRepo;
-	
-	@AssistedInject
-	public StereotypeQualitygatePreprocessingSwitch(@Assisted MetricDescriptionRepository metricRepo) {
-		LOGGER.setLevel(Level.DEBUG);
-		this.metricRepo = metricRepo;
-	}
-	
-	
-	
-	/**
-	 * Creates the Monitor to observe the Response-Time at the stereotyped element.
-	 */
-	@Override
-	public Monitor caseRequestMetricScope(RequestMetricScope object) {
-		
 
-		Monitor monitor = MonitorRepositoryFactory.eINSTANCE.createMonitor();
-		
-		//Activated
-		monitor.setActivated(true);
-		
-		//Entity-Name
-		monitor.setEntityName("QualitygateMonitor");
-		
-		//Measuring-Point
-		SystemOperationMeasuringPoint measuringPoint = PcmmeasuringpointFactory.eINSTANCE.createSystemOperationMeasuringPoint();
-		
-		//Operation-Signature
-		measuringPoint.setOperationSignature((OperationSignature) object.getSignature());
-		
-		if(stereotypeObject instanceof AssemblyConnector) {
-			
-			//Role TODO Required oder Provided?
-			measuringPoint.setRole(((AssemblyConnector) stereotypeObject).getProvidedRole_AssemblyConnector());
-			
-			//System
-			measuringPoint.setSystem((System) ((AssemblyConnector) stereotypeObject).getParentStructure__Connector());
-			
-		}
-		
-		monitor.setMeasuringPoint(measuringPoint);
-		
-		//Measurement-Specification
-		MeasurementSpecification measurementSpec = MonitorRepositoryFactory.eINSTANCE.createMeasurementSpecification();
-		
-		//Metric-Description
-		measurementSpec.setMetricDescription(metricRepo.getMetricDescriptions().stream().filter(e -> e.getName().equals("Response Time")).findFirst().orElse(null));
-		
-		//triggers self adaption
-		measurementSpec.setTriggersSelfAdaptations(false);
-		
-		//Processing Type
-		ProcessingType procType = MonitorRepositoryFactory.eINSTANCE.createFeedThrough();
-		
-		procType.setMeasurementSpecification(measurementSpec);
-		
-		measurementSpec.setProcessingType(procType);
-		
-		monitor.getMeasurementSpecifications().add(measurementSpec);
-		
-		LOGGER.debug("A monitor was created for: " + monitor.getMeasurementSpecifications().get(0).getMetricDescription().getTextualDescription());
-		
-		return monitor;
-		
-	}
-	
-	
-	
-	@Override
-	public Monitor caseQualityGate(QualityGate object) {
-		
-		return doSwitch(object.getScope());
+    @AssistedFactory
+    public static interface Factory {
+        StereotypeQualitygatePreprocessingSwitch create(MetricDescriptionRepository metricRepo);
+    }
 
-	}
-	
-	
-	
-	public List<Monitor> handleQualitygate(EObject object) {
-		
-		EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(object, "qualitygate", "QualitygateElement");
-		
-		stereotypeObject = object;
-		
-		List<Monitor> monitor = new ArrayList<Monitor>();
-		
-		for(QualityGate e : taggedValues) {
-			monitor.add(this.doSwitch(e));
-		}
-		
-		return monitor;
-		
-		
-	}
+    Logger LOGGER = Logger.getLogger(StereotypeQualitygatePreprocessingSwitch.class);
+    private EObject stereotypeObject;
+    private final MetricDescriptionRepository metricRepo;
+
+    @AssistedInject
+    public StereotypeQualitygatePreprocessingSwitch(@Assisted MetricDescriptionRepository metricRepo) {
+        LOGGER.setLevel(Level.DEBUG);
+        this.metricRepo = metricRepo;
+    }
+
+    /**
+     * Creates the Monitor to observe the Response-Time at the stereotyped element.
+     */
+    @Override
+    public Monitor caseRequestMetricScope(RequestMetricScope object) {
+
+        Monitor monitor = MonitorRepositoryFactory.eINSTANCE.createMonitor();
+
+        // Activated
+        monitor.setActivated(true);
+
+        // Entity-Name
+        monitor.setEntityName("QualitygateMonitor");
+
+        // Measuring-Point
+        SystemOperationMeasuringPoint measuringPoint = PcmmeasuringpointFactory.eINSTANCE
+            .createSystemOperationMeasuringPoint();
+
+        // Operation-Signature
+        measuringPoint.setOperationSignature((OperationSignature) object.getSignature());
+
+        if (stereotypeObject instanceof AssemblyConnector) {
+
+            // Role TODO Required oder Provided?
+            measuringPoint.setRole(((AssemblyConnector) stereotypeObject).getProvidedRole_AssemblyConnector());
+
+            // System
+            measuringPoint.setSystem((System) ((AssemblyConnector) stereotypeObject).getParentStructure__Connector());
+
+        }
+
+        monitor.setMeasuringPoint(measuringPoint);
+
+        // Measurement-Specification
+        MeasurementSpecification measurementSpec = MonitorRepositoryFactory.eINSTANCE.createMeasurementSpecification();
+
+        // Metric-Description
+        measurementSpec.setMetricDescription(metricRepo.getMetricDescriptions()
+            .stream()
+            .filter(e -> e.getName()
+                .equals("Response Time"))
+            .findFirst()
+            .orElse(null));
+
+        // triggers self adaption
+        measurementSpec.setTriggersSelfAdaptations(false);
+
+        // Processing Type
+        ProcessingType procType = MonitorRepositoryFactory.eINSTANCE.createFeedThrough();
+
+        procType.setMeasurementSpecification(measurementSpec);
+
+        measurementSpec.setProcessingType(procType);
+
+        monitor.getMeasurementSpecifications()
+            .add(measurementSpec);
+
+        LOGGER.debug("A monitor was created for: " + monitor.getMeasurementSpecifications()
+            .get(0)
+            .getMetricDescription()
+            .getTextualDescription());
+
+        return monitor;
+
+    }
+
+    @Override
+    public Monitor caseQualityGate(QualityGate object) {
+
+        return doSwitch(object.getScope());
+
+    }
+
+    public List<Monitor> handleQualitygate(EObject object) {
+
+        EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(object, "qualitygate", "QualitygateElement");
+
+        stereotypeObject = object;
+
+        List<Monitor> monitor = new ArrayList<Monitor>();
+
+        for (QualityGate e : taggedValues) {
+            monitor.add(this.doSwitch(e));
+        }
+
+        return monitor;
+
+    }
 
 }

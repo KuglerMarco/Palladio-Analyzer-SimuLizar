@@ -8,8 +8,10 @@ import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchF
 import org.palladiosimulator.simulizar.interpreter.RDSeffPerformanceSwitch;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitch;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchContributionFactory;
+import org.palladiosimulator.simulizar.interpreter.StereotypeDispatchRepositoryComponentSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.impl.ExtensibleComposedRDSeffSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.impl.ExtensibleStereotypeComposedStructureInnerSwitchFactory;
+import org.palladiosimulator.simulizar.interpreter.impl.ExtensibleStereotypeDispatchRepositoryComponentSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
 import org.palladiosimulator.simulizar.scopes.SimulatedThreadScope;
@@ -51,5 +53,8 @@ public interface CoreSimulatedThreadBindings {
         return ImmutableSet.of(rdseffSwitchFactory, performanceSwitchFactory);
     }
     
+    @Binds
+    @SimulatedThreadScope
+    StereotypeDispatchRepositoryComponentSwitchFactory bindStereotypeDispatchRepositoryComponentSwitchFactory(ExtensibleStereotypeDispatchRepositoryComponentSwitchFactory impl);
 
 }
