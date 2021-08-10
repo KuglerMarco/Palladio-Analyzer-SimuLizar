@@ -8,7 +8,7 @@ import javax.inject.Provider;
 import org.eclipse.emf.ecore.util.Switch;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
-import org.palladiosimulator.simulizar.di.modules.scoped.thread.StandardComposedStructureInnerSwitch;
+import org.palladiosimulator.simulizar.di.modules.scoped.thread.StandardSwitch;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitch;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory;
@@ -45,7 +45,7 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory implements 
     @Inject
     public ExtensibleStereotypeComposedStructureInnerSwitchFactory(
             Provider<Set<ComposedStructureInnerSwitchStereotypeContributionFactory>> elementFactoriesProvider,
-            @StandardComposedStructureInnerSwitch ComposedStructureInnerSwitchFactory composedStructureInnerSwitchFactory,
+            @StandardSwitch ComposedStructureInnerSwitchFactory composedStructureInnerSwitchFactory,
             InterpreterResultMerger merger, InterpreterResultHandlerDispatchFactory handler) {
         this.composedStructureInnerSwitchFactory = composedStructureInnerSwitchFactory;
         this.elementFactoriesProvider = elementFactoriesProvider;

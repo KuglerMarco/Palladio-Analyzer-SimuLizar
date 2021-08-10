@@ -46,7 +46,7 @@ import de.uka.ipd.sdq.simucomframework.variables.stackframe.SimulatedStackframe;
  */
 public class RepositoryComponentSwitch extends RepositorySwitch<InterpreterResult> {
     @AssistedFactory
-    public static interface Factory {
+    public static interface Factory extends RepositoryComponentSwitchFactory {
         RepositoryComponentSwitch create(final InterpreterDefaultContext context, final AssemblyContext assemblyContext,
                 final Signature signature, final ProvidedRole providedRole);
     }

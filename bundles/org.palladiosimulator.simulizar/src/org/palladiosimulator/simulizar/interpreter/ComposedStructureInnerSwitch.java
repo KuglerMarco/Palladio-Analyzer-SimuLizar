@@ -40,10 +40,10 @@ import de.uka.ipd.sdq.simucomframework.variables.stackframe.SimulatedStackframe;
  *
  */
 public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterResult> {
-    //TODO Interface auch für meine Factory-Implementierun nutzen (zuerst rausziehen)
+
     @AssistedFactory
     public static interface Factory extends ComposedStructureInnerSwitchFactory {
-        
+
         ComposedStructureInnerSwitch create(final InterpreterDefaultContext context, final Signature operationSignature,
                 final RequiredRole requiredRole);
     }
@@ -80,8 +80,8 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
             ITransmissionInterpreter<EntityReference<ResourceContainer>, SimulatedStackframe<Object>, InterpreterDefaultContext> transmissionInterpreter,
             IAssemblyAllocationLookup<EntityReference<ResourceContainer>> resourceContainerLookup,
             ComposedStructureInnerSwitchFactory composedStructureSwitchFactory,
-            RepositoryComponentSwitch.Factory repositoryComponentSwitchFactory, InterpreterResultHandlerDispatchFactory issueHandler,
-            InterpreterResultMerger resultMerger) {
+            RepositoryComponentSwitch.Factory repositoryComponentSwitchFactory,
+            InterpreterResultHandlerDispatchFactory issueHandler, InterpreterResultMerger resultMerger) {
         super();
         this.context = context;
         this.signature = operationSignature;
@@ -158,8 +158,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
             final RequiredDelegationConnector requiredDelegationConnector) {
         final AssemblyContext parentContext = this.context.getAssemblyContextStack()
             .pop();
-        final var composedStructureInnerSwitch = composedStructureSwitchFactory.create(
-                this.context, this.signature,
+        final var composedStructureInnerSwitch = composedStructureSwitchFactory.create(this.context, this.signature,
                 requiredDelegationConnector.getOuterRequiredRole_RequiredDelegationConnector());
         final var result = composedStructureInnerSwitch.doSwitch(parentContext);
         this.context.getAssemblyContextStack()
@@ -172,9 +171,9 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
             final RequiredInfrastructureDelegationConnector requiredInfrastructureDelegationConnector) {
         final AssemblyContext parentContext = this.context.getAssemblyContextStack()
             .pop();
-        final var composedStructureInnerSwitch = composedStructureSwitchFactory
-            .create(this.context, this.signature, requiredInfrastructureDelegationConnector
-                .getOuterRequiredRole__RequiredInfrastructureDelegationConnector());
+        final var composedStructureInnerSwitch = composedStructureSwitchFactory.create(this.context, this.signature,
+                requiredInfrastructureDelegationConnector
+                    .getOuterRequiredRole__RequiredInfrastructureDelegationConnector());
         final var result = composedStructureInnerSwitch.doSwitch(parentContext);
         this.context.getAssemblyContextStack()
             .push(parentContext);
@@ -184,7 +183,8 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
     @Override
     public InterpreterResult caseAssemblyContext(final AssemblyContext assemblyContext) {
         final Connector connector = getConnectedConnector(assemblyContext, this.requiredRole);
-        return this.composedStructureSwitchFactory.create(context, signature, requiredRole).doSwitch(connector);
+        return this.composedStructureSwitchFactory.create(context, signature, requiredRole)
+            .doSwitch(connector);
     }
 
     /**

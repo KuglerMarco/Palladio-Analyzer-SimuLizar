@@ -51,7 +51,7 @@ public class UsageScenarioSwitch extends UsagemodelSwitch<InterpreterResult> {
 
     private final InterpreterDefaultContext context;
     private final TransitionDeterminer transitionDeterminer;
-    private final StereotypeDispatchRepositoryComponentSwitchFactory repositoryComponentSwitchFactory;
+    private final RepositoryComponentSwitchFactory repositoryComponentSwitchFactory;
 
     private final EventDispatcher eventHelper;
 
@@ -62,7 +62,7 @@ public class UsageScenarioSwitch extends UsagemodelSwitch<InterpreterResult> {
      * @see UsageScenarioSwitchFactory#create(InterpreterDefaultContext)
      */
     @AssistedInject
-    UsageScenarioSwitch(@Assisted final InterpreterDefaultContext context, StereotypeDispatchRepositoryComponentSwitchFactory repositoryComponentSwitchFactory,
+    UsageScenarioSwitch(@Assisted final InterpreterDefaultContext context, RepositoryComponentSwitchFactory repositoryComponentSwitchFactory,
             EventDispatcher eventHelper,
             InterpreterResultHandlerDispatchFactory issueHandler,
             InterpreterResultMerger resultMerger) {

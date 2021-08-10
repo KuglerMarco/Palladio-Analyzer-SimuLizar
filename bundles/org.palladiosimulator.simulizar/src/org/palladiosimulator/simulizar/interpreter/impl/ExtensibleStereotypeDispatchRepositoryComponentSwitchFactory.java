@@ -9,8 +9,10 @@ import org.eclipse.emf.ecore.util.Switch;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.repository.ProvidedRole;
 import org.palladiosimulator.pcm.repository.Signature;
+import org.palladiosimulator.simulizar.di.modules.scoped.thread.StandardSwitch;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
 import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitch;
+import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.StereotypeDispatchRepositoryComponentSwitch;
 import org.palladiosimulator.simulizar.interpreter.StereotypeDispatchRepositoryComponentSwitchFactory;
@@ -19,11 +21,11 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandl
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandlerDispatchFactory;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 
-public class ExtensibleStereotypeDispatchRepositoryComponentSwitchFactory implements StereotypeDispatchRepositoryComponentSwitchFactory {
+public class ExtensibleStereotypeDispatchRepositoryComponentSwitchFactory implements RepositoryComponentSwitchFactory {
 
     private final Provider<Set<RepositoryComponentSwitchStereotypeContributionFactory>> elementFactoriesProvider;
 
-    private final RepositoryComponentSwitch.Factory repositoryComponentSwitchFactory;
+    private final RepositoryComponentSwitchFactory repositoryComponentSwitchFactory;
 
     private final InterpreterResultMerger merger;
 
@@ -32,7 +34,7 @@ public class ExtensibleStereotypeDispatchRepositoryComponentSwitchFactory implem
     @Inject
     public ExtensibleStereotypeDispatchRepositoryComponentSwitchFactory(
             Provider<Set<RepositoryComponentSwitchStereotypeContributionFactory>> elementFactoriesProvider,
-            RepositoryComponentSwitch.Factory repositoryComponentSwitchFactory, InterpreterResultMerger merger,
+            @StandardSwitch RepositoryComponentSwitchFactory repositoryComponentSwitchFactory, InterpreterResultMerger merger,
             InterpreterResultHandlerDispatchFactory handler) {
         
         this.repositoryComponentSwitchFactory = repositoryComponentSwitchFactory;
