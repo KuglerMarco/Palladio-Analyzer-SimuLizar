@@ -51,7 +51,7 @@ public class UsageScenarioSwitch extends UsagemodelSwitch<InterpreterResult> {
 
     private final InterpreterDefaultContext context;
     private final TransitionDeterminer transitionDeterminer;
-    private final RepositoryComponentSwitch.Factory repositoryComponentSwitchFactory;
+    private final StereotypeDispatchRepositoryComponentSwitchFactory repositoryComponentSwitchFactory;
 
     private final EventDispatcher eventHelper;
 
@@ -62,7 +62,7 @@ public class UsageScenarioSwitch extends UsagemodelSwitch<InterpreterResult> {
      * @see UsageScenarioSwitchFactory#create(InterpreterDefaultContext)
      */
     @AssistedInject
-    UsageScenarioSwitch(@Assisted final InterpreterDefaultContext context, RepositoryComponentSwitch.Factory repositoryComponentSwitchFactory,
+    UsageScenarioSwitch(@Assisted final InterpreterDefaultContext context, StereotypeDispatchRepositoryComponentSwitchFactory repositoryComponentSwitchFactory,
             EventDispatcher eventHelper,
             InterpreterResultHandlerDispatchFactory issueHandler,
             InterpreterResultMerger resultMerger) {
@@ -155,7 +155,7 @@ public class UsageScenarioSwitch extends UsagemodelSwitch<InterpreterResult> {
      */
     @Override
     public InterpreterResult caseEntryLevelSystemCall(final EntryLevelSystemCall entryLevelSystemCall) {
-        final RepositoryComponentSwitch providedDelegationSwitch = repositoryComponentSwitchFactory.create(this.context,
+        final var providedDelegationSwitch = repositoryComponentSwitchFactory.create(this.context,
                 RepositoryComponentSwitch.SYSTEM_ASSEMBLY_CONTEXT,
                 entryLevelSystemCall.getOperationSignature__EntryLevelSystemCall(),
                 entryLevelSystemCall.getProvidedRole_EntryLevelSystemCall());

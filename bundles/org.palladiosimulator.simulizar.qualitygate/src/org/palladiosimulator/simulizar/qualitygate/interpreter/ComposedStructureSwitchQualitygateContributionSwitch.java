@@ -6,10 +6,7 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.modelversioning.emfprofile.Stereotype;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
-import org.palladiosimulator.failuremodel.qualitygate.util.QualitygateSwitch;
 import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
-import org.palladiosimulator.pcm.core.PCMRandomVariable;
-import org.palladiosimulator.pcm.core.entity.Entity;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.probeframework.ProbeFrameworkContext;
@@ -43,11 +40,6 @@ public class ComposedStructureSwitchQualitygateContributionSwitch implements Ste
     private final InterpreterDefaultContext context;
     private final Signature operationSignature;
 
-    // Information about the stereotype attachment and processing time
-    private QualityGate qualitygate;
-    private Entity object;
-    private PCMRandomVariable premise;
-    private CallScope callScope = CallScope.REQUEST;
     
     private final StereotypeQualitygateSwitch.Factory stereotypeQualitygateSwitchFactory;
 
@@ -56,8 +48,6 @@ public class ComposedStructureSwitchQualitygateContributionSwitch implements Ste
     private static final Logger LOGGER = Logger.getLogger(StereotypeQualitygateSwitch.class);
     private final BasicInterpreterResultMerger merger;
     
-    private final RequiredRole requiredRole;
-    private final ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch;
 
     @AssistedInject
     ComposedStructureSwitchQualitygateContributionSwitch(@Assisted final InterpreterDefaultContext context,
@@ -70,8 +60,6 @@ public class ComposedStructureSwitchQualitygateContributionSwitch implements Ste
         this.context = context;
         this.operationSignature = operationSignature;
         this.frameworkContext = frameworkContext;
-        this.requiredRole = requiredRole;
-        this.parentSwitch = parentSwitch;
         
         this.stereotypeQualitygateSwitchFactory = stereotypeQualitygateSwitchFactory;
 
@@ -96,8 +84,6 @@ public class ComposedStructureSwitchQualitygateContributionSwitch implements Ste
     public InterpreterResult handleStereotype(Stereotype stereotype, EObject theEObject, CallScope callScope) {
         InterpreterResult result = InterpreterResult.OK;
 
-        this.callScope = callScope;
-        this.object = (Entity) theEObject;
 
         EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
 
