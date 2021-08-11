@@ -64,7 +64,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
     private final IAssemblyAllocationLookup<EntityReference<ResourceContainer>> resourceContainerLookup;
     private final ComposedStructureInnerSwitchFactory composedStructureSwitchFactory;
 
-    private final RepositoryComponentSwitch.Factory repositoryComponentSwitchFactory;
+    private final RepositoryComponentSwitchFactory repositoryComponentSwitchFactory;
 
     private final InterpreterResultMerger resultMerger;
 
@@ -80,7 +80,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
             ITransmissionInterpreter<EntityReference<ResourceContainer>, SimulatedStackframe<Object>, InterpreterDefaultContext> transmissionInterpreter,
             IAssemblyAllocationLookup<EntityReference<ResourceContainer>> resourceContainerLookup,
             ComposedStructureInnerSwitchFactory composedStructureSwitchFactory,
-            RepositoryComponentSwitch.Factory repositoryComponentSwitchFactory,
+            RepositoryComponentSwitchFactory repositoryComponentSwitchFactory,
             InterpreterResultHandlerDispatchFactory issueHandler, InterpreterResultMerger resultMerger) {
         super();
         this.context = context;
@@ -96,7 +96,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
 
     @Override
     public InterpreterResult caseAssemblyConnector(final AssemblyConnector assemblyConnector) {
-        final RepositoryComponentSwitch repositoryComponentSwitch = repositoryComponentSwitchFactory.create(
+        final var repositoryComponentSwitch = repositoryComponentSwitchFactory.create(
                 this.context, assemblyConnector.getProvidingAssemblyContext_AssemblyConnector(), this.signature,
                 assemblyConnector.getProvidedRole_AssemblyConnector());
         var source = getAllocationTarget(assemblyConnector.getRequiringAssemblyContext_AssemblyConnector());
@@ -145,7 +145,7 @@ public class ComposedStructureInnerSwitch extends CompositionSwitch<InterpreterR
     @Override
     public InterpreterResult caseAssemblyInfrastructureConnector(
             final AssemblyInfrastructureConnector assemblyInfrastructureConnector) {
-        final RepositoryComponentSwitch repositoryComponentSwitch = repositoryComponentSwitchFactory.create(
+        final var repositoryComponentSwitch = repositoryComponentSwitchFactory.create(
                 this.context,
                 assemblyInfrastructureConnector.getProvidingAssemblyContext__AssemblyInfrastructureConnector(),
                 this.signature, assemblyInfrastructureConnector.getProvidedRole__AssemblyInfrastructureConnector());

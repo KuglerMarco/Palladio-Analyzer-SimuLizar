@@ -15,7 +15,6 @@ import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
 import org.palladiosimulator.metricspec.MetricDescriptionRepository;
 import org.palladiosimulator.monitorrepository.MeasurementSpecification;
 
-
 import org.palladiosimulator.monitorrepository.Monitor;
 import org.palladiosimulator.monitorrepository.MonitorRepository;
 import org.palladiosimulator.monitorrepository.MonitorRepositoryPackage;
@@ -40,192 +39,218 @@ import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringpointPackage;
 import org.eclipse.emf.common.util.URI;
 
-
-
 /**
- * Creates the necessary Monitor-elements in the MonitorRepository, so that the according Calculators
- * are available within the simulation.
+ * Creates the necessary Monitor-elements in the MonitorRepository, so that the according
+ * Calculators are available within the simulation.
  * 
  * @author Marco Kugler
  *
  */
 public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteractingJob<MDSDBlackboard> {
-	
-	
-	Logger LOGGER = Logger.getLogger(QualitygateResponseTimeCalculatorJob.class);
-	
-	private MDSDBlackboard blackboard;
-	private final StereotypeQualitygatePreprocessingSwitch.Factory preprocessingSwitch;
-	
-	
-	@Inject
-	public QualitygateResponseTimeCalculatorJob(MDSDBlackboard blackboard, StereotypeQualitygatePreprocessingSwitch.Factory preprocessingSwitch) {
-		this.blackboard = blackboard;
-		this.preprocessingSwitch = preprocessingSwitch;
-		
-		LOGGER.setLevel(Level.DEBUG);
-		
-	}
-	
-	
 
-	/**
-	 * Adds the required Monitors to the MonitorRepository.
-	 */
-	@Override
-	public void execute(IProgressMonitor monitor) throws JobFailedException, UserCanceledException {
-		
-		
-		ResourceSet resourceSet = blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID).getResourceSet();
+    Logger LOGGER = Logger.getLogger(QualitygateResponseTimeCalculatorJob.class);
 
-		//Loading CommonMetrics-model
-		URI uri = URI.createURI("pathmap://METRIC_SPEC_MODELS/models/commonMetrics.metricspec");
-		MetricDescriptionRepository res = (MetricDescriptionRepository) resourceSet.getResource(uri, false).getContents().get(0);
-		
-		
-		/*
-         * Merging the MeasurementPoint-Repositories TODO Rücksprache Sebastian
-         */
-		if(blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID).getElement(MeasuringpointPackage.Literals.MEASURING_POINT_REPOSITORY).isEmpty()) {
-			throw new IllegalArgumentException("No MeasuringPointRepository found!");
+    private MDSDBlackboard blackboard;
+    private final StereotypeQualitygatePreprocessingSwitch.Factory preprocessingSwitch;
 
-		}
-		
-		//Current
-		MeasuringPointRepository measuringPointRepo = (MeasuringPointRepository) blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID).getElement(MeasuringpointPackage.Literals.MEASURING_POINT_REPOSITORY).get(0);
-		//Default
-		MeasuringPointRepository genMeasuringPointRepo = DefaultMeasuringPointRepositoryFactory.createDefaultRepository(resourceSet);
-		//added to the current
-		measuringPointRepo.getMeasuringPoints().addAll(genMeasuringPointRepo.getMeasuringPoints());
-		
-	
-		/*
-         * Merging the MonitorRepositories TODO Rücksprache Sebastian TODO Fix the problem of duplicates in defaultRepository
-         */
-		
-        
-        if(blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID).getElement(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY).isEmpty()) {
-        	throw new IllegalArgumentException("No MonitorRepository found!");
-        }
-        //Current
-        MonitorRepository monitorRepo = (MonitorRepository) blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID).getElement(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY).get(0);
-        //Default
-        MonitorRepository genMonitorRepository = DefaultMonitorRepositoryFactory.createDefaultMonitorRepository(measuringPointRepo);
-        
-        //(for every Measuring Point one response time monitor will be added in defaultRepository)
-        //TODO falls Monitor bereits spezifiziert, keinen mehr hinzufügen, ansonsten zwei Calculators
-        monitorRepo.getMonitors().addAll(genMonitorRepository.getMonitors());
-        	
-         
+    @Inject
+    public QualitygateResponseTimeCalculatorJob(MDSDBlackboard blackboard,
+            StereotypeQualitygatePreprocessingSwitch.Factory preprocessingSwitch) {
+        this.blackboard = blackboard;
+        this.preprocessingSwitch = preprocessingSwitch;
+
+        LOGGER.setLevel(Level.DEBUG);
+
+    }
+
+    /**
+     * Adds the required Monitors to the MonitorRepository.
+     */
+    @Override
+    public void execute(IProgressMonitor monitor) throws JobFailedException, UserCanceledException {
+
+        ResourceSet resourceSet = blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
+            .getResourceSet();
+
+        // Loading CommonMetrics-model
+        URI uri = URI.createURI("pathmap://METRIC_SPEC_MODELS/models/commonMetrics.metricspec");
+        MetricDescriptionRepository res = (MetricDescriptionRepository) resourceSet.getResource(uri, false)
+            .getContents()
+            .get(0);
 
         /*
-         * Traversing the System-model to find Qualitygate-Elements
-         * TODO Auf Repository-Ebene ebenefalls machen
+         * Merging the MeasurementPoint-Repositories TODO Rücksprache Sebastian
          */
-		PCMResourceSetPartition resPartition = (PCMResourceSetPartition) blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID);
-		
-		TreeIterator<EObject> systemIterator = resPartition.getSystem().eAllContents();
-		EObject object;
-		
-		//Iterating over System-model
-		while(systemIterator.hasNext()) {
-			
-			object = systemIterator.next();
-			
-			if(!StereotypeAPI.getAppliedStereotypes(object).isEmpty() && StereotypeAPI.getAppliedStereotypes(object).get(0).getName().equals("QualitygateElement")) {
-				
-				if(object instanceof Connector) {
-					LOGGER.debug("The connector " + ((Connector)object).getEntityName() + " has a qualitygate-application");
-					
-					
-					//List of generated Monitors for the attached Qualitygates (could be more than one)
-					List<Monitor> qualitygateMonitors = preprocessingSwitch.create(res).handleQualitygate(object);
-					//Removing the Null-elements, because not every Qualitygate needs a calculator
-					while(qualitygateMonitors.remove(null));
-					
-					//Adding the generated Monitors to the repositories
-					for(Monitor e : qualitygateMonitors) {
-						
-						if(!this.isMeasurementSpecificationPresent(e)) {
-							measuringPointRepo.getMeasuringPoints().add(e.getMeasuringPoint());
-							monitorRepo.getMonitors().add(e);
-							e.setMonitorRepository(monitorRepo);
-						}
-						
-						
-							
-					}
-				}
-			}
-		}
-		
+        if (blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
+            .getElement(MeasuringpointPackage.Literals.MEASURING_POINT_REPOSITORY)
+            .isEmpty()) {
+            throw new IllegalArgumentException("No MeasuringPointRepository found!");
 
-		//Only for debug reasons
-		MonitorRepository monitorRepository = (MonitorRepository) blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID).getElement(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY).get(0);
-		
-		for(Monitor e : monitorRepository.getMonitors()) {
-			LOGGER.debug(e.getMeasuringPoint().getStringRepresentation());
-			
-			for(MeasurementSpecification i : (e.getMeasurementSpecifications())){
-				LOGGER.debug(i.getMetricDescription().getTextualDescription());
-			}
-		}
-	}
+        }
 
-	@Override
-	public void cleanup(IProgressMonitor monitor) throws CleanupFailedException {
-		// Nothing to clean up
-	}
+        // Current
+        MeasuringPointRepository measuringPointRepo = (MeasuringPointRepository) blackboard
+            .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
+            .getElement(MeasuringpointPackage.Literals.MEASURING_POINT_REPOSITORY)
+            .get(0);
+        // Default
+        MeasuringPointRepository genMeasuringPointRepo = DefaultMeasuringPointRepositoryFactory
+            .createDefaultRepository(resourceSet);
+        // added to the current
+        measuringPointRepo.getMeasuringPoints()
+            .addAll(genMeasuringPointRepo.getMeasuringPoints());
 
-	@Override
-	public String getName() {
-		return "Qualitygate Calculator Completion";
-	}
+        /*
+         * Merging the MonitorRepositories TODO Rücksprache Sebastian TODO Fix the problem of
+         * duplicates in defaultRepository
+         */
 
+        if (blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
+            .getElement(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY)
+            .isEmpty()) {
+            throw new IllegalArgumentException("No MonitorRepository found!");
+        }
+        // Current
+        MonitorRepository monitorRepo = (MonitorRepository) blackboard
+            .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
+            .getElement(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY)
+            .get(0);
+        // Default
+        MonitorRepository genMonitorRepository = DefaultMonitorRepositoryFactory
+            .createDefaultMonitorRepository(measuringPointRepo);
 
-	@Override
-	public void setBlackboard(MDSDBlackboard blackboard) {
-		this.blackboard = blackboard;
-		
-	}
-	
-	
-	/**
-	 * Testing whether MeasurementSpecification is already in MonitorRepository.
-	 * 
-	 * @param qualitygateMonitor
-	 * @return
-	 */
-	public boolean isMeasurementSpecificationPresent(Monitor qualitygateMonitor) {
-       
-		MonitorRepository monitorRepo = (MonitorRepository) blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID).getElement(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY).get(0);
-		OperationSignature signature = ((SystemOperationMeasuringPoint) qualitygateMonitor.getMeasuringPoint()).getOperationSignature();
-		Role role = ((SystemOperationMeasuringPoint) qualitygateMonitor.getMeasuringPoint()).getRole();
-		
-		for(Monitor e : monitorRepo.getMonitors()) {
-			MeasuringPoint measPoint = e.getMeasuringPoint();
-			if(measPoint instanceof SystemOperationMeasuringPoint) {
-				if(((OperationReference) measPoint).getOperationSignature().equals(signature) && ((OperationReference) measPoint).getRole().equals(role)) {
-					//Same Measuring-Point
-					
-					for(MeasurementSpecification i : e.getMeasurementSpecifications()) {
-						for(MeasurementSpecification j : qualitygateMonitor.getMeasurementSpecifications()) {
-							if(i.getMetricDescription().equals(j.getMetricDescription()) && i.getProcessingType().equals(j.getProcessingType()) && !i.isTriggersSelfAdaptations()) {
-								//Same MeasurementSpecification
-								return true;
-							}
-						}
-					}
-					
-				}
-			}
-			
-		}
-		return false;
-	}
+        // (for every Measuring Point one response time monitor will be added in defaultRepository)
+        // TODO falls Monitor bereits spezifiziert, keinen mehr hinzufügen, ansonsten zwei
+        // Calculators
+        monitorRepo.getMonitors()
+            .addAll(genMonitorRepository.getMonitors());
 
+        /*
+         * Traversing the System-model to find Qualitygate-Elements TODO Auf Repository-Ebene
+         * ebenefalls machen
+         */
+        PCMResourceSetPartition resPartition = (PCMResourceSetPartition) blackboard
+            .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID);
 
+        TreeIterator<EObject> systemIterator = resPartition.getSystem()
+            .eAllContents();
+        EObject object;
 
+        // Iterating over System-model
+        while (systemIterator.hasNext()) {
 
+            object = systemIterator.next();
+
+            if (!StereotypeAPI.getAppliedStereotypes(object)
+                .isEmpty() && StereotypeAPI.getAppliedStereotypes(object)
+                    .get(0)
+                    .getName()
+                    .equals("QualitygateElement")) {
+
+                if (object instanceof Connector) {
+                    LOGGER.debug(
+                            "The connector " + ((Connector) object).getEntityName() + " has a qualitygate-application");
+
+                    // List of generated Monitors for the attached Qualitygates (could be more than
+                    // one)
+                    List<Monitor> qualitygateMonitors = preprocessingSwitch.create(res)
+                        .handleQualitygate(object);
+                    // Removing the Null-elements, because not every Qualitygate needs a calculator
+                    while (qualitygateMonitors.remove(null))
+                        ;
+
+                    // Adding the generated Monitors to the repositories
+                    for (Monitor e : qualitygateMonitors) {
+
+                        if (!this.isMeasurementSpecificationPresent(e)) {
+                            measuringPointRepo.getMeasuringPoints()
+                                .add(e.getMeasuringPoint());
+                            monitorRepo.getMonitors()
+                                .add(e);
+                            e.setMonitorRepository(monitorRepo);
+                        }
+
+                    }
+                }
+            }
+        }
+
+        // Only for debug reasons
+        MonitorRepository monitorRepository = (MonitorRepository) blackboard
+            .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
+            .getElement(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY)
+            .get(0);
+
+        for (Monitor e : monitorRepository.getMonitors()) {
+            LOGGER.debug(e.getMeasuringPoint()
+                .getStringRepresentation());
+
+            for (MeasurementSpecification i : (e.getMeasurementSpecifications())) {
+                LOGGER.debug(i.getMetricDescription()
+                    .getTextualDescription());
+            }
+        }
+    }
+
+    @Override
+    public void cleanup(IProgressMonitor monitor) throws CleanupFailedException {
+        // Nothing to clean up
+    }
+
+    @Override
+    public String getName() {
+        return "Qualitygate Calculator Completion";
+    }
+
+    @Override
+    public void setBlackboard(MDSDBlackboard blackboard) {
+        this.blackboard = blackboard;
+
+    }
+
+    /**
+     * Testing whether MeasurementSpecification is already in MonitorRepository.
+     * 
+     * @param qualitygateMonitor
+     * @return
+     */
+    public boolean isMeasurementSpecificationPresent(Monitor qualitygateMonitor) {
+
+        MonitorRepository monitorRepo = (MonitorRepository) blackboard
+            .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
+            .getElement(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY)
+            .get(0);
+        OperationSignature signature = ((SystemOperationMeasuringPoint) qualitygateMonitor.getMeasuringPoint())
+            .getOperationSignature();
+        Role role = ((SystemOperationMeasuringPoint) qualitygateMonitor.getMeasuringPoint()).getRole();
+
+        for (Monitor e : monitorRepo.getMonitors()) {
+            MeasuringPoint measPoint = e.getMeasuringPoint();
+            if (measPoint instanceof SystemOperationMeasuringPoint) {
+                if (((OperationReference) measPoint).getOperationSignature()
+                    .equals(signature)
+                        && ((OperationReference) measPoint).getRole()
+                            .equals(role)) {
+                    // Same Measuring-Point
+
+                    for (MeasurementSpecification i : e.getMeasurementSpecifications()) {
+                        for (MeasurementSpecification j : qualitygateMonitor.getMeasurementSpecifications()) {
+                            if (i.getMetricDescription()
+                                .equals(j.getMetricDescription())
+                                    && i.getProcessingType()
+                                        .equals(j.getProcessingType())
+                                    && !i.isTriggersSelfAdaptations()) {
+                                // Same MeasurementSpecification
+                                return true;
+                            }
+                        }
+                    }
+
+                }
+            }
+
+        }
+        return false;
+    }
 
 }

@@ -97,7 +97,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch implements S
         // Processing all the attached Qualitygates
         for (QualityGate e : taggedValues) {
 
-
+            LOGGER.debug("RepositoryCompoonent: " + e.getPremise().getSpecification());
+            
             result = merger.merge(result,
                     this.stereotypeQualitygateSwitchFactory
                         .createStereotypeSwitch(context, operationSignature, callScope, theEObject)

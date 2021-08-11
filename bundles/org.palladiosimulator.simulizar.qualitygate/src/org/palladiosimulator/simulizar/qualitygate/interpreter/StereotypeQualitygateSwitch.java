@@ -119,7 +119,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
                             .currentStackFrame()
                             .getContents()));
 
-            }
+            } 
 
         }
         return InterpreterResult.OK;

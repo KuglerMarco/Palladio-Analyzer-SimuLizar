@@ -95,6 +95,8 @@ public class ComposedStructureSwitchQualitygateContributionSwitch implements Ste
 
         // Processing all the attached Qualitygates
         for (QualityGate e : taggedValues) {
+            
+            LOGGER.debug("ComposedStructure: " + e.getPremise().getSpecification());
 
             result = merger.merge(result, this.stereotypeQualitygateSwitchFactory.createStereotypeSwitch(context, operationSignature, callScope, theEObject).doSwitch(e));
 
