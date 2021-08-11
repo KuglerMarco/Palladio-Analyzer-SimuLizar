@@ -9,6 +9,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.palladiosimulator.analyzer.workflow.ConstantsContainer;
 import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
@@ -29,8 +30,13 @@ import de.uka.ipd.sdq.workflow.jobs.JobFailedException;
 import de.uka.ipd.sdq.workflow.jobs.UserCanceledException;
 import de.uka.ipd.sdq.workflow.mdsd.blackboard.MDSDBlackboard;
 import org.palladiosimulator.pcm.core.composition.Connector;
+import org.palladiosimulator.pcm.system.SystemPackage;
 import org.palladiosimulator.pcm.repository.OperationSignature;
 import org.palladiosimulator.pcm.repository.Role;
+import org.palladiosimulator.pcm.repository.ProvidedRole;
+import org.palladiosimulator.pcm.repository.Repository;
+import org.palladiosimulator.pcm.repository.RepositoryComponent;
+import org.palladiosimulator.pcm.repository.RepositoryPackage;
 import org.palladiosimulator.pcmmeasuringpoint.OperationReference;
 import org.palladiosimulator.pcmmeasuringpoint.SystemOperationMeasuringPoint;
 import org.palladiosimulator.analyzer.workflow.blackboard.PCMResourceSetPartition;
@@ -71,12 +77,19 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
 
         ResourceSet resourceSet = blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
             .getResourceSet();
+        
+        for(Resource e : resourceSet.getResources()) {
+            LOGGER.debug(e.toString());
+        }
 
         // Loading CommonMetrics-model
         URI uri = URI.createURI("pathmap://METRIC_SPEC_MODELS/models/commonMetrics.metricspec");
         MetricDescriptionRepository res = (MetricDescriptionRepository) resourceSet.getResource(uri, false)
             .getContents()
             .get(0);
+        
+        org.palladiosimulator.pcm.system.System system = (org.palladiosimulator.pcm.system.System) blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
+                .getElement(SystemPackage.Literals.SYSTEM).get(0);
 
         /*
          * Merging the MeasurementPoint-Repositories TODO Rücksprache Sebastian
@@ -101,7 +114,7 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
             .addAll(genMeasuringPointRepo.getMeasuringPoints());
 
         /*
-         * Merging the MonitorRepositories TODO Rücksprache Sebastian TODO Fix the problem of
+         * Merging the MonitorRepositories TODO Rücksprache Sebastian TODO FIXME the problem of
          * duplicates in defaultRepository
          */
 
@@ -132,48 +145,97 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
         PCMResourceSetPartition resPartition = (PCMResourceSetPartition) blackboard
             .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID);
 
-        TreeIterator<EObject> systemIterator = resPartition.getSystem()
-            .eAllContents();
+        LOGGER.debug(blackboard
+                .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID).getElement(RepositoryPackage.Literals.REPOSITORY).size());
+        
+        Repository repo = (Repository) blackboard
+                .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID).getElement(RepositoryPackage.Literals.REPOSITORY).get(1);
+        
+        LOGGER.debug(repo.getComponents__Repository().get(0));
+
         EObject object;
 
-        // Iterating over System-model
-        while (systemIterator.hasNext()) {
+        for(RepositoryComponent e : repo.getComponents__Repository()) {
+            for(ProvidedRole i : e.getProvidedRoles_InterfaceProvidingEntity()) {
+                
+                LOGGER.debug("Iterated over: " + i.getEntityName());
+                object = i;
+                if (!StereotypeAPI.getAppliedStereotypes(object)
+                        .isEmpty() && StereotypeAPI.getAppliedStereotypes(object)
+                            .get(0)
+                            .getName()
+                            .equals("QualitygateElement")) {
 
-            object = systemIterator.next();
+                        if (object instanceof ProvidedRole) {
+                            LOGGER.debug(
+                                    "The ProvidedRole " + ((ProvidedRole) object).getEntityName() + " has a qualitygate-application");
 
-            if (!StereotypeAPI.getAppliedStereotypes(object)
-                .isEmpty() && StereotypeAPI.getAppliedStereotypes(object)
-                    .get(0)
-                    .getName()
-                    .equals("QualitygateElement")) {
+                            // List of generated Monitors for the attached Qualitygates (could be more than
+                            // one)
+                            List<Monitor> qualitygateMonitors = preprocessingSwitch.create(res, system)
+                                .handleQualitygate(object);
+                            // Removing the Null-elements, because not every Qualitygate needs a calculator
+                            while (qualitygateMonitors.remove(null));
 
-                if (object instanceof Connector) {
-                    LOGGER.debug(
-                            "The connector " + ((Connector) object).getEntityName() + " has a qualitygate-application");
+                            // Adding the generated Monitors to the repositories
+                            for (Monitor j : qualitygateMonitors) {
 
-                    // List of generated Monitors for the attached Qualitygates (could be more than
-                    // one)
-                    List<Monitor> qualitygateMonitors = preprocessingSwitch.create(res)
-                        .handleQualitygate(object);
-                    // Removing the Null-elements, because not every Qualitygate needs a calculator
-                    while (qualitygateMonitors.remove(null))
-                        ;
+                                if (!this.isMeasurementSpecificationPresent(j)) {
+                                    measuringPointRepo.getMeasuringPoints()
+                                        .add(j.getMeasuringPoint());
+                                    
+                                    monitorRepo.getMonitors()
+                                        .add(j);
+                                    
+                                    j.setMonitorRepository(monitorRepo);
+                                }
 
-                    // Adding the generated Monitors to the repositories
-                    for (Monitor e : qualitygateMonitors) {
-
-                        if (!this.isMeasurementSpecificationPresent(e)) {
-                            measuringPointRepo.getMeasuringPoints()
-                                .add(e.getMeasuringPoint());
-                            monitorRepo.getMonitors()
-                                .add(e);
-                            e.setMonitorRepository(monitorRepo);
+                            }
                         }
-
                     }
-                }
+                
             }
         }
+//        // Iterating over System-model
+//        while (repoIterator.hasNext()) {
+//
+//            object = repoIterator.next();
+//            LOGGER.debug("Iterated: " + object.eClass().getName());
+//
+//            if (!StereotypeAPI.getAppliedStereotypes(object)
+//                .isEmpty() && StereotypeAPI.getAppliedStereotypes(object)
+//                    .get(0)
+//                    .getName()
+//                    .equals("QualitygateElement")) {
+//
+//                if (object instanceof ProvidedRole) {
+//                    LOGGER.debug(
+//                            "The connector " + ((Connector) object).getEntityName() + " has a qualitygate-application");
+//
+//                    // List of generated Monitors for the attached Qualitygates (could be more than
+//                    // one)
+//                    List<Monitor> qualitygateMonitors = preprocessingSwitch.create(res, system)
+//                        .handleQualitygate(object);
+//                    // Removing the Null-elements, because not every Qualitygate needs a calculator
+//                    while (qualitygateMonitors.remove(null));
+//
+//                    // Adding the generated Monitors to the repositories
+//                    for (Monitor e : qualitygateMonitors) {
+//
+//                        if (!this.isMeasurementSpecificationPresent(e)) {
+//                            measuringPointRepo.getMeasuringPoints()
+//                                .add(e.getMeasuringPoint());
+//                            
+//                            monitorRepo.getMonitors()
+//                                .add(e);
+//                            
+//                            e.setMonitorRepository(monitorRepo);
+//                        }
+//
+//                    }
+//                }
+//            }
+//        }
 
         // Only for debug reasons
         MonitorRepository monitorRepository = (MonitorRepository) blackboard
