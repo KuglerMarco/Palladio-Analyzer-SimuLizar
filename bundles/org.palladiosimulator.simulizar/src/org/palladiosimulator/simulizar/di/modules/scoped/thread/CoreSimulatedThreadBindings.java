@@ -13,6 +13,7 @@ import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitchFact
 import org.palladiosimulator.simulizar.interpreter.StereotypeDispatchRepositoryComponentSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.impl.ExtensibleComposedRDSeffSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.impl.ExtensibleStereotypeComposedStructureInnerSwitchFactory;
+import org.palladiosimulator.simulizar.interpreter.impl.ExtensibleStereotypeDispatchRDSeffSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.impl.ExtensibleStereotypeDispatchRepositoryComponentSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
@@ -34,7 +35,12 @@ public interface CoreSimulatedThreadBindings {
 
     @Binds
     @SimulatedThreadScope
+    @StandardSwitch
     ComposedRDSeffSwitchFactory bindComposedRDSeffSwitchFactory(ExtensibleComposedRDSeffSwitchFactory impl);
+    
+    @Binds
+    @SimulatedThreadScope
+    ComposedRDSeffSwitchFactory bindExtensibleStereotypeDispatchRDSeffSwitchFactory(ExtensibleStereotypeDispatchRDSeffSwitchFactory impl);
 
     @Binds
     @SimulatedThreadScope

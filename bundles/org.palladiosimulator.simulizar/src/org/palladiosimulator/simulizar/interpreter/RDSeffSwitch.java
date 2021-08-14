@@ -75,7 +75,8 @@ public class RDSeffSwitch extends SeffSwitch<InterpreterResult> {
     public static final String DEGREE_OF_CORRUPTION = "DEGREE_OF_CORRUPTION.VALUE";
     private static final Logger LOGGER = Logger.getLogger(RDSeffSwitch.class);
 
-    private RDSeffElementDispatcher parentSwitch;
+//    private RDSeffElementDispatcher parentSwitch;
+    private final ComposedRDSeffSwitchFactory rdseffSwitchFactory;
     private final TransitionDeterminer transitionDeterminer;
     private final InterpreterDefaultContext context;
 
@@ -97,7 +98,7 @@ public class RDSeffSwitch extends SeffSwitch<InterpreterResult> {
             IResourceTableManager resourceTableManager, ComponentInstanceRegistry componentInstanceRegistry,
             ComposedStructureInnerSwitchFactory composedSwitchFactory, ForkedBehaviorProcessFactory forkFactory,
             EventDispatcher eventHelper, InterpreterResultHandlerDispatchFactory issueHandler, InterpreterResultMerger resultMerger,
-            PreInterpretationBehaviorManager pibManager) {
+            PreInterpretationBehaviorManager pibManager, ComposedRDSeffSwitchFactory rdseffSwitchFactory) {
         super();
         this.context = context;
         this.composedSwitchFactory = composedSwitchFactory;
@@ -114,7 +115,8 @@ public class RDSeffSwitch extends SeffSwitch<InterpreterResult> {
             .orElseThrow(() -> new IllegalStateException(
                     "RDSeffSwitch requires an SimulatedBasicComponentInstance to be initialized already."));
         this.resourceTableManager = resourceTableManager;
-        this.parentSwitch = parentSwitch;
+//        this.parentSwitch = parentSwitch;
+        this.rdseffSwitchFactory = rdseffSwitchFactory;
     }
 
     /**
@@ -172,7 +174,8 @@ public class RDSeffSwitch extends SeffSwitch<InterpreterResult> {
                 result = resultMerger.merge(result, newResult);
             }
             if (issueHandler.handleIssues(result) == InterpreterResumptionPolicy.CONTINUE) {
-                result = resultMerger.merge(result, parentSwitch.doSwitch(currentAction));
+                result = resultMerger.merge(result, rdseffSwitchFactory.createRDSeffSwitch(context).doSwitch(currentAction));
+//                        parentSwitch.doSwitch(currentAction));
             }
 
             this.firePassedEvent(currentAction, EventType.END);
@@ -228,7 +231,8 @@ public class RDSeffSwitch extends SeffSwitch<InterpreterResult> {
     private InterpreterResult invokeRecursiveAndHandleFailure(Collection<? extends EObject> nestedElements) {
         var result = InterpreterResult.OK;
         for (var element : nestedElements) {
-            result = resultMerger.merge(result, this.parentSwitch.doSwitch(element));
+            result = resultMerger.merge(result, rdseffSwitchFactory.createRDSeffSwitch(context).doSwitch(element));
+//                    this.parentSwitch.doSwitch(element));
         }
         return result;
     }
@@ -306,7 +310,8 @@ public class RDSeffSwitch extends SeffSwitch<InterpreterResult> {
             LOGGER.error("No branch's condition evaluated to true, no branch selected: " + object);
             throw new PCMModelInterpreterException("No branch transition was active. This is not allowed.");
         } else {
-            return parentSwitch.doSwitch(branchTransition.getBranchBehaviour_BranchTransition());
+            return rdseffSwitchFactory.createRDSeffSwitch(context).doSwitch(branchTransition.getBranchBehaviour_BranchTransition());
+//                    parentSwitch.doSwitch(branchTransition.getBranchBehaviour_BranchTransition());
         }
     }
 
@@ -516,7 +521,8 @@ public class RDSeffSwitch extends SeffSwitch<InterpreterResult> {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Interpret loop number " + i + ": " + object);
             }
-            result = resultMerger.merge(result, parentSwitch.doSwitch(object.getBodyBehaviour_Loop()));
+            result = resultMerger.merge(result, rdseffSwitchFactory.createRDSeffSwitch(context).doSwitch(object.getBodyBehaviour_Loop()));
+//                    parentSwitch.doSwitch(object.getBodyBehaviour_Loop()));
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Finished loop number " + i + ": " + object);
             }
@@ -578,7 +584,8 @@ public class RDSeffSwitch extends SeffSwitch<InterpreterResult> {
              * within an iteration.
              */
 
-            result = resultMerger.merge(result, parentSwitch.doSwitch(object.getBodyBehaviour_Loop()));
+            result = resultMerger.merge(result, rdseffSwitchFactory.createRDSeffSwitch(context).doSwitch(object.getBodyBehaviour_Loop()));
+//                    parentSwitch.doSwitch(object.getBodyBehaviour_Loop()));
 
             // remove stack frame for value characterisations of inner
             // collection variable

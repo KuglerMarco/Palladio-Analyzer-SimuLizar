@@ -8,6 +8,7 @@ import org.palladiosimulator.simulizar.di.component.dependency.SimuComFrameworkC
 import org.palladiosimulator.simulizar.di.extension.ExtensionComponent;
 import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.ComposedStructureSwitchQualitygateContributionSwitch;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.RDSeffSwitchQualitygateContributionSwitch;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.RepositoryComponentSwitchQualitygateContributionSwitch;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.QualitygateIssueHandler;
 import org.palladiosimulator.simulizar.scopes.RuntimeExtensionScope;
@@ -19,8 +20,9 @@ import dagger.Component;
 public interface QualitygateExtensionComponent extends ExtensionComponent {
 	
 //	StereotypeQualitygateSwitch.Factory stereotypeQualitygateFactory();
-	ComposedStructureSwitchQualitygateContributionSwitch.Factory qualitygateContribution();
+	ComposedStructureSwitchQualitygateContributionSwitch.Factory composedStructureQualitygateContribution();
 	RepositoryComponentSwitchQualitygateContributionSwitch.Factory repositoryQualityGateContribution();
+	RDSeffSwitchQualitygateContributionSwitch.Factory seffQualitygateContribution();
 	QualitygateIssueHandler issueHandler();
 	
 	@Component.Factory

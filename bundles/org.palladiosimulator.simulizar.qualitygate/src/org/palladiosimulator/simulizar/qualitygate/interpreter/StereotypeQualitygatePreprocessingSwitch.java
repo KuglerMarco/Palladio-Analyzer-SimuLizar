@@ -11,6 +11,7 @@ import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.failuremodel.qualitygate.RequestMetricScope;
 import org.palladiosimulator.failuremodel.qualitygate.util.QualitygateSwitch;
 import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
+import org.palladiosimulator.metricspec.MetricDescription;
 import org.palladiosimulator.metricspec.MetricDescriptionRepository;
 import org.palladiosimulator.monitorrepository.MeasurementSpecification;
 import org.palladiosimulator.monitorrepository.Monitor;
@@ -103,13 +104,16 @@ public class StereotypeQualitygatePreprocessingSwitch extends QualitygateSwitch<
         // Measurement-Specification
         MeasurementSpecification measurementSpec = MonitorRepositoryFactory.eINSTANCE.createMeasurementSpecification();
 
+        MetricDescription metricDesc = metricRepo.getMetricDescriptions()
+                .stream()
+                .filter(e -> e.getName()
+                    .equals("Response Time"))
+                .findFirst()
+                .orElse(null);
+        
         // Metric-Description
-        measurementSpec.setMetricDescription(metricRepo.getMetricDescriptions()
-            .stream()
-            .filter(e -> e.getName()
-                .equals("Response Time"))
-            .findFirst()
-            .orElse(null));
+        measurementSpec.setMetricDescription(metricDesc);
+        
 
         // triggers self adaption
         measurementSpec.setTriggersSelfAdaptations(false);
@@ -117,12 +121,16 @@ public class StereotypeQualitygatePreprocessingSwitch extends QualitygateSwitch<
         // Processing Type
         ProcessingType procType = MonitorRepositoryFactory.eINSTANCE.createFeedThrough();
 
-        procType.setMeasurementSpecification(measurementSpec);
+        
 
         measurementSpec.setProcessingType(procType);
-
+        procType.setMeasurementSpecification(measurementSpec);
+        
+        
         monitor.getMeasurementSpecifications()
             .add(measurementSpec);
+        
+        measurementSpec.setMonitor(monitor);
 
         LOGGER.debug("A monitor was created for: " + monitor.getMeasurementSpecifications()
             .get(0)

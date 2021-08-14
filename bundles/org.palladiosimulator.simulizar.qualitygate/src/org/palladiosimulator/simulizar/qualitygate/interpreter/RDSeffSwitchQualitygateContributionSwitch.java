@@ -10,12 +10,14 @@ import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.repository.ProvidedRole;
 import org.palladiosimulator.pcm.repository.Signature;
+import org.palladiosimulator.pcm.seff.ExternalCallAction;
 import org.palladiosimulator.probeframework.ProbeFrameworkContext;
 import org.palladiosimulator.simulizar.interpreter.CallScope;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
-import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitchStereotypeContributionFactory;
-import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitchStereotypeContributionFactory.RepositoryComponentSwitchStereotypeElementDispatcher;
+import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.StereotypeSwitch;
+import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchStereotypeContributionFactory.RDSeffSwitchElementDispatcher;
+import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitchStereotypeContributionFactory.RepositoryComponentSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
 
@@ -23,15 +25,14 @@ import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
-public class RepositoryComponentSwitchQualitygateContributionSwitch implements StereotypeSwitch {
+public class RDSeffSwitchQualitygateContributionSwitch implements StereotypeSwitch {
 
     @AssistedFactory
-    public interface Factory extends RepositoryComponentSwitchStereotypeContributionFactory {
+    public interface Factory extends RDSeffSwitchStereotypeContributionFactory {
 
         @Override
-        RepositoryComponentSwitchQualitygateContributionSwitch create(final InterpreterDefaultContext context,
-                final AssemblyContext assemblyContext, final Signature signature, final ProvidedRole providedRole,
-                RepositoryComponentSwitchStereotypeElementDispatcher parentSwitch);
+        RDSeffSwitchQualitygateContributionSwitch create(final InterpreterDefaultContext context,
+                RDSeffSwitchElementDispatcher parentSwitch);
 
     }
 
@@ -41,28 +42,24 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch implements S
 
     // Information about the simulation-context
     private final InterpreterDefaultContext context;
-    private final Signature operationSignature;
 
     private final StereotypeQualitygateSwitch.Factory stereotypeQualitygateSwitchFactory;
 
     private ProbeFrameworkContext frameworkContext;
 
     private static final Logger LOGGER = Logger.getLogger(StereotypeQualitygateSwitch.class);
-    
-    //TODO wirklich BasicInterpreter?
+
+    // TODO wirklich BasicInterpreter?
     private final BasicInterpreterResultMerger merger;
 
     @AssistedInject
-    public RepositoryComponentSwitchQualitygateContributionSwitch(@Assisted final InterpreterDefaultContext context,
-            @Assisted final AssemblyContext assemblyContext, @Assisted final Signature signature,
-            @Assisted final ProvidedRole providedRole,
-            @Assisted RepositoryComponentSwitchStereotypeElementDispatcher parentSwitch,
-            BasicInterpreterResultMerger merger, ProbeFrameworkContext frameworkContext,
+    public RDSeffSwitchQualitygateContributionSwitch(@Assisted final InterpreterDefaultContext context,
+            @Assisted RDSeffSwitchElementDispatcher parentSwitch, BasicInterpreterResultMerger merger,
+            ProbeFrameworkContext frameworkContext,
             StereotypeQualitygateSwitch.Factory stereotypeQualitygateSwitchFactory) {
 
         this.merger = merger;
         this.context = context;
-        this.operationSignature = signature;
         this.frameworkContext = frameworkContext;
 
         this.stereotypeQualitygateSwitchFactory = stereotypeQualitygateSwitchFactory;
@@ -87,7 +84,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch implements S
     public InterpreterResult handleStereotype(Stereotype stereotype, EObject theEObject, CallScope callScope) {
         InterpreterResult result = InterpreterResult.OK;
 
-
         EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
 
         // Model validation
@@ -99,12 +95,17 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch implements S
         // Processing all the attached Qualitygates
         for (QualityGate e : taggedValues) {
 
-            LOGGER.debug("RepositoryCompoonent: " + e.getPremise().getSpecification());
-            
-            result = merger.merge(result,
-                    this.stereotypeQualitygateSwitchFactory
-                        .createStereotypeSwitch(context, operationSignature, callScope, theEObject)
-                        .doSwitch(e));
+            LOGGER.debug("RepositoryCompoonent: " + e.getPremise()
+                .getSpecification());
+
+            if (theEObject instanceof ExternalCallAction) {
+                result = merger.merge(result, this.stereotypeQualitygateSwitchFactory
+                    .createStereotypeSwitch(context,
+                            ((ExternalCallAction) theEObject).getCalledService_ExternalService(), callScope, theEObject)
+                    .doSwitch(e));
+            } else {
+                throw new IllegalStateException("You might wanted to attach the Qualitygate to the ExternalCallAction.");
+            }
 
         }
         return result;

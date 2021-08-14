@@ -5,6 +5,7 @@ import java.util.Set;
 import org.palladiosimulator.simulizar.di.extension.ExtensionLookup;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchContributionFactory;
+import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.scopes.SimulatedThreadScope;
@@ -35,6 +36,13 @@ public interface ExtensionComponentSimulatedThreadExtensionBindings {
     @ElementsIntoSet
     static Set<RepositoryComponentSwitchStereotypeContributionFactory> provideRepositoryComponentSwitchStereotypeContributionFactory(ExtensionLookup lookup) {
         return lookup.lookup(RepositoryComponentSwitchStereotypeContributionFactory.class);
+    }
+    
+    @Provides
+    @SimulatedThreadScope
+    @ElementsIntoSet
+    static Set<RDSeffSwitchStereotypeContributionFactory> rdSeffSwitchStereotypeContributionFactory(ExtensionLookup lookup) {
+        return lookup.lookup(RDSeffSwitchStereotypeContributionFactory.class);
     }
     
     @Provides
