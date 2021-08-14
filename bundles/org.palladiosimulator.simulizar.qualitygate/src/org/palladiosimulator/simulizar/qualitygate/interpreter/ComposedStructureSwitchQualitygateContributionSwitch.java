@@ -27,9 +27,9 @@ public class ComposedStructureSwitchQualitygateContributionSwitch implements Ste
     @AssistedFactory
     public interface Factory extends ComposedStructureInnerSwitchStereotypeContributionFactory {
         @Override
-        ComposedStructureSwitchQualitygateContributionSwitch createStereotypeSwitch(final InterpreterDefaultContext context,
-                final Signature operationSignature, final RequiredRole requiredRole,
-                ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch);
+        ComposedStructureSwitchQualitygateContributionSwitch createStereotypeSwitch(
+                final InterpreterDefaultContext context, final Signature operationSignature,
+                final RequiredRole requiredRole, ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch);
     }
 
     // Information about the stereotype it is processing
@@ -40,14 +40,12 @@ public class ComposedStructureSwitchQualitygateContributionSwitch implements Ste
     private final InterpreterDefaultContext context;
     private final Signature operationSignature;
 
-    
     private final StereotypeQualitygateSwitch.Factory stereotypeQualitygateSwitchFactory;
 
     private ProbeFrameworkContext frameworkContext;
 
     private static final Logger LOGGER = Logger.getLogger(StereotypeQualitygateSwitch.class);
     private final BasicInterpreterResultMerger merger;
-    
 
     @AssistedInject
     ComposedStructureSwitchQualitygateContributionSwitch(@Assisted final InterpreterDefaultContext context,
@@ -60,7 +58,7 @@ public class ComposedStructureSwitchQualitygateContributionSwitch implements Ste
         this.context = context;
         this.operationSignature = operationSignature;
         this.frameworkContext = frameworkContext;
-        
+
         this.stereotypeQualitygateSwitchFactory = stereotypeQualitygateSwitchFactory;
 
         LOGGER.setLevel(Level.DEBUG);
@@ -84,7 +82,6 @@ public class ComposedStructureSwitchQualitygateContributionSwitch implements Ste
     public InterpreterResult handleStereotype(Stereotype stereotype, EObject theEObject, CallScope callScope) {
         InterpreterResult result = InterpreterResult.OK;
 
-
         EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
 
         // Model validation
@@ -95,10 +92,14 @@ public class ComposedStructureSwitchQualitygateContributionSwitch implements Ste
 
         // Processing all the attached Qualitygates
         for (QualityGate e : taggedValues) {
-            
-            LOGGER.debug("ComposedStructure: " + e.getPremise().getSpecification());
 
-            result = merger.merge(result, this.stereotypeQualitygateSwitchFactory.createStereotypeSwitch(context, operationSignature, callScope, theEObject).doSwitch(e));
+            LOGGER.debug("ComposedStructure: " + e.getPremise()
+                .getSpecification());
+
+            result = merger.merge(result,
+                    this.stereotypeQualitygateSwitchFactory
+                        .createStereotypeSwitch(context, operationSignature, callScope, theEObject)
+                        .doSwitch(e));
 
         }
         return result;

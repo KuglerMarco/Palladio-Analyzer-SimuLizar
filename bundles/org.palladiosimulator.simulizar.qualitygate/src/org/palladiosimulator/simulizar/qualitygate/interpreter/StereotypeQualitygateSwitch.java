@@ -22,6 +22,7 @@ import org.palladiosimulator.pcm.core.PCMRandomVariable;
 import org.palladiosimulator.pcm.core.entity.Entity;
 import org.palladiosimulator.pcm.repository.Role;
 import org.palladiosimulator.pcm.repository.Signature;
+import org.palladiosimulator.pcmmeasuringpoint.ExternalCallActionMeasuringPoint;
 import org.palladiosimulator.pcmmeasuringpoint.PcmmeasuringpointFactory;
 import org.palladiosimulator.pcmmeasuringpoint.SystemOperationMeasuringPoint;
 import org.palladiosimulator.simulizar.interpreter.CallScope;
@@ -30,8 +31,10 @@ import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 import org.palladiosimulator.simulizar.utils.PCMPartitionManager;
+import org.palladiosimulator.simulizar.utils.SimulatedStackHelper;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
+import org.palladiosimulator.pcm.seff.CallAction;
 import org.palladiosimulator.pcm.seff.ExternalCallAction;
 import org.modelversioning.emfprofile.Stereotype;
 import org.palladiosimulator.probeframework.ProbeFrameworkContext;
@@ -43,6 +46,8 @@ import java.util.Stack;
 import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
+import de.uka.ipd.sdq.simucomframework.variables.stackframe.SimulatedStack;
+import de.uka.ipd.sdq.simucomframework.variables.stackframe.SimulatedStackframe;
 
 /**
  * Switch processing the Qualitygate-Stereotype.
@@ -75,7 +80,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
 
     private final PCMPartitionManager partManager;
 
-    private static Stack<MeasuringValue> responseTime = new Stack<MeasuringValue>();
+    private Stack<MeasuringValue> responseTime;
 
     @AssistedInject
     StereotypeQualitygateSwitch(@Assisted final InterpreterDefaultContext context,
@@ -91,6 +96,8 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
         this.frameworkContext = frameworkContext;
 
         LOGGER.setLevel(Level.DEBUG);
+        
+        responseTime = new Stack<MeasuringValue>();
 
     }
 
@@ -118,7 +125,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
 //                .getElement(MeasuringpointPackage.Literals.MEASURING_POINT_REPOSITORY)
 //                .get(0);
 
-            SystemOperationMeasuringPoint measPoint = null;
+            MeasuringPoint measPoint = null;
 
             for (MeasuringPoint e : measuringPointRepo.getMeasuringPoints()) {
                 if (e instanceof SystemOperationMeasuringPoint) {
@@ -128,6 +135,13 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
                                 .equals(stereotypedObject)) {
 
                         measPoint = (SystemOperationMeasuringPoint) e;
+
+                    }
+                }
+                if (e instanceof ExternalCallActionMeasuringPoint) {
+                    if (((ExternalCallActionMeasuringPoint) e).getExternalCall().equals(stereotypedObject)) {
+
+                        measPoint = (ExternalCallActionMeasuringPoint) e;
 
                     }
                 }
@@ -144,38 +158,34 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
                     .equals("Response Time"))
                 .findFirst()
                 .orElse(null);
-            
-            if(respTimeMetricDesc == null) {
+
+            if (respTimeMetricDesc == null) {
                 throw new IllegalStateException("MEtricDescription not loadable.");
             }
 
             // Calculator for this Qualitygate TODO Noch MetricDescription laden
             Collection<Calculator> calculator = frameworkContext.getCalculatorRegistry()
                 .getCalculatorsForMeasuringPoint(measPoint);
-            
+
             LOGGER.debug("MeasuringPoint is: " + measPoint.getStringRepresentation());
 
-            
-            
-            Calculator calc = calculator.stream().findFirst().orElse(null);
+            Calculator calc = calculator.stream()
+                .findFirst()
+                .orElse(null);
             
             calc.addObserver(this);
             
+
             LOGGER.debug(calc.toString());
-            
 
             return InterpreterResult.OK;
 
         } else {
-              // TODO Checking the Value on the Stack in Response-Scope
+            // TODO Checking the Value on the Stack in Response-Scope
             LOGGER.debug(responseTime.size());
 //            LOGGER.debug(responseTime.firstElement()
 //                .asArray());
         }
-        
-          
-
-        
 
         return InterpreterResult.OK;
     }
@@ -199,11 +209,14 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
     public InterpreterResult caseRequestParameterScope(RequestParameterScope object) {
 
         Signature signatureOfQualitygate = object.getSignature();
-        
-        if(stereotypedObject instanceof ExternalCallAction) {
+
+        if (stereotypedObject instanceof ExternalCallAction) {
+
+            // TODO: Build Stack to evaluate against which will be evaluated
+            
             
             LOGGER.debug("!!!ExternalCall");
-            
+
         } else if (callScope.equals(CallScope.REQUEST) && (signatureOfQualitygate == (this.operationSignature))) {
 
             if (!((boolean) context.evaluate(premise.getSpecification(), this.context.getStack()
@@ -216,7 +229,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
                                 .toString());
                 }
 
-                return BasicInterpreterResult.of(new ParameterIssue((Entity)this.stereotypedObject, this.qualitygate,
+                return BasicInterpreterResult.of(new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
                         this.context.getStack()
                             .currentStackFrame()
                             .getContents()));
@@ -246,7 +259,7 @@ public class StereotypeQualitygateSwitch extends QualitygateSwitch<InterpreterRe
                                 .toString());
                 }
 
-                return BasicInterpreterResult.of(new ParameterIssue((Entity)this.stereotypedObject, this.qualitygate,
+                return BasicInterpreterResult.of(new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
                         this.context.getCurrentResultFrame()
                             .getContents()));
             }

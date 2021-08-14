@@ -22,7 +22,9 @@ import org.palladiosimulator.pcm.repository.OperationSignature;
 import org.palladiosimulator.pcm.repository.ProvidedRole;
 import org.palladiosimulator.pcm.system.System;
 import org.palladiosimulator.pcmmeasuringpoint.SystemOperationMeasuringPoint;
+import org.palladiosimulator.pcmmeasuringpoint.ExternalCallActionMeasuringPoint;
 import org.palladiosimulator.pcmmeasuringpoint.PcmmeasuringpointFactory;
+import org.palladiosimulator.pcm.seff.ExternalCallAction;
 
 import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
@@ -64,12 +66,14 @@ public class StereotypeQualitygatePreprocessingSwitch extends QualitygateSwitch<
 
         // Activated
         monitor.setActivated(true);
+        
+        
 
         if (stereotypedObject instanceof ProvidedRole) {
 
             // Entity-Name
             monitor.setEntityName(
-                    "QualitygateMonitor at ProvidedRole" + ((ProvidedRole) stereotypedObject).getEntityName());
+                    "QualitygateMonitor at ProvidedRole " + ((ProvidedRole) stereotypedObject).getEntityName());
 
             // Measuring-Point //TODO Optional Reference on Assembly, then AssemblyOperationMeasuringPoint
             SystemOperationMeasuringPoint measuringPoint = PcmmeasuringpointFactory.eINSTANCE
@@ -85,6 +89,22 @@ public class StereotypeQualitygatePreprocessingSwitch extends QualitygateSwitch<
             monitor.setMeasuringPoint(measuringPoint);
             
 
+        }
+        
+        //TODO Monitor setzen für ExternalCall
+        
+        if(stereotypedObject instanceof ExternalCallAction) {
+            
+            monitor.setEntityName(
+                    "QualitygateMonitor at ExternalCallAction " + ((ExternalCallAction) stereotypedObject).getEntityName());
+            
+            ExternalCallActionMeasuringPoint measuringPoint = PcmmeasuringpointFactory.eINSTANCE.createExternalCallActionMeasuringPoint();
+            
+            measuringPoint.setExternalCall((ExternalCallAction) stereotypedObject);
+            
+            monitor.setMeasuringPoint(measuringPoint);
+            
+            
         }
 
         
