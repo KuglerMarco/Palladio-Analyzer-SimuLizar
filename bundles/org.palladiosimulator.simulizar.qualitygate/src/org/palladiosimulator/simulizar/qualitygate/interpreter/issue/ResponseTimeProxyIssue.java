@@ -9,19 +9,20 @@ import org.palladiosimulator.pcm.core.entity.Entity;
 import org.palladiosimulator.simulizar.entity.EntityReference;
 import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.RDSeffSwitchQualitygateContributionSwitch;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.ResponseTimeQualitygateSwitch;
 
 public class ResponseTimeProxyIssue implements InterpretationIssue {
 
     private PCMRandomVariable premise;
-    private RDSeffSwitchQualitygateContributionSwitch seffSwitch;
+    private ResponseTimeQualitygateSwitch responseTimeQualitygateSwitch;
     private QualityGate qualitygate;
     private Entity stereotypedObject;
 
-    public ResponseTimeProxyIssue(PCMRandomVariable premise, RDSeffSwitchQualitygateContributionSwitch seffSwitch,
+    public ResponseTimeProxyIssue(PCMRandomVariable premise, ResponseTimeQualitygateSwitch responseTimeQualitygateSwitch,
             QualityGate qualitygate, Entity stereotypedObject) {
         
         this.premise = premise;
-        this.seffSwitch = seffSwitch;
+        this.responseTimeQualitygateSwitch = responseTimeQualitygateSwitch;
         this.qualitygate = qualitygate;
         this.stereotypedObject = stereotypedObject;
         
@@ -31,8 +32,8 @@ public class ResponseTimeProxyIssue implements InterpretationIssue {
         return premise;
     }
 
-    public RDSeffSwitchQualitygateContributionSwitch getSeffSwitch() {
-        return seffSwitch;
+    public ResponseTimeQualitygateSwitch getResponseTimeQualitygateSwitch() {
+        return responseTimeQualitygateSwitch;
     }
 
     @Override

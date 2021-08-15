@@ -6,7 +6,12 @@ import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.modelversioning.emfprofile.Stereotype;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
+import org.palladiosimulator.failuremodel.qualitygate.RequestParameterScope;
+import org.palladiosimulator.failuremodel.qualitygate.ResultParameterScope;
+import org.palladiosimulator.failuremodel.qualitygate.util.QualitygateSwitch;
 import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
+import org.palladiosimulator.pcm.core.PCMRandomVariable;
+import org.palladiosimulator.pcm.core.entity.Entity;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.probeframework.ProbeFrameworkContext;
@@ -16,13 +21,22 @@ import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
 import org.palladiosimulator.simulizar.interpreter.StereotypeSwitch;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
+import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 
 import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
-public class ComposedStructureSwitchQualitygateContributionSwitch implements StereotypeSwitch {
+/**
+ * Switch to process the qualitygates attached at elements of ComposedStructures.
+ * 
+ * @author Marco Kugler
+ *
+ */
+public class ComposedStructureSwitchQualitygateContributionSwitch extends QualitygateSwitch<InterpreterResult>
+        implements StereotypeSwitch {
 
     @AssistedFactory
     public interface Factory extends ComposedStructureInnerSwitchStereotypeContributionFactory {
@@ -39,32 +53,36 @@ public class ComposedStructureSwitchQualitygateContributionSwitch implements Ste
     // Information about the simulation-context
     private final InterpreterDefaultContext context;
     private final Signature operationSignature;
+    private final ProbeFrameworkContext frameworkContext;
 
-    private final StereotypeQualitygateSwitch.Factory stereotypeQualitygateSwitchFactory;
+    // Information about the qualitygate-processing
+    private QualityGate qualitygate;
+    private PCMRandomVariable premise;
+    private CallScope callScope = CallScope.REQUEST;
+    private EObject stereotypedObject;
 
-    private ProbeFrameworkContext frameworkContext;
-
-    private static final Logger LOGGER = Logger.getLogger(StereotypeQualitygateSwitch.class);
+    private static final Logger LOGGER = Logger.getLogger(ComposedStructureSwitchQualitygateContributionSwitch.class);
     private final BasicInterpreterResultMerger merger;
 
     @AssistedInject
     ComposedStructureSwitchQualitygateContributionSwitch(@Assisted final InterpreterDefaultContext context,
             @Assisted Signature operationSignature, @Assisted RequiredRole requiredRole,
             @Assisted ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch,
-            BasicInterpreterResultMerger merger, ProbeFrameworkContext frameworkContext,
-            StereotypeQualitygateSwitch.Factory stereotypeQualitygateSwitchFactory) {
+            BasicInterpreterResultMerger merger, ProbeFrameworkContext frameworkContext) {
 
         this.merger = merger;
         this.context = context;
         this.operationSignature = operationSignature;
         this.frameworkContext = frameworkContext;
 
-        this.stereotypeQualitygateSwitchFactory = stereotypeQualitygateSwitchFactory;
-
         LOGGER.setLevel(Level.DEBUG);
 
     }
 
+    /**
+     * Returns whether this Switch is responsible for processing this stereotype.
+     *
+     */
     @Override
     public boolean isSwitchForStereotype(Stereotype stereotype) {
 
@@ -78,11 +96,18 @@ public class ComposedStructureSwitchQualitygateContributionSwitch implements Ste
         return result;
     }
 
+    /**
+     * Entry-Point to process the attached stereotypes.
+     *
+     */
     @Override
     public InterpreterResult handleStereotype(Stereotype stereotype, EObject theEObject, CallScope callScope) {
         InterpreterResult result = InterpreterResult.OK;
 
         EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
+
+        this.callScope = callScope;
+        this.stereotypedObject = theEObject;
 
         // Model validation
         if (taggedValues.isEmpty()) {
@@ -96,10 +121,7 @@ public class ComposedStructureSwitchQualitygateContributionSwitch implements Ste
             LOGGER.debug("ComposedStructure: " + e.getPremise()
                 .getSpecification());
 
-            result = merger.merge(result,
-                    this.stereotypeQualitygateSwitchFactory
-                        .createStereotypeSwitch(context, operationSignature, callScope, theEObject)
-                        .doSwitch(e));
+            result = merger.merge(result, this.doSwitch(e));
 
         }
         return result;
@@ -113,6 +135,76 @@ public class ComposedStructureSwitchQualitygateContributionSwitch implements Ste
     @Override
     public String getProfileName() {
         return this.profileName;
+    }
+
+    /**
+     * Saving the qualitygate's premise and the qualitygate-element itself.
+     */
+    @Override
+    public InterpreterResult caseQualityGate(QualityGate qualitygate) {
+        this.qualitygate = qualitygate;
+        this.premise = qualitygate.getPremise();
+        return this.doSwitch(qualitygate.getScope());
+
+    }
+
+    /**
+     * Processing the RequestParameterScope
+     *
+     */
+    @Override
+    public InterpreterResult caseRequestParameterScope(RequestParameterScope requestParameterScope) {
+
+        Signature signatureOfQualitygate = requestParameterScope.getSignature();
+        
+        if (callScope.equals(CallScope.REQUEST) && (signatureOfQualitygate == (this.operationSignature))) {
+
+            if (!((boolean) context.evaluate(premise.getSpecification(), this.context.getStack()
+                .currentStackFrame()))) {
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Following StoEx is broken: " + premise.getSpecification() + " because stackframe is: "
+                            + this.context.getStack()
+                                .currentStackFrame()
+                                .toString());
+                }
+
+                return BasicInterpreterResult.of(new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
+                        this.context.getStack()
+                            .currentStackFrame()
+                            .getContents()));
+
+            }
+
+        }
+        return InterpreterResult.OK;
+
+    }
+
+    /**
+     * Processing the ResultParameterScope
+     */
+    @Override
+    public InterpreterResult caseResultParameterScope(ResultParameterScope object) {
+
+        Signature signatureOfQualitygate = object.getSignature();
+
+        if (callScope.equals(CallScope.RESPONSE) && (signatureOfQualitygate == (this.operationSignature))) {
+            if (!((boolean) context.evaluate(premise.getSpecification(), this.context.getCurrentResultFrame()))) {
+
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Following StoEx is broken: " + premise.getSpecification()
+                            + " because resultframe is: " + this.context.getCurrentResultFrame()
+                                .toString());
+                }
+
+                return BasicInterpreterResult.of(new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
+                        this.context.getCurrentResultFrame()
+                            .getContents()));
+            }
+        }
+        
+        return InterpreterResult.OK;
     }
 
 }

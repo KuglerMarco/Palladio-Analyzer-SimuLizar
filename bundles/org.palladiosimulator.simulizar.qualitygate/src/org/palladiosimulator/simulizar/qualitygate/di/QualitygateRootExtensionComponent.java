@@ -9,25 +9,28 @@ import org.palladiosimulator.simulizar.qualitygate.jobs.QualitygateCalculatorJob
 
 import dagger.Component;
 
-@Component(dependencies = {SimuLizarRootComponent.class})
+/**
+ * @author Marco Kugler
+ *
+ */
+@Component(dependencies = { SimuLizarRootComponent.class })
 @RootExtensionScope
 public interface QualitygateRootExtensionComponent extends ExtensionComponent {
-	
-	QualitygateCalculatorJobContribution qualitygateCompletionJob();
-	
-	
-	@Component.Factory
-	public static interface Factory extends ExtensionComponent.Factory {
-		QualitygateRootExtensionComponent create(SimuLizarRootComponent rootComponent);
-	}
-	
-	public static class EclipseFactory implements IExecutableExtensionFactory {
+
+    QualitygateCalculatorJobContribution qualitygateCompletionJob();
+
+    @Component.Factory
+    public static interface Factory extends ExtensionComponent.Factory {
+        QualitygateRootExtensionComponent create(SimuLizarRootComponent rootComponent);
+    }
+
+    public static class EclipseFactory implements IExecutableExtensionFactory {
 
         @Override
         public Object create() throws CoreException {
             return DaggerQualitygateRootExtensionComponent.factory();
         }
-        
+
     }
 
 }

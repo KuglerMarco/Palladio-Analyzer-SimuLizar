@@ -15,29 +15,35 @@ import org.palladiosimulator.simulizar.scopes.RuntimeExtensionScope;
 
 import dagger.Component;
 
+/**
+ * @author Marco Kugler
+ *
+ */
 @Component(dependencies = { SimuLizarRuntimeComponent.class, SimuComFrameworkComponent.class, QUALComponent.class })
 @RuntimeExtensionScope
 public interface QualitygateExtensionComponent extends ExtensionComponent {
-	
-//	StereotypeQualitygateSwitch.Factory stereotypeQualitygateFactory();
-	ComposedStructureSwitchQualitygateContributionSwitch.Factory composedStructureQualitygateContribution();
-	RepositoryComponentSwitchQualitygateContributionSwitch.Factory repositoryQualityGateContribution();
-	RDSeffSwitchQualitygateContributionSwitch.Factory seffQualitygateContribution();
-	QualitygateIssueHandler issueHandler();
-	
-	@Component.Factory
-	public static interface Factory extends ExtensionComponent.Factory {
-		QualitygateExtensionComponent create(SimuLizarRuntimeComponent runtimeComponent, SimuComFrameworkComponent frameworkComponent, QUALComponent qualComponent);
-	}
-	
-	
-	public static class EclipseFactory implements IExecutableExtensionFactory {
+
+    ComposedStructureSwitchQualitygateContributionSwitch.Factory composedStructureQualitygateContribution();
+
+    RepositoryComponentSwitchQualitygateContributionSwitch.Factory repositoryQualityGateContribution();
+
+    RDSeffSwitchQualitygateContributionSwitch.Factory seffQualitygateContribution();
+
+    QualitygateIssueHandler issueHandler();
+
+    @Component.Factory
+    public static interface Factory extends ExtensionComponent.Factory {
+        QualitygateExtensionComponent create(SimuLizarRuntimeComponent runtimeComponent,
+                SimuComFrameworkComponent frameworkComponent, QUALComponent qualComponent);
+    }
+
+    public static class EclipseFactory implements IExecutableExtensionFactory {
 
         @Override
         public Object create() throws CoreException {
             return DaggerQualitygateExtensionComponent.factory();
         }
-        
+
     }
 
 }

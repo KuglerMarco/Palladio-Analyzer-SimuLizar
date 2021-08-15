@@ -24,7 +24,6 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
-import org.palladiosimulator.simulizar.qualitygate.interpreter.StereotypeQualitygateSwitch;
 
 import com.google.common.collect.Streams;
 import com.google.common.collect.Iterables;
@@ -37,7 +36,7 @@ import com.google.common.collect.Iterables;
  */
 public class QualitygateIssueHandler implements InterpreterResultHandler {
 
-    private static final Logger LOGGER = Logger.getLogger(StereotypeQualitygateSwitch.class);
+    private static final Logger LOGGER = Logger.getLogger(QualitygateIssueHandler.class);
 
     @Inject
     public QualitygateIssueHandler() {
@@ -63,7 +62,7 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                 // Checking the Qualitygate-Premise
                 try {
 
-                    Measure<Object, Quantity> measuringValue = ((ResponseTimeProxyIssue) issue).getSeffSwitch()
+                    Measure<Object, Quantity> measuringValue = ((ResponseTimeProxyIssue) issue).getResponseTimeQualitygateSwitch()
                         .getLastMeasure()
                         .getMeasureForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
 
@@ -88,7 +87,7 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                     }
 
                 } catch (NoSuchElementException e) {
-                    // SimuLizar-Bug: No Measurements after simulation had stopped but still in
+                    // TODO SimuLizar-Bug: No Measurements after simulation had stopped but still in
                     // control flow
                 }
 
