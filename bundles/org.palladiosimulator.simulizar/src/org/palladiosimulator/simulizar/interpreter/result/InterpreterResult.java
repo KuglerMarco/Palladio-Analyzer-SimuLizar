@@ -25,6 +25,17 @@ public interface InterpreterResult {
         final public Iterable<InterpretationIssue> getIssues() {
             return ImmutableSet.of();
         }
+
+        @Override
+        public boolean removeIssue(InterpretationIssue issue) {
+            return false;
+        }
+
+        @Override
+        public boolean addIssue(InterpretationIssue issue) {
+            // TODO Auto-generated method stub
+            return false;
+        }
     }
     
     boolean hasNoIssues();
@@ -34,4 +45,8 @@ public interface InterpreterResult {
     public static InterpreterResult of(InterpretationIssue issue) {
         return BasicInterpreterResult.of(issue);
     }
+    
+    public boolean removeIssue(InterpretationIssue issue);
+    
+    public boolean addIssue(InterpretationIssue issue);
 }

@@ -79,7 +79,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
     // TODO wirklich BasicInterpreter?
     private final BasicInterpreterResultMerger merger;
     
-    private Stack<MeasuringValue> responseTime;
+    private static Stack<MeasuringValue> responseTime;
     private QualityGate qualitygate;
     private PCMRandomVariable premise;
     private EObject stereotypedObject;
@@ -165,7 +165,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
     @Override
     public void newMeasurementAvailable(MeasuringValue newMeasurement) {
         responseTime.add(newMeasurement.getMeasuringValueForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC));
-        LOGGER.debug(responseTime.size());
+        LOGGER.debug("Added a new Measurement: " + responseTime.size());
         
     }
 
@@ -262,6 +262,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
             // TODO schöner
             try {
                 calc.addObserver(this);
+                LOGGER.debug("Observer added");
             } catch (IllegalArgumentException e) {
                 
             }
@@ -274,8 +275,8 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
         } else {
             // TODO Checking the Value on the Stack in Response-Scope
-            LOGGER.debug("Stack size: " + responseTime.size());
-            return InterpreterResult.of(new ResponseTimeProxyIssue(premise, this));
+            LOGGER.debug("New ResponseTimeProxyIssue.");
+            return InterpreterResult.of(new ResponseTimeProxyIssue(premise, this, qualitygate, (Entity)stereotypedObject));
             
 //            LOGGER.debug(responseTime.firstElement()
 //                .asArray());
@@ -353,7 +354,11 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
     
     
     public MeasuringValue getLastMeasure() {
-        return this.responseTime.firstElement();
+        
+        
+        return RDSeffSwitchQualitygateContributionSwitch.responseTime.firstElement();  
+        
+        
     }
     
     

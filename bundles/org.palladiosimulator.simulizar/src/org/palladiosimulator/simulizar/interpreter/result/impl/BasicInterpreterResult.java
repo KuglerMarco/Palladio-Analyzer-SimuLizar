@@ -28,5 +28,17 @@ public class BasicInterpreterResult implements InterpreterResult {
         return result;                
     }
     
+    @Override
+    public boolean removeIssue(InterpretationIssue issue) {
+        return issues.remove(issue);
+    }
+
+    @Override
+    public boolean addIssue(InterpretationIssue issue) {
+        return issues.add(issue);
+    }
+
+
+    
 
 }
