@@ -4,22 +4,25 @@ import javax.inject.Inject;
 
 import org.palladiosimulator.simulizar.launcher.jobs.ModelCompletionJobContributor;
 
+/**
+ * ModelCompletion Job which sets the Monitors in MonitorRepository.
+ * 
+ * @author Marco Kugler
+ *
+ */
 public class QualitygateCalculatorJobContribution implements ModelCompletionJobContributor {
 
-	QualitygateResponseTimeCalculatorJob job;
-	
-	@Inject
-	public QualitygateCalculatorJobContribution(QualitygateResponseTimeCalculatorJob job) {
-		this.job = job;
-	}
-	
-	
-	@Override
-	public void contribute(Facade delegate) {
+    QualitygateResponseTimeCalculatorJob job;
 
-		delegate.contribute(job);
-	}
-	
-	
+    @Inject
+    public QualitygateCalculatorJobContribution(QualitygateResponseTimeCalculatorJob job) {
+        this.job = job;
+    }
+
+    @Override
+    public void contribute(Facade delegate) {
+
+        delegate.contribute(job);
+    }
 
 }

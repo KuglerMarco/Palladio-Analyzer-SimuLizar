@@ -29,7 +29,6 @@ import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.core.entity.Entity;
 import org.palladiosimulator.pcm.repository.ProvidedRole;
 import org.palladiosimulator.pcm.repository.Signature;
-import org.palladiosimulator.pcmmeasuringpoint.ExternalCallActionMeasuringPoint;
 import org.palladiosimulator.pcmmeasuringpoint.SystemOperationMeasuringPoint;
 import org.palladiosimulator.probeframework.ProbeFrameworkContext;
 import org.palladiosimulator.probeframework.calculator.Calculator;
@@ -50,7 +49,7 @@ import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
 public class RepositoryComponentSwitchQualitygateContributionSwitch extends QualitygateSwitch<InterpreterResult>
-        implements StereotypeSwitch, IMeasurementSourceListener, ResponseTimeQualitygateSwitch  {
+        implements StereotypeSwitch, IMeasurementSourceListener, ResponseTimeQualitygateSwitch {
 
     @AssistedFactory
     public interface Factory extends RepositoryComponentSwitchStereotypeContributionFactory {
@@ -69,23 +68,22 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     // Information about the simulation-context
     private final InterpreterDefaultContext interpreterDefaultContext;
     private final Signature operationSignature;
-    private ProbeFrameworkContext frameworkContext;
+    private final ProbeFrameworkContext frameworkContext;
     private final PCMPartitionManager partManager;
-    
-    //Information about the stereotype-processing
+
+    // Information about the stereotype-processing
     private QualityGate qualitygate;
     private CallScope callScope = CallScope.REQUEST;
     private EObject stereotypedObject;
     private PCMRandomVariable premise;
 
-    //Stack to save the measurements from the calculators
+    // Stack to save the measurements from the calculators
     private static Stack<MeasuringValue> responseTime;
 
-    // TODO wirklich BasicInterpreter?
     private final BasicInterpreterResultMerger merger;
+    private boolean atRequestMetricCalcAdded = false;
     private static final Logger LOGGER = Logger.getLogger(RepositoryComponentSwitchQualitygateContributionSwitch.class);
-    
-    
+
     @AssistedInject
     public RepositoryComponentSwitchQualitygateContributionSwitch(@Assisted final InterpreterDefaultContext context,
             @Assisted final AssemblyContext assemblyContext, @Assisted final Signature signature,
@@ -94,18 +92,22 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
             BasicInterpreterResultMerger merger, ProbeFrameworkContext frameworkContext,
             PCMPartitionManager partManager) {
 
-        
         this.interpreterDefaultContext = context;
         this.operationSignature = signature;
         
+        //Injected
         this.merger = merger;
         this.frameworkContext = frameworkContext;
         this.partManager = partManager;
-        
+
         LOGGER.setLevel(Level.DEBUG);
         responseTime = new Stack<MeasuringValue>();
     }
 
+    /**
+     * Returns whether this Switch is responsible for processing this stereotype.
+     *
+     */
     @Override
     public boolean isSwitchForStereotype(Stereotype stereotype) {
 
@@ -119,14 +121,20 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
         return result;
     }
 
+    /**
+     * Entry-Point to process the attached stereotypes.
+     *
+     */
     @Override
     public InterpreterResult handleStereotype(Stereotype stereotype, EObject theEObject, CallScope callScope) {
+        
         InterpreterResult result = InterpreterResult.OK;
 
         EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
 
         this.callScope = callScope;
         this.stereotypedObject = theEObject;
+        
 
         // Model validation
         if (taggedValues.isEmpty()) {
@@ -140,8 +148,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
             LOGGER.debug("RepositoryCompoonent: " + e.getPremise()
                 .getSpecification());
 
-            result = merger.merge(result,
-                    this.doSwitch(e));
+            result = merger.merge(result, this.doSwitch(e));
 
         }
         return result;
@@ -160,7 +167,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     @Override
     public void newMeasurementAvailable(MeasuringValue newMeasurement) {
         responseTime.add(newMeasurement.getMeasuringValueForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC));
-
+        LOGGER.debug("Added a new Measurement: " + responseTime.size());
     }
 
     @Override
@@ -170,7 +177,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     }
 
     /**
-     * Processing the attached Qualitygate, Premise and Scope
+     * Saving the qualitygate's premise and the qualitygate-element itself.
      */
     @Override
     public InterpreterResult caseQualityGate(QualityGate qualitygate) {
@@ -181,8 +188,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     }
 
     /**
-     * Checking the values on the parameter-stack against the premise-specification within the
-     * Qualitygate.
+     * Processing the RequestParameterScope.
      */
     @Override
     public InterpreterResult caseRequestParameterScope(RequestParameterScope object) {
@@ -191,8 +197,9 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
         if (callScope.equals(CallScope.REQUEST) && (signatureOfQualitygate == (this.operationSignature))) {
 
-            if (!((boolean) interpreterDefaultContext.evaluate(premise.getSpecification(), this.interpreterDefaultContext.getStack()
-                .currentStackFrame()))) {
+            if (!((boolean) interpreterDefaultContext.evaluate(premise.getSpecification(),
+                    this.interpreterDefaultContext.getStack()
+                        .currentStackFrame()))) {
 
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Following StoEx is broken: " + premise.getSpecification() + " because stackframe is: "
@@ -214,8 +221,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     }
 
     /**
-     * Checking the values on the parameter-stack against the premise-specification within the
-     * Qualitygate.
+     * Processing the ResultParameterScope.
      */
     @Override
     public InterpreterResult caseResultParameterScope(ResultParameterScope object) {
@@ -223,7 +229,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
         Signature signatureOfQualitygate = object.getSignature();
 
         if (callScope.equals(CallScope.RESPONSE) && (signatureOfQualitygate == (this.operationSignature))) {
-            if (!((boolean) interpreterDefaultContext.evaluate(premise.getSpecification(), this.interpreterDefaultContext.getCurrentResultFrame()))) {
+            if (!((boolean) interpreterDefaultContext.evaluate(premise.getSpecification(),
+                    this.interpreterDefaultContext.getCurrentResultFrame()))) {
 
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Following StoEx is broken: " + premise.getSpecification()
@@ -258,10 +265,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
             // Searching for the Measuring-Point
             MeasuringPointRepository measuringPointRepo = (MeasuringPointRepository) partManager
                 .findModel(MeasuringpointPackage.Literals.MEASURING_POINT_REPOSITORY);
-//            MeasuringPointRepository measuringPointRepo = (MeasuringPointRepository) partManager.getBlackboard()
-//                .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
-//                .getElement(MeasuringpointPackage.Literals.MEASURING_POINT_REPOSITORY)
-//                .get(0);
 
             MeasuringPoint measPoint = null;
 
@@ -276,14 +279,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                     }
                 }
-//                if (e instanceof ExternalCallActionMeasuringPoint) {
-//                    if (((ExternalCallActionMeasuringPoint) e).getExternalCall()
-//                        .equals(stereotypedObject)) {
-//
-//                        measPoint = (ExternalCallActionMeasuringPoint) e;
-//
-//                    }
-//                }
             }
 
             if (measPoint == null) {
@@ -298,9 +293,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 .findFirst()
                 .orElse(null);
 
-            if (respTimeMetricDesc == null) {
-                throw new IllegalStateException("MEtricDescription not loadable.");
-            }
 
             // Calculator for this Qualitygate TODO Noch MetricDescription laden
             Collection<Calculator> calculator = frameworkContext.getCalculatorRegistry()
@@ -312,12 +304,10 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 .findFirst()
                 .orElse(null);
 
-            // TODO nicht ganz richtig, aber funktioniert
-            try {
+            if (!this.atRequestMetricCalcAdded ) {
                 calc.addObserver(this);
                 LOGGER.debug("Observer added");
-            } catch (IllegalArgumentException e) {
-
+                this.atRequestMetricCalcAdded = true;
             }
 
             LOGGER.debug(calc.toString());
@@ -325,21 +315,18 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
             return InterpreterResult.OK;
 
         } else {
-            // TODO Checking the Value on the Stack in Response-Scope
             LOGGER.debug("New ResponseTimeProxyIssue.");
             return InterpreterResult
                 .of(new ResponseTimeProxyIssue(premise, this, qualitygate, (Entity) stereotypedObject));
 
-//            LOGGER.debug(responseTime.firstElement()
-//                .asArray());
         }
-
-//        return InterpreterResult.OK;
     }
 
     @Override
-    public MeasuringValue getLastMeasure() {
+    public MeasuringValue getLastResponseTimeMeasure() {
+        
         return RepositoryComponentSwitchQualitygateContributionSwitch.responseTime.firstElement();
+        
     }
 
 }

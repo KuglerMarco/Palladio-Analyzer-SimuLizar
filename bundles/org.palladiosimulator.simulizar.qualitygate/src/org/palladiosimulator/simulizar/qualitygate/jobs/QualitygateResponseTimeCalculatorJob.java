@@ -165,8 +165,8 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
             .get(0));
 
         EObject object;
-        
-        //Creating and adding Qualitygate-Monitors
+
+        // Creating and adding Qualitygate-Monitors
         for (RepositoryComponent e : repo.getComponents__Repository()) {
             for (ProvidedRole i : e.getProvidedRoles_InterfaceProvidingEntity()) {
 
@@ -189,7 +189,8 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
                             .handleQualitygate(object);
                         // Removing the Null-elements, because not every Qualitygate needs a
                         // calculator
-                        while (qualitygateMonitors.remove(null));
+                        while (qualitygateMonitors.remove(null))
+                            ;
 
                         // Adding the generated Monitors to the repositories
                         for (Monitor j : qualitygateMonitors) {
@@ -200,9 +201,9 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
 
                                 monitorRepo.getMonitors()
                                     .add(j);
-                                
-                                
-                                j.getMeasuringPoint().setMeasuringPointRepository(measuringPointRepo);
+
+                                j.getMeasuringPoint()
+                                    .setMeasuringPointRepository(measuringPointRepo);
 
                                 j.setMonitorRepository(monitorRepo);
                             }
@@ -212,23 +213,22 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
                 }
 
             }
-            
-            for (ServiceEffectSpecification seff : ((BasicComponent)e).getServiceEffectSpecifications__BasicComponent()) {
-                for(AbstractAction abstractAction : ((ResourceDemandingSEFF)seff).getSteps_Behaviour() ) {
+
+            for (ServiceEffectSpecification seff : ((BasicComponent) e)
+                .getServiceEffectSpecifications__BasicComponent()) {
+                for (AbstractAction abstractAction : ((ResourceDemandingSEFF) seff).getSteps_Behaviour()) {
                     if (!StereotypeAPI.getAppliedStereotypes(abstractAction)
-                            .isEmpty() && StereotypeAPI.getAppliedStereotypes(abstractAction)
-                                .get(0)
-                                .getName()
-                                .equals("QualitygateElement")) {
-                        
-                        if(abstractAction instanceof ExternalCallAction) {
-                            
+                        .isEmpty() && StereotypeAPI.getAppliedStereotypes(abstractAction)
+                            .get(0)
+                            .getName()
+                            .equals("QualitygateElement")) {
+
+                        if (abstractAction instanceof ExternalCallAction) {
+
                             LOGGER.debug("The ExternalCall " + ((ExternalCallAction) abstractAction).getEntityName()
                                     + " has a qualitygate-application");
-                            
-                         // List of generated Monitors for the attached Qualitygates (could be more
-                            // than
-                            // one)
+
+                            // List of generated Monitors for the attached Qualitygates
                             List<Monitor> qualitygateMonitors = preprocessingSwitch.create(res, system)
                                 .handleQualitygate(abstractAction);
                             // Removing the Null-elements, because not every Qualitygate needs a
@@ -244,24 +244,21 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
 
                                     monitorRepo.getMonitors()
                                         .add(j);
-                                    
-                                    
-                                    j.getMeasuringPoint().setMeasuringPointRepository(measuringPointRepo);
+
+                                    j.getMeasuringPoint()
+                                        .setMeasuringPointRepository(measuringPointRepo);
 
                                     j.setMonitorRepository(monitorRepo);
                                 }
 
                             }
-                            
+
                         }
-                        
+
                     }
                 }
             }
         }
-        
-
-
 
         // Only for debug reasons
         MonitorRepository monitorRepository = (MonitorRepository) blackboard
@@ -272,25 +269,27 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
         for (Monitor e : monitorRepository.getMonitors()) {
             LOGGER.debug(e.getMeasuringPoint()
                 .getStringRepresentation());
-            
-            
-            if(e.getMeasuringPoint() instanceof SystemOperationMeasuringPoint) {
-                LOGGER.debug(((SystemOperationMeasuringPoint)e.getMeasuringPoint()).getMeasuringPointRepository().toString());
-                LOGGER.debug(((SystemOperationMeasuringPoint)e.getMeasuringPoint()).getOperationSignature().getEntityName());
-                LOGGER.debug(((SystemOperationMeasuringPoint)e.getMeasuringPoint()).getRole().getEntityName());
-                LOGGER.debug(((SystemOperationMeasuringPoint)e.getMeasuringPoint()).getSystem().getEntityName());
+
+            if (e.getMeasuringPoint() instanceof SystemOperationMeasuringPoint) {
+                LOGGER.debug(((SystemOperationMeasuringPoint) e.getMeasuringPoint()).getMeasuringPointRepository()
+                    .toString());
+                LOGGER.debug(((SystemOperationMeasuringPoint) e.getMeasuringPoint()).getOperationSignature()
+                    .getEntityName());
+                LOGGER.debug(((SystemOperationMeasuringPoint) e.getMeasuringPoint()).getRole()
+                    .getEntityName());
+                LOGGER.debug(((SystemOperationMeasuringPoint) e.getMeasuringPoint()).getSystem()
+                    .getEntityName());
 
             }
-            
-            
 
             for (MeasurementSpecification i : (e.getMeasurementSpecifications())) {
                 LOGGER.debug(i.getMetricDescription()
                     .getTextualDescription());
                 LOGGER.debug(i.getProcessingType());
                 LOGGER.debug(i.getName());
-                LOGGER.debug(i.getMetricDescription().getName());
-                
+                LOGGER.debug(i.getMetricDescription()
+                    .getName());
+
             }
         }
     }
@@ -323,15 +322,14 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
             .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
             .getElement(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY)
             .get(0);
-        
-        
-        //TODO implementieren für andere MeasuringPoints
-        if(qualitygateMonitor.getMeasuringPoint() instanceof SystemOperationMeasuringPoint) {
-            
+
+        // TODO implementieren für andere MeasuringPoints
+        if (qualitygateMonitor.getMeasuringPoint() instanceof SystemOperationMeasuringPoint) {
+
             OperationSignature signature = ((SystemOperationMeasuringPoint) qualitygateMonitor.getMeasuringPoint())
                 .getOperationSignature();
             Role role = ((SystemOperationMeasuringPoint) qualitygateMonitor.getMeasuringPoint()).getRole();
-    
+
             for (Monitor e : monitorRepo.getMonitors()) {
                 MeasuringPoint measPoint = e.getMeasuringPoint();
                 if (measPoint instanceof SystemOperationMeasuringPoint) {
@@ -340,28 +338,28 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
                             && ((OperationReference) measPoint).getRole()
                                 .equals(role)) {
                         // Same Measuring-Point
-    
+
                         for (MeasurementSpecification i : e.getMeasurementSpecifications()) {
                             for (MeasurementSpecification j : qualitygateMonitor.getMeasurementSpecifications()) {
                                 if (i.getMetricDescription()
                                     .equals(j.getMetricDescription())
-                                    
+
                                         && i.getProcessingType()
                                             .equals(j.getProcessingType())
-                                            
+
                                         && !i.isTriggersSelfAdaptations()) {
                                     // Same MeasurementSpecification
                                     return true;
                                 }
                             }
                         }
-    
+
                     }
                 }
-    
+
             }
         }
-        
+
         return false;
     }
 

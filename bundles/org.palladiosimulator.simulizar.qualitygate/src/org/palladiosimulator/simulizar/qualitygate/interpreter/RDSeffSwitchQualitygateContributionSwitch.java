@@ -3,6 +3,7 @@ package org.palladiosimulator.simulizar.qualitygate.interpreter;
 import java.util.Collection;
 import java.util.Stack;
 
+import org.apache.log4j.Category;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
@@ -73,7 +74,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
     // Information about the simulation-context
     private final InterpreterDefaultContext context;
-    private ProbeFrameworkContext frameworkContext;
+    private final ProbeFrameworkContext frameworkContext;
     private Signature operationSignature;
     private final PCMPartitionManager partManager;
 
@@ -83,11 +84,10 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
     private PCMRandomVariable premise;
     private EObject stereotypedObject;
     private CallScope callScope = CallScope.REQUEST;
+    private boolean atRequestMetricCalcAdded = false;
 
-    // TODO wirklich BasicInterpreter?
     private final BasicInterpreterResultMerger merger;
     private static final Logger LOGGER = Logger.getLogger(RDSeffSwitchQualitygateContributionSwitch.class);
-    private boolean atCalculatorAdded = false;
 
     @AssistedInject
     public RDSeffSwitchQualitygateContributionSwitch(@Assisted final InterpreterDefaultContext context,
@@ -128,6 +128,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
      */
     @Override
     public InterpreterResult handleStereotype(Stereotype stereotype, EObject theEObject, CallScope callScope) {
+
         InterpreterResult result = InterpreterResult.OK;
 
         this.operationSignature = ((ExternalCallAction) theEObject).getCalledService_ExternalService();
@@ -152,7 +153,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 result = merger.merge(result, this.doSwitch(e));
             } else {
                 throw new IllegalStateException(
-                        "You might wanted to attach the Qualitygate to the ExternalCallAction.");
+                        "The element, which was attached with a qualitygate is not (yet) supported");
             }
 
         }
@@ -192,6 +193,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         return this.doSwitch(qualitygate.getScope());
 
     }
+    
 
     @Override
     public InterpreterResult caseRequestMetricScope(RequestMetricScope object) {
@@ -239,7 +241,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 .findFirst()
                 .orElse(null);
 
-            // Calculator for this Qualitygate TODO Noch MetricDescription laden
+            // Calculator for this Qualitygate TODO Noch MetricDescription raussuchen
             Collection<Calculator> calculator = frameworkContext.getCalculatorRegistry()
                 .getCalculatorsForMeasuringPoint(measPoint);
 
@@ -249,17 +251,19 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 .findFirst()
                 .orElse(null);
 
-            if (!this.atCalculatorAdded) {
+            if (!this.atRequestMetricCalcAdded) {
                 calc.addObserver(this);
                 LOGGER.debug("Observer added");
-                this.atCalculatorAdded = true;
+                this.atRequestMetricCalcAdded = true;
             }
 
             return InterpreterResult.OK;
 
         } else {
-            // Response-Time is checked, when the measurements are available - Proxy is added as
-            // Issue
+            /*
+             * Response-Time is checked, when the measurements are available - Processing-Proxy is
+             * added as Issue
+             */
             LOGGER.debug("New ResponseTimeProxyIssue.");
             return InterpreterResult
                 .of(new ResponseTimeProxyIssue(premise, this, qualitygate, (Entity) stereotypedObject));
@@ -321,18 +325,13 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
         if (callScope.equals(CallScope.RESPONSE) && (signatureOfQualitygate == (this.operationSignature))) {
 
-            LOGGER.debug("ResultFrame at ExternalCall is: " + this.context.getStack()
-                .currentStackFrame()
-                .toString());
-            LOGGER.debug("ResultFrame at ExternalCall is: " + this.context.getCurrentResultFrame()
-                .toString());
-
             if (!((boolean) context.evaluate(premise.getSpecification(), this.context.getStack()
                 .currentStackFrame()))) {
 
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Following StoEx is broken at ExternalCall: " + premise.getSpecification()
-                            + " because resultframe is: " + this.context.getStack().currentStackFrame()
+                            + " because resultframe is: " + this.context.getStack()
+                                .currentStackFrame()
                                 .toString());
                 }
 
@@ -348,7 +347,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
      * Saving the measurements of the registered calculators.
      *
      */
-    public MeasuringValue getLastMeasure() {
+    public MeasuringValue getLastResponseTimeMeasure() {
 
         return RDSeffSwitchQualitygateContributionSwitch.responseTime.firstElement();
 

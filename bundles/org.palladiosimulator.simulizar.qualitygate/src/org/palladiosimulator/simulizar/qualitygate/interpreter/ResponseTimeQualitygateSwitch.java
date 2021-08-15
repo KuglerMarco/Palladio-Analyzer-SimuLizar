@@ -4,6 +4,6 @@ import org.palladiosimulator.measurementframework.MeasuringValue;
 
 public interface ResponseTimeQualitygateSwitch {
     
-    public MeasuringValue getLastMeasure();
+    public MeasuringValue getLastResponseTimeMeasure();
 
 }

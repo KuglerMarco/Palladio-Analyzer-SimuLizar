@@ -62,8 +62,9 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                 // Checking the Qualitygate-Premise
                 try {
 
-                    Measure<Object, Quantity> measuringValue = ((ResponseTimeProxyIssue) issue).getResponseTimeQualitygateSwitch()
-                        .getLastMeasure()
+                    Measure<Object, Quantity> measuringValue = ((ResponseTimeProxyIssue) issue)
+                        .getResponseTimeQualitygateSwitch()
+                        .getLastResponseTimeMeasure()
                         .getMeasureForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
 
                     PCMRandomVariable premise = ((ResponseTimeProxyIssue) issue).getPremise();
