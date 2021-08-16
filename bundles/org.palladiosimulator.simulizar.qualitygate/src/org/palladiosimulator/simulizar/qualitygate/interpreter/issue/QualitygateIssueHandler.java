@@ -43,13 +43,13 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
         LOGGER.setLevel(Level.DEBUG);
     }
 
-    /**
-     * To this time: Checks whether in Issue list is only consisting of QualitygateIssues, later:
-     * impact of QualitygateIssues
-     */
+    
     @Override
     public InterpreterResumptionPolicy handleIssues(InterpreterResult result) {
-
+        
+        /*
+         * Processing the Proxies in Issues
+         */
         Iterator<InterpretationIssue> iter = result.getIssues()
             .iterator();
 
@@ -68,10 +68,6 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                         .getMeasureForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
 
                     PCMRandomVariable premise = ((ResponseTimeProxyIssue) issue).getPremise();
-
-                    LOGGER.debug("!!!" + measuringValue.getValue());
-
-                    LOGGER.debug("!!!" + measuringValue.getUnit());
 
 //                    Measure<Integer,Duration> measuringValueCon = Measure.valueOf(Integer.parseInt(premise.getSpecification()), Quantity);
 
