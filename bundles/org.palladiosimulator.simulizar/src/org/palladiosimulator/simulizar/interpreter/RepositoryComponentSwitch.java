@@ -160,10 +160,12 @@ public class RepositoryComponentSwitch extends RepositorySwitch<InterpreterResul
      */
     @Override
     public InterpreterResult caseProvidedRole(final ProvidedRole providedRole) {
-        this.context.getAssemblyContextStack()
-            .push(this.instanceAssemblyContext == SYSTEM_ASSEMBLY_CONTEXT
-                    ? this.generateSystemAssemblyContext(providedRole)
-                    : this.instanceAssemblyContext);
+        this.context.getAssemblyContextStack().push(this.instanceAssemblyContext == SYSTEM_ASSEMBLY_CONTEXT
+                ? this.generateSystemAssemblyContext(providedRole) : this.instanceAssemblyContext);
+        
+        eventHelper.firePassedEvent(
+        	new AssemblyProvidedOperationPassedEvent<AssemblyContext, ProvidedRole, Signature>(providedRole, 
+        			EventType.BEGIN, this.context, this.signature, this.instanceAssemblyContext));
 
         eventHelper.firePassedEvent(new AssemblyProvidedOperationPassedEvent<ProvidedRole, Signature>(providedRole,
                 EventType.BEGIN, this.context, this.signature, this.instanceAssemblyContext));
@@ -172,12 +174,12 @@ public class RepositoryComponentSwitch extends RepositorySwitch<InterpreterResul
             .create(context, instanceAssemblyContext, signature, providedRole)
             .doSwitch(providedRole.getProvidingEntity_ProvidedRole());
 
-        this.context.getAssemblyContextStack()
-            .pop();
-
-        eventHelper.firePassedEvent(new AssemblyProvidedOperationPassedEvent<ProvidedRole, Signature>(providedRole,
-                EventType.END, this.context, this.signature, this.instanceAssemblyContext));
-
+        this.context.getAssemblyContextStack().pop();
+        
+        eventHelper.firePassedEvent(
+            	new AssemblyProvidedOperationPassedEvent<AssemblyContext, ProvidedRole, Signature>(providedRole, 
+            			EventType.END, this.context, this.signature, this.instanceAssemblyContext));
+        
         return result;
     }
 
