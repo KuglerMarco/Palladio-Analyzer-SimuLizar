@@ -1,5 +1,6 @@
 package org.palladiosimulator.simulizar.qualitygate.jobs;
 
+import java.util.Collections;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -23,12 +24,16 @@ import org.palladiosimulator.monitorrepository.MonitorRepositoryPackage;
 import org.palladiosimulator.simulizar.launcher.jobs.extensions.DefaultMeasuringPointRepositoryFactory;
 import org.palladiosimulator.simulizar.launcher.jobs.extensions.DefaultMonitorRepositoryFactory;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.StereotypeQualitygatePreprocessingSwitch;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.StereotypeQualitygateProvidedRolePreprocessingSwitch;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.StereotypeQualitygateProvidedRolePreprocessingSwitch.Factory;
 
 import de.uka.ipd.sdq.workflow.jobs.CleanupFailedException;
 import de.uka.ipd.sdq.workflow.jobs.IBlackboardInteractingJob;
 import de.uka.ipd.sdq.workflow.jobs.JobFailedException;
 import de.uka.ipd.sdq.workflow.jobs.UserCanceledException;
 import de.uka.ipd.sdq.workflow.mdsd.blackboard.MDSDBlackboard;
+
+import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.core.composition.Connector;
 import org.palladiosimulator.pcm.system.SystemPackage;
 import org.palladiosimulator.pcm.repository.BasicComponent;
@@ -65,11 +70,14 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
     private MDSDBlackboard blackboard;
     private final StereotypeQualitygatePreprocessingSwitch.Factory preprocessingSwitch;
 
+    private StereotypeQualitygateProvidedRolePreprocessingSwitch.Factory rolePreprocessingSwitch;
+
     @Inject
     public QualitygateResponseTimeCalculatorJob(MDSDBlackboard blackboard,
-            StereotypeQualitygatePreprocessingSwitch.Factory preprocessingSwitch) {
+            StereotypeQualitygatePreprocessingSwitch.Factory preprocessingSwitch, StereotypeQualitygateProvidedRolePreprocessingSwitch.Factory rolePreprocessingSwitch) {
         this.blackboard = blackboard;
         this.preprocessingSwitch = preprocessingSwitch;
+        this.rolePreprocessingSwitch = rolePreprocessingSwitch;
 
         LOGGER.setLevel(Level.DEBUG);
 
@@ -165,13 +173,20 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
             .get(0));
 
         EObject object;
-
-        // Creating and adding Qualitygate-Monitors
-        for (RepositoryComponent e : repo.getComponents__Repository()) {
-            for (ProvidedRole i : e.getProvidedRoles_InterfaceProvidingEntity()) {
-
-                LOGGER.debug("Iterated over: " + i.getEntityName());
-                object = i;
+        
+        //TODO über alle Assemblies iterieren und den Assembly mitgeben, sonst kann kein AssemblyOperationMeasuringPoint gesetzt werden
+        
+        
+        org.palladiosimulator.pcm.system.System systemRepo = (org.palladiosimulator.pcm.system.System) blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
+                .getElement(SystemPackage.Literals.SYSTEM)
+                .get(0);
+        
+        for(AssemblyContext assembly : systemRepo.getAssemblyContexts__ComposedStructure()) {
+            
+            for(ProvidedRole role : assembly.getEncapsulatedComponent__AssemblyContext().getProvidedRoles_InterfaceProvidingEntity()) {
+                
+                LOGGER.debug("Iterated over: " + role.getEntityName());
+                object = role;
                 if (!StereotypeAPI.getAppliedStereotypes(object)
                     .isEmpty() && StereotypeAPI.getAppliedStereotypes(object)
                         .get(0)
@@ -185,12 +200,11 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
                         // List of generated Monitors for the attached Qualitygates (could be more
                         // than
                         // one)
-                        List<Monitor> qualitygateMonitors = preprocessingSwitch.create(res, system)
+                        List<Monitor> qualitygateMonitors = rolePreprocessingSwitch.create(res, assembly)
                             .handleQualitygate(object);
                         // Removing the Null-elements, because not every Qualitygate needs a
                         // calculator
-                        while (qualitygateMonitors.remove(null))
-                            ;
+                        qualitygateMonitors.removeAll(Collections.singleton(null));
 
                         // Adding the generated Monitors to the repositories
                         for (Monitor j : qualitygateMonitors) {
@@ -211,8 +225,61 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
                         }
                     }
                 }
-
+                
+                
             }
+            
+            
+        }
+
+
+        // Creating and adding Qualitygate-Monitors
+        for (RepositoryComponent e : repo.getComponents__Repository()) {
+//            for (ProvidedRole i : e.getProvidedRoles_InterfaceProvidingEntity()) {
+//
+//                LOGGER.debug("Iterated over: " + i.getEntityName());
+//                object = i;
+//                if (!StereotypeAPI.getAppliedStereotypes(object)
+//                    .isEmpty() && StereotypeAPI.getAppliedStereotypes(object)
+//                        .get(0)
+//                        .getName()
+//                        .equals("QualitygateElement")) {
+//
+//                    if (object instanceof ProvidedRole) {
+//                        LOGGER.debug("The ProvidedRole " + ((ProvidedRole) object).getEntityName()
+//                                + " has a qualitygate-application");
+//
+//                        // List of generated Monitors for the attached Qualitygates (could be more
+//                        // than
+//                        // one)
+//                        List<Monitor> qualitygateMonitors = preprocessingSwitch.create(res, system)
+//                            .handleQualitygate(object);
+//                        // Removing the Null-elements, because not every Qualitygate needs a
+//                        // calculator
+//                        qualitygateMonitors.removeAll(Collections.singleton(null));
+//
+//                        // Adding the generated Monitors to the repositories
+//                        for (Monitor j : qualitygateMonitors) {
+//
+//                            if (!this.isMeasurementSpecificationPresent(j)) {
+//                                measuringPointRepo.getMeasuringPoints()
+//                                    .add
+//                                    (j.getMeasuringPoint());
+//
+//                                monitorRepo.getMonitors()
+//                                    .add(j);
+//
+//                                j.getMeasuringPoint()
+//                                    .setMeasuringPointRepository(measuringPointRepo);
+//
+//                                j.setMonitorRepository(monitorRepo);
+//                            }
+//
+//                        }
+//                    }
+//                }
+//
+//            }
 
             for (ServiceEffectSpecification seff : ((BasicComponent) e)
                 .getServiceEffectSpecifications__BasicComponent()) {

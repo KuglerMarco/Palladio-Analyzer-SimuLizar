@@ -1,6 +1,7 @@
 package org.palladiosimulator.simulizar.qualitygate.interpreter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.log4j.Level;
@@ -17,47 +18,37 @@ import org.palladiosimulator.monitorrepository.MeasurementSpecification;
 import org.palladiosimulator.monitorrepository.Monitor;
 import org.palladiosimulator.monitorrepository.MonitorRepositoryFactory;
 import org.palladiosimulator.monitorrepository.ProcessingType;
-import org.palladiosimulator.pcm.core.composition.AssemblyConnector;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.repository.OperationSignature;
 import org.palladiosimulator.pcm.repository.ProvidedRole;
-import org.palladiosimulator.pcm.system.System;
-import org.palladiosimulator.pcmmeasuringpoint.SystemOperationMeasuringPoint;
 import org.palladiosimulator.pcmmeasuringpoint.AssemblyOperationMeasuringPoint;
-import org.palladiosimulator.pcmmeasuringpoint.ExternalCallActionMeasuringPoint;
 import org.palladiosimulator.pcmmeasuringpoint.PcmmeasuringpointFactory;
-import org.palladiosimulator.pcm.seff.ExternalCallAction;
 
 import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
-/**
- * Switch to create the necessary Monitors for the Qualitygate-Elements in order to use the
- * calculators within the simulation.
- * 
- * @author Marco Kugler
- *
- */
-public class StereotypeQualitygatePreprocessingSwitch extends QualitygateSwitch<Monitor> {
-
+public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends QualitygateSwitch<Monitor> {
+    
     @AssistedFactory
     public static interface Factory {
-        StereotypeQualitygatePreprocessingSwitch create(MetricDescriptionRepository metricRepo, System system);
+        StereotypeQualitygateProvidedRolePreprocessingSwitch create(MetricDescriptionRepository metricRepo, AssemblyContext assembly);
     }
-
-    Logger LOGGER = Logger.getLogger(StereotypeQualitygatePreprocessingSwitch.class);
-    private EObject stereotypedObject;
+    
+    
+    
+    Logger LOGGER = Logger.getLogger(StereotypeQualitygateProvidedRolePreprocessingSwitch.class);
+    private ProvidedRole stereotypedRole;
     private final MetricDescriptionRepository metricRepo;
-    private System system;
-
+    private AssemblyContext assembly;
+    
     @AssistedInject
-    public StereotypeQualitygatePreprocessingSwitch(@Assisted MetricDescriptionRepository metricRepo, @Assisted System system) {
+    public StereotypeQualitygateProvidedRolePreprocessingSwitch(@Assisted MetricDescriptionRepository metricRepo, @Assisted AssemblyContext assembly) {
         LOGGER.setLevel(Level.DEBUG);
         this.metricRepo = metricRepo;
-        this.system = system;
+        this.assembly = assembly;
     }
-
+    
     /**
      * Creates the Monitor to observe the Response-Time at the stereotyped element.
      */
@@ -71,57 +62,23 @@ public class StereotypeQualitygatePreprocessingSwitch extends QualitygateSwitch<
         
         
 
-//        if (stereotypedObject instanceof ProvidedRole) {
-//
-//            // Entity-Name
-//            monitor.setEntityName(
-//                    "QualitygateMonitor at ProvidedRole " + ((ProvidedRole) stereotypedObject).getEntityName());
-//
-//            // Measuring-Point //TODO Optional Reference on Assembly, then AssemblyOperationMeasuringPoint
-//            AssemblyOperationMeasuringPoint measuringPoint = PcmmeasuringpointFactory.eINSTANCE.createAssemblyOperationMeasuringPoint();
-//            
-//            // Operation-Signature
-//            measuringPoint.setOperationSignature((OperationSignature) object.getSignature());
-//            
-//            measuringPoint.setRole((ProvidedRole)stereotypedObject);
-//            
-//            measuringPoint.setAssembly((AssemblyContext) (((BasicComponent) ((ProvidedRole) stereotypedObject).getProvidingEntity_ProvidedRole()));
-//            
-//            monitor.setMeasuringPoint(measuringPoint);
-//            
-//
-//        }
-        
-        //TODO Monitor setzen für ExternalCall
-        
-        if(stereotypedObject instanceof ExternalCallAction) {
-            
-            monitor.setEntityName(
-                    "QualitygateMonitor at ExternalCallAction " + ((ExternalCallAction) stereotypedObject).getEntityName());
-            
-            ExternalCallActionMeasuringPoint measuringPoint = PcmmeasuringpointFactory.eINSTANCE.createExternalCallActionMeasuringPoint();
-            
-            measuringPoint.setExternalCall((ExternalCallAction) stereotypedObject);
-            
-            monitor.setMeasuringPoint(measuringPoint);
-            
-            
-        }
+        // Entity-Name
+        monitor.setEntityName("QualitygateMonitor at ProvidedRole " + ((ProvidedRole) stereotypedRole).getEntityName());
 
-        
+        // Measuring-Point //TODO Optional Reference on Assembly, then
+        // AssemblyOperationMeasuringPoint
+        AssemblyOperationMeasuringPoint measuringPoint = PcmmeasuringpointFactory.eINSTANCE
+            .createAssemblyOperationMeasuringPoint();
 
-//        if (stereotypedObject instanceof AssemblyConnector) {
-//
-//            // Role TODO Required oder Provided?
-//            measuringPoint.setRole(((AssemblyConnector) stereotypedObject).getProvidedRole_AssemblyConnector());
-//
-//            // System
-//            measuringPoint.setSystem((System) ((AssemblyConnector) stereotypedObject).getParentStructure__Connector());
-//
-//        }
+        // Operation-Signature
+        measuringPoint.setOperationSignature((OperationSignature) object.getSignature());
 
-        
+        measuringPoint.setRole((ProvidedRole) stereotypedRole);
 
+        measuringPoint.setAssembly(assembly);
+
+        monitor.setMeasuringPoint(measuringPoint);
+            
         // Measurement-Specification
         MeasurementSpecification measurementSpec = MonitorRepositoryFactory.eINSTANCE.createMeasurementSpecification();
 
@@ -161,7 +118,7 @@ public class StereotypeQualitygatePreprocessingSwitch extends QualitygateSwitch<
         return monitor;
 
     }
-
+    
     @Override
     public Monitor caseQualityGate(QualityGate object) {
 
@@ -173,7 +130,7 @@ public class StereotypeQualitygatePreprocessingSwitch extends QualitygateSwitch<
 
         EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(object, "qualitygate", "QualitygateElement");
 
-        stereotypedObject = object;
+        stereotypedRole = (ProvidedRole) object;
         
 
         List<Monitor> monitor = new ArrayList<Monitor>();
@@ -181,6 +138,7 @@ public class StereotypeQualitygatePreprocessingSwitch extends QualitygateSwitch<
         for (QualityGate e : taggedValues) {
             monitor.add(this.doSwitch(e));
         }
+        monitor.removeAll(Collections.singleton(null));
 
         return monitor;
 

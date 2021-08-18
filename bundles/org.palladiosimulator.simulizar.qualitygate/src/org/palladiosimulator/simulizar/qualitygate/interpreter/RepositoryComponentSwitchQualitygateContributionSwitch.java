@@ -29,6 +29,7 @@ import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.core.entity.Entity;
 import org.palladiosimulator.pcm.repository.ProvidedRole;
 import org.palladiosimulator.pcm.repository.Signature;
+import org.palladiosimulator.pcmmeasuringpoint.AssemblyOperationMeasuringPoint;
 import org.palladiosimulator.pcmmeasuringpoint.SystemOperationMeasuringPoint;
 import org.palladiosimulator.probeframework.ProbeFrameworkContext;
 import org.palladiosimulator.probeframework.calculator.Calculator;
@@ -269,13 +270,13 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
             MeasuringPoint measPoint = null;
 
             for (MeasuringPoint e : measuringPointRepo.getMeasuringPoints()) {
-                if (e instanceof SystemOperationMeasuringPoint) {
-                    if (((SystemOperationMeasuringPoint) e).getOperationSignature()
+                if (e instanceof AssemblyOperationMeasuringPoint) {
+                    if (((AssemblyOperationMeasuringPoint) e).getOperationSignature()
                         .equals(object.getSignature())
-                            && ((SystemOperationMeasuringPoint) e).getRole()
+                            && ((AssemblyOperationMeasuringPoint) e).getRole()
                                 .equals(stereotypedObject)) {
 
-                        measPoint = (SystemOperationMeasuringPoint) e;
+                        measPoint = (AssemblyOperationMeasuringPoint) e;
 
                     }
                 }

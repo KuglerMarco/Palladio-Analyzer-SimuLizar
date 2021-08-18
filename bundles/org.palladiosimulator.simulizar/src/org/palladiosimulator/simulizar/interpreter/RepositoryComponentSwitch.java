@@ -167,8 +167,6 @@ public class RepositoryComponentSwitch extends RepositorySwitch<InterpreterResul
         	new AssemblyProvidedOperationPassedEvent<AssemblyContext, ProvidedRole, Signature>(providedRole, 
         			EventType.BEGIN, this.context, this.signature, this.instanceAssemblyContext));
 
-        eventHelper.firePassedEvent(new AssemblyProvidedOperationPassedEvent<ProvidedRole, Signature>(providedRole,
-                EventType.BEGIN, this.context, this.signature, this.instanceAssemblyContext));
 
         final var result = this.repositoryComponentSwitchFactory
             .create(context, instanceAssemblyContext, signature, providedRole)
