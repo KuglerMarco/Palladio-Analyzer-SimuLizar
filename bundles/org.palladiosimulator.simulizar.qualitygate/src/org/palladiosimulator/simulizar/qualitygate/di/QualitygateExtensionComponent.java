@@ -6,7 +6,6 @@ import org.palladiosimulator.simulizar.di.component.core.SimuLizarRuntimeCompone
 import org.palladiosimulator.simulizar.di.component.dependency.QUALComponent;
 import org.palladiosimulator.simulizar.di.component.dependency.SimuComFrameworkComponent;
 import org.palladiosimulator.simulizar.di.extension.ExtensionComponent;
-import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.ComposedStructureSwitchQualitygateContributionSwitch;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.RDSeffSwitchQualitygateContributionSwitch;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.RepositoryComponentSwitchQualitygateContributionSwitch;

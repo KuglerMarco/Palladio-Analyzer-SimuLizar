@@ -14,7 +14,6 @@ import org.palladiosimulator.pcm.core.PCMRandomVariable;
 import org.palladiosimulator.pcm.core.entity.Entity;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
-import org.palladiosimulator.probeframework.ProbeFrameworkContext;
 import org.palladiosimulator.simulizar.interpreter.CallScope;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
@@ -53,7 +52,6 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
     // Information about the simulation-context
     private final InterpreterDefaultContext context;
     private final Signature operationSignature;
-    private final ProbeFrameworkContext frameworkContext;
 
     // Information about the qualitygate-processing
     private QualityGate qualitygate;
@@ -68,12 +66,11 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
     ComposedStructureSwitchQualitygateContributionSwitch(@Assisted final InterpreterDefaultContext context,
             @Assisted Signature operationSignature, @Assisted RequiredRole requiredRole,
             @Assisted ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch,
-            BasicInterpreterResultMerger merger, ProbeFrameworkContext frameworkContext) {
+            BasicInterpreterResultMerger merger) {
 
         this.merger = merger;
         this.context = context;
         this.operationSignature = operationSignature;
-        this.frameworkContext = frameworkContext;
 
         LOGGER.setLevel(Level.DEBUG);
 

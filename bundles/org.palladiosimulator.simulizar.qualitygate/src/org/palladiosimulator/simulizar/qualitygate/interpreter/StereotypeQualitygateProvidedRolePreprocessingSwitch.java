@@ -29,26 +29,26 @@ import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
 public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends QualitygateSwitch<Monitor> {
-    
+
     @AssistedFactory
     public static interface Factory {
-        StereotypeQualitygateProvidedRolePreprocessingSwitch create(MetricDescriptionRepository metricRepo, AssemblyContext assembly);
+        StereotypeQualitygateProvidedRolePreprocessingSwitch create(MetricDescriptionRepository metricRepo,
+                AssemblyContext assembly);
     }
-    
-    
-    
+
     Logger LOGGER = Logger.getLogger(StereotypeQualitygateProvidedRolePreprocessingSwitch.class);
     private ProvidedRole stereotypedRole;
     private final MetricDescriptionRepository metricRepo;
     private AssemblyContext assembly;
-    
+
     @AssistedInject
-    public StereotypeQualitygateProvidedRolePreprocessingSwitch(@Assisted MetricDescriptionRepository metricRepo, @Assisted AssemblyContext assembly) {
+    public StereotypeQualitygateProvidedRolePreprocessingSwitch(@Assisted MetricDescriptionRepository metricRepo,
+            @Assisted AssemblyContext assembly) {
         LOGGER.setLevel(Level.DEBUG);
         this.metricRepo = metricRepo;
         this.assembly = assembly;
     }
-    
+
     /**
      * Creates the Monitor to observe the Response-Time at the stereotyped element.
      */
@@ -59,8 +59,6 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
 
         // Activated
         monitor.setActivated(true);
-        
-        
 
         // Entity-Name
         monitor.setEntityName("QualitygateMonitor at ProvidedRole " + ((ProvidedRole) stereotypedRole).getEntityName());
@@ -78,20 +76,19 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
         measuringPoint.setAssembly(assembly);
 
         monitor.setMeasuringPoint(measuringPoint);
-            
+
         // Measurement-Specification
         MeasurementSpecification measurementSpec = MonitorRepositoryFactory.eINSTANCE.createMeasurementSpecification();
 
         MetricDescription metricDesc = metricRepo.getMetricDescriptions()
-                .stream()
-                .filter(e -> e.getName()
-                    .equals("Response Time"))
-                .findFirst()
-                .orElse(null);
-        
+            .stream()
+            .filter(e -> e.getName()
+                .equals("Response Time"))
+            .findFirst()
+            .orElse(null);
+
         // Metric-Description
         measurementSpec.setMetricDescription(metricDesc);
-        
 
         // triggers self adaption
         measurementSpec.setTriggersSelfAdaptations(false);
@@ -99,15 +96,12 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
         // Processing Type
         ProcessingType procType = MonitorRepositoryFactory.eINSTANCE.createFeedThrough();
 
-        
-
         measurementSpec.setProcessingType(procType);
         procType.setMeasurementSpecification(measurementSpec);
-        
-        
+
         monitor.getMeasurementSpecifications()
             .add(measurementSpec);
-        
+
         measurementSpec.setMonitor(monitor);
 
         LOGGER.debug("A monitor was created for: " + monitor.getMeasurementSpecifications()
@@ -118,7 +112,7 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
         return monitor;
 
     }
-    
+
     @Override
     public Monitor caseQualityGate(QualityGate object) {
 
@@ -131,7 +125,6 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
         EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(object, "qualitygate", "QualitygateElement");
 
         stereotypedRole = (ProvidedRole) object;
-        
 
         List<Monitor> monitor = new ArrayList<Monitor>();
 

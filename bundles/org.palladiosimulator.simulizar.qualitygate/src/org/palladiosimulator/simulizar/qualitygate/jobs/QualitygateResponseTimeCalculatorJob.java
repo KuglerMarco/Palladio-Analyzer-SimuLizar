@@ -23,7 +23,7 @@ import org.palladiosimulator.monitorrepository.MonitorRepositoryPackage;
 
 import org.palladiosimulator.simulizar.launcher.jobs.extensions.DefaultMeasuringPointRepositoryFactory;
 import org.palladiosimulator.simulizar.launcher.jobs.extensions.DefaultMonitorRepositoryFactory;
-import org.palladiosimulator.simulizar.qualitygate.interpreter.StereotypeQualitygatePreprocessingSwitch;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.StereotypeQualitygateExternalCallPreprocessingSwitch;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.StereotypeQualitygateProvidedRolePreprocessingSwitch;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.StereotypeQualitygateProvidedRolePreprocessingSwitch.Factory;
 
@@ -68,13 +68,13 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
     Logger LOGGER = Logger.getLogger(QualitygateResponseTimeCalculatorJob.class);
 
     private MDSDBlackboard blackboard;
-    private final StereotypeQualitygatePreprocessingSwitch.Factory preprocessingSwitch;
+    private final StereotypeQualitygateExternalCallPreprocessingSwitch.Factory preprocessingSwitch;
 
     private StereotypeQualitygateProvidedRolePreprocessingSwitch.Factory rolePreprocessingSwitch;
 
     @Inject
     public QualitygateResponseTimeCalculatorJob(MDSDBlackboard blackboard,
-            StereotypeQualitygatePreprocessingSwitch.Factory preprocessingSwitch, StereotypeQualitygateProvidedRolePreprocessingSwitch.Factory rolePreprocessingSwitch) {
+            StereotypeQualitygateExternalCallPreprocessingSwitch.Factory preprocessingSwitch, StereotypeQualitygateProvidedRolePreprocessingSwitch.Factory rolePreprocessingSwitch) {
         this.blackboard = blackboard;
         this.preprocessingSwitch = preprocessingSwitch;
         this.rolePreprocessingSwitch = rolePreprocessingSwitch;
@@ -296,7 +296,7 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
                                     + " has a qualitygate-application");
 
                             // List of generated Monitors for the attached Qualitygates
-                            List<Monitor> qualitygateMonitors = preprocessingSwitch.create(res, system)
+                            List<Monitor> qualitygateMonitors = preprocessingSwitch.create(res)
                                 .handleQualitygate(abstractAction);
                             // Removing the Null-elements, because not every Qualitygate needs a
                             // calculator

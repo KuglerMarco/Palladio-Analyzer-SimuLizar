@@ -30,7 +30,6 @@ import org.palladiosimulator.pcm.core.entity.Entity;
 import org.palladiosimulator.pcm.repository.ProvidedRole;
 import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.pcmmeasuringpoint.AssemblyOperationMeasuringPoint;
-import org.palladiosimulator.pcmmeasuringpoint.SystemOperationMeasuringPoint;
 import org.palladiosimulator.probeframework.ProbeFrameworkContext;
 import org.palladiosimulator.probeframework.calculator.Calculator;
 import org.palladiosimulator.simulizar.interpreter.CallScope;
@@ -95,8 +94,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
         this.interpreterDefaultContext = context;
         this.operationSignature = signature;
-        
-        //Injected
+
+        // Injected
         this.merger = merger;
         this.frameworkContext = frameworkContext;
         this.partManager = partManager;
@@ -128,14 +127,13 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
      */
     @Override
     public InterpreterResult handleStereotype(Stereotype stereotype, EObject theEObject, CallScope callScope) {
-        
+
         InterpreterResult result = InterpreterResult.OK;
 
         EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
 
         this.callScope = callScope;
         this.stereotypedObject = theEObject;
-        
 
         // Model validation
         if (taggedValues.isEmpty()) {
@@ -294,7 +292,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 .findFirst()
                 .orElse(null);
 
-
             // Calculator for this Qualitygate TODO Noch MetricDescription laden
             Collection<Calculator> calculator = frameworkContext.getCalculatorRegistry()
                 .getCalculatorsForMeasuringPoint(measPoint);
@@ -305,7 +302,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 .findFirst()
                 .orElse(null);
 
-            if (!this.atRequestMetricCalcAdded ) {
+            if (!this.atRequestMetricCalcAdded) {
                 calc.addObserver(this);
                 LOGGER.debug("Observer added");
                 this.atRequestMetricCalcAdded = true;
@@ -325,9 +322,9 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
     @Override
     public MeasuringValue getLastResponseTimeMeasure() {
-        
+
         return RepositoryComponentSwitchQualitygateContributionSwitch.responseTime.firstElement();
-        
+
     }
 
 }

@@ -3,7 +3,6 @@ package org.palladiosimulator.simulizar.qualitygate.interpreter;
 import java.util.Collection;
 import java.util.Stack;
 
-import org.apache.log4j.Category;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
@@ -344,7 +343,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
     }
 
     /**
-     * Saving the measurements of the registered calculators.
+     * Last measurement of the ResponseTime-calculators
      *
      */
     public MeasuringValue getLastResponseTimeMeasure() {

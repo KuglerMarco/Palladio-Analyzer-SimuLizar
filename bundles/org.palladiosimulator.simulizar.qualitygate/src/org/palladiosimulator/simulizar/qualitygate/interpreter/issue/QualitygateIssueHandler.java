@@ -4,29 +4,19 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import javax.inject.Inject;
-import javax.measure.Measurable;
 import javax.measure.Measure;
-import javax.measure.quantity.Duration;
 import javax.measure.quantity.Quantity;
-import javax.measure.unit.SI;
-import javax.measure.unit.Unit;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import org.jscience.geography.coordinates.Time;
-import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
-import org.palladiosimulator.measurementframework.MeasuringValue;
 import org.palladiosimulator.metricspec.constants.MetricDescriptionConstants;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
-import org.palladiosimulator.pcm.core.entity.Entity;
-import org.palladiosimulator.simulizar.entity.EntityReference;
 import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
 
 import com.google.common.collect.Streams;
-import com.google.common.collect.Iterables;
 
 /**
  * Handler to process the impact of QualitygateIssues in the InterpreterResult.
@@ -46,6 +36,29 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
     
     @Override
     public InterpreterResumptionPolicy handleIssues(InterpreterResult result) {
+        
+        result = this.handleResponseTimeProxy(result);
+
+        if (!Streams.stream(result.getIssues())
+            .allMatch(QualitygateIssue.class::isInstance)) {
+            return InterpreterResumptionPolicy.ABORT;
+        }
+
+        return InterpreterResumptionPolicy.CONTINUE;
+    }
+
+    @Override
+    public boolean supportIssues(InterpretationIssue issue) {
+
+        if (issue instanceof QualitygateIssue) {
+            return true;
+        }
+
+        return false;
+
+    }
+    
+    public InterpreterResult handleResponseTimeProxy(InterpreterResult result) {
         
         /*
          * Processing the Proxies in Issues
@@ -79,12 +92,12 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                         result.addIssue(new ResponseTimeIssue(((ResponseTimeProxyIssue) issue).getStereotypedObject(),
                                 ((ResponseTimeProxyIssue) issue).getQualitygate(), responseTime));
 
-                        LOGGER.debug(responseTime);
+                        LOGGER.debug("Response-Time too long. " + responseTime);
 
                     }
 
                 } catch (NoSuchElementException e) {
-                    // TODO SimuLizar-Bug: No Measurements after simulation had stopped but still in
+                    // FIXME SimuLizar-Bug: No Measurements after simulation had stopped but still in
                     // control flow
                 }
 
@@ -99,24 +112,9 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
             }
 
         }
-
-        if (!Streams.stream(result.getIssues())
-            .allMatch(QualitygateIssue.class::isInstance)) {
-            return InterpreterResumptionPolicy.ABORT;
-        }
-
-        return InterpreterResumptionPolicy.CONTINUE;
-    }
-
-    @Override
-    public boolean supportIssues(InterpretationIssue issue) {
-
-        if (issue instanceof QualitygateIssue) {
-            return true;
-        }
-
-        return false;
-
+        
+        return result;
+        
     }
 
 }
