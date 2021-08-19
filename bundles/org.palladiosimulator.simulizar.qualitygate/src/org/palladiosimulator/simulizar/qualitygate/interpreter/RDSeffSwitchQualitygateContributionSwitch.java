@@ -1,6 +1,5 @@
 package org.palladiosimulator.simulizar.qualitygate.interpreter;
 
-import java.util.Collection;
 import java.util.Stack;
 
 import org.apache.log4j.Level;
@@ -236,19 +235,15 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
             MetricDescription respTimeMetricDesc = res.getMetricDescriptions()
                 .stream()
                 .filter(e -> e.getName()
-                    .equals("Response Time"))
+                    .equals("Response Time Tuple"))
                 .findFirst()
                 .orElse(null);
 
             // Calculator for this Qualitygate TODO Noch MetricDescription raussuchen
-            Collection<Calculator> calculator = frameworkContext.getCalculatorRegistry()
-                .getCalculatorsForMeasuringPoint(measPoint);
+            Calculator calc = frameworkContext.getCalculatorRegistry()
+                .getCalculatorByMeasuringPointAndMetricDescription(measPoint, respTimeMetricDesc);
 
             LOGGER.debug("MeasuringPoint is: " + measPoint.getStringRepresentation());
-
-            Calculator calc = calculator.stream()
-                .findFirst()
-                .orElse(null);
 
             if (!this.atRequestMetricCalcAdded) {
                 calc.addObserver(this);

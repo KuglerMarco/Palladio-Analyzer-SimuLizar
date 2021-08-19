@@ -5,7 +5,6 @@ import java.util.List;
 
 import javax.inject.Inject;
 
-import org.eclipse.emf.common.util.TreeIterator;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.core.runtime.IProgressMonitor;
@@ -21,11 +20,8 @@ import org.palladiosimulator.monitorrepository.Monitor;
 import org.palladiosimulator.monitorrepository.MonitorRepository;
 import org.palladiosimulator.monitorrepository.MonitorRepositoryPackage;
 
-import org.palladiosimulator.simulizar.launcher.jobs.extensions.DefaultMeasuringPointRepositoryFactory;
-import org.palladiosimulator.simulizar.launcher.jobs.extensions.DefaultMonitorRepositoryFactory;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.StereotypeQualitygateExternalCallPreprocessingSwitch;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.StereotypeQualitygateProvidedRolePreprocessingSwitch;
-import org.palladiosimulator.simulizar.qualitygate.interpreter.StereotypeQualitygateProvidedRolePreprocessingSwitch.Factory;
 
 import de.uka.ipd.sdq.workflow.jobs.CleanupFailedException;
 import de.uka.ipd.sdq.workflow.jobs.IBlackboardInteractingJob;
@@ -34,7 +30,6 @@ import de.uka.ipd.sdq.workflow.jobs.UserCanceledException;
 import de.uka.ipd.sdq.workflow.mdsd.blackboard.MDSDBlackboard;
 
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
-import org.palladiosimulator.pcm.core.composition.Connector;
 import org.palladiosimulator.pcm.system.SystemPackage;
 import org.palladiosimulator.pcm.repository.BasicComponent;
 import org.palladiosimulator.pcm.repository.OperationSignature;
@@ -49,12 +44,10 @@ import org.palladiosimulator.pcm.repository.RepositoryComponent;
 import org.palladiosimulator.pcm.repository.RepositoryPackage;
 import org.palladiosimulator.pcmmeasuringpoint.OperationReference;
 import org.palladiosimulator.pcmmeasuringpoint.SystemOperationMeasuringPoint;
-import org.palladiosimulator.analyzer.workflow.blackboard.PCMResourceSetPartition;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPoint;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringpointPackage;
 import org.eclipse.emf.common.util.URI;
-import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 
 /**
  * Creates the necessary Monitor-elements in the MonitorRepository, so that the according
@@ -100,11 +93,6 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
         URI uri = URI.createURI("pathmap://METRIC_SPEC_MODELS/models/commonMetrics.metricspec");
         MetricDescriptionRepository res = (MetricDescriptionRepository) resourceSet.getResource(uri, false)
             .getContents()
-            .get(0);
-
-        org.palladiosimulator.pcm.system.System system = (org.palladiosimulator.pcm.system.System) blackboard
-            .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
-            .getElement(SystemPackage.Literals.SYSTEM)
             .get(0);
 
         /*
@@ -158,8 +146,6 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
          * Traversing the System-model to find Qualitygate-Elements TODO Auf Repository-Ebene
          * ebenefalls machen
          */
-        PCMResourceSetPartition resPartition = (PCMResourceSetPartition) blackboard
-            .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID);
 
         LOGGER.debug(blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
             .getElement(RepositoryPackage.Literals.REPOSITORY)

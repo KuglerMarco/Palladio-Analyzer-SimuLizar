@@ -45,14 +45,16 @@ public class ResponseTimeIssue implements QualitygateIssue {
 
     @Override
     public EntityReference<Entity> getStereotypedObjectRef() {
-        // TODO Auto-generated method stub
-        return null;
+        return stereotypedObjectRef;
     }
 
     @Override
     public EntityReference<QualityGate> getQualitygateRef() {
-        // TODO Auto-generated method stub
-        return null;
+        return qualitygateRef;
+    }
+    
+    public Double getResponseTime() {
+        return responseTime;
     }
 
 }
