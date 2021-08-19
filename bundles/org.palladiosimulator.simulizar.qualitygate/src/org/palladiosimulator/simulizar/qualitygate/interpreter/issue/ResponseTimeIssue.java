@@ -1,7 +1,5 @@
 package org.palladiosimulator.simulizar.qualitygate.interpreter.issue;
 
-import java.util.ArrayList;
-import java.util.Map.Entry;
 
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.pcm.core.entity.Entity;

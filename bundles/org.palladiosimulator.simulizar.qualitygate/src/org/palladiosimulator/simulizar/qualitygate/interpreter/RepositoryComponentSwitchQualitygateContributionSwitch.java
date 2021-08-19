@@ -76,6 +76,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     private CallScope callScope = CallScope.REQUEST;
     private EObject stereotypedObject;
     private PCMRandomVariable premise;
+    private AssemblyContext assembly;
 
     // Stack to save the measurements from the calculators
     private static Stack<MeasuringValue> responseTime;
@@ -99,6 +100,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
         this.merger = merger;
         this.frameworkContext = frameworkContext;
         this.partManager = partManager;
+        this.assembly = assemblyContext;
 
         LOGGER.setLevel(Level.DEBUG);
         responseTime = new Stack<MeasuringValue>();
@@ -182,8 +184,10 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     public InterpreterResult caseQualityGate(QualityGate qualitygate) {
         this.qualitygate = qualitygate;
         premise = qualitygate.getPremise();
-        return this.doSwitch(qualitygate.getScope());
-
+        if(qualitygate.getAssemblycontext() == null || qualitygate.getAssemblycontext().equals(this.assembly)) {
+            return this.doSwitch(qualitygate.getScope());
+        }
+        return InterpreterResult.OK;
     }
 
     /**
@@ -193,6 +197,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     public InterpreterResult caseRequestParameterScope(RequestParameterScope object) {
 
         Signature signatureOfQualitygate = object.getSignature();
+        
+        
 
         if (callScope.equals(CallScope.REQUEST) && (signatureOfQualitygate == (this.operationSignature))) {
 
