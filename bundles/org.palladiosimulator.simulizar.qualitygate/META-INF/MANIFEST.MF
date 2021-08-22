@@ -24,7 +24,9 @@ Require-Bundle: org.palladiosimulator.simulizar;bundle-version="5.0.1";visibilit
  org.eclipse.swt,
  org.palladiosimulator.measurementframework,
  org.palladiosimulator.probeframework,
- org.jscience
+ org.jscience,
+ de.uka.ipd.sdq.simulation,
+ de.uka.ipd.sdq.simulation.abstractsimengine
 Import-Package: com.google.common.collect;version="21.0.0",
  dagger;version="2.31.0",
  dagger.assisted;version="2.31.0",
