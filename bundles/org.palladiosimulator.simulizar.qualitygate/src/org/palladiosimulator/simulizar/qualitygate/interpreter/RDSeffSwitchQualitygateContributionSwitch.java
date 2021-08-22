@@ -199,7 +199,6 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         // Registering at the Calculator in Request-Scope
         if (callScope.equals(CallScope.REQUEST)) {
 
-            // TODO MetricDescription laden (REsponseTime)
             // Loading CommonMetrics-model
             URI uri = URI.createURI("pathmap://METRIC_SPEC_MODELS/models/commonMetrics.metricspec");
             MetricDescriptionRepository res = (MetricDescriptionRepository) partManager.getBlackboard()

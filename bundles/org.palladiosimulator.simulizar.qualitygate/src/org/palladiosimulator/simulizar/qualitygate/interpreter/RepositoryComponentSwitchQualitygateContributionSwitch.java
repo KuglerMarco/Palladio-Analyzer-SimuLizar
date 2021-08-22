@@ -183,7 +183,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     public InterpreterResult caseQualityGate(QualityGate qualitygate) {
         this.qualitygate = qualitygate;
         premise = qualitygate.getPremise();
-        if(qualitygate.getAssemblycontext() == null || qualitygate.getAssemblycontext().equals(this.assembly)) {
+        if(qualitygate.getAssemblyContext() == null || qualitygate.getAssemblyContext().equals(this.assembly)) {
             return this.doSwitch(qualitygate.getScope());
         }
         return InterpreterResult.OK;
@@ -256,7 +256,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
         // Registering at the Calculator in Request-Scope
         if (callScope.equals(CallScope.REQUEST)) {
 
-            // TODO MetricDescription laden (REsponseTime)
             // Loading CommonMetrics-model
             URI uri = URI.createURI("pathmap://METRIC_SPEC_MODELS/models/commonMetrics.metricspec");
             MetricDescriptionRepository res = (MetricDescriptionRepository) partManager.getBlackboard()
@@ -302,10 +301,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 .getCalculatorByMeasuringPointAndMetricDescription(measPoint, respTimeMetricDesc);
 
             LOGGER.debug("MeasuringPoint is: " + measPoint.getStringRepresentation());
-
-//            Calculator calc = calculator.stream()
-//                .findFirst()
-//                .orElse(null);
 
             if (!this.atRequestMetricCalcAdded) {
                 calc.addObserver(this);

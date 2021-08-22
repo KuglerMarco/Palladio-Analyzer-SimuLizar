@@ -99,6 +99,7 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                 } catch (NoSuchElementException e) {
                     // FIXME SimuLizar-Bug: No Measurements after simulation had stopped but still in
                     // control flow
+                    
                 }
 
                 // Removing the Proxy
