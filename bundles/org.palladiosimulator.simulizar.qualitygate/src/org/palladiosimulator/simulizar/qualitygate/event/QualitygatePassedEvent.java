@@ -2,7 +2,6 @@ package org.palladiosimulator.simulizar.qualitygate.event;
 
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 
-import org.palladiosimulator.metricspec.Identifier;
 import de.uka.ipd.sdq.simucomframework.Context;
 import de.uka.ipd.sdq.simucomframework.SimuComSimProcess;
 
@@ -11,15 +10,15 @@ public class QualitygatePassedEvent {
     private final QualityGate modelElement;
     private final double passageTime;
     private final Context context;
-    private final Identifier identifier;
+    private final boolean success;
     
 
-    public QualitygatePassedEvent(final QualityGate modelElement, final Context context, final Identifier identifier) {
+    public QualitygatePassedEvent(final QualityGate modelElement, final Context context, final boolean success) {
         
         this.modelElement = modelElement;
         this.context = context;
         this.passageTime = context.getThread().getModel().getSimulationControl().getCurrentSimulationTime();
-        this.identifier = identifier;
+        this.success = success;
         
     }
     /**
@@ -50,8 +49,8 @@ public class QualitygatePassedEvent {
         return this.context.getThread();
     }
     
-    public Identifier getIdentifier() {
-        return identifier;
+    public boolean isSucess() {
+        return success;
     }
 
 }

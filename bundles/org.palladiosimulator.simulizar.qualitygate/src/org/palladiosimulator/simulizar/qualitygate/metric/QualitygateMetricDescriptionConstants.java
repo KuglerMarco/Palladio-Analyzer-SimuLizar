@@ -16,19 +16,20 @@ import org.palladiosimulator.metricspec.MetricSetDescription;
 import org.palladiosimulator.metricspec.MetricSpecPackage;
 import org.palladiosimulator.metricspec.TextualBaseMetricDescription;
 
-import de.uka.ipd.sdq.identifier.Identifier;
+import org.palladiosimulator.metricspec.Identifier;
+
 
 public final class QualitygateMetricDescriptionConstants {
     
     // TODO Namen ändern
-    public static final String PATHMAP_METRIC_SPEC_MODELS_COMMON_METRICS_METRICSPEC = "pathmap://METRIC_SPEC_MODELS/qualitygate.metricspec";
+    public static final String PATHMAP_METRIC_SPEC_MODELS_COMMON_METRICS_METRICSPEC = "file:/C:/Users/Public/WorkspaceFailureScenario/Palladio-Analyzer-SimuLizar/bundles/org.palladiosimulator.simulizar.qualitygate/src/org/palladiosimulator/simulizar/qualitygate/metric/qualitygate.metricspec";
     public static final String CLASSPATH_RELATIVE_COMMON_METRICS_METRICSPEC = "qualitygate.metricspec";
     
     private static final Map<?, ?> OPTIONS = Collections.emptyMap();
 
     public final static TextualBaseMetricDescription QUALITYGATE_VIOLATION_METRIC;
     
-    public final static MetricSetDescription QUALITYGATE_VIOLATION_METRIC_TUPLE;
+    public final static MetricSetDescription QUALITYGATE_VIOLATION_METRIC_OVER_TIME;
     
     public final static Identifier SUCCESS;
     
@@ -70,7 +71,7 @@ public final class QualitygateMetricDescriptionConstants {
         
         QUALITYGATE_VIOLATION_METRIC = (TextualBaseMetricDescription) resource.getEObject("_biPckAJhEeyupI8CZJs1wg");
         
-        QUALITYGATE_VIOLATION_METRIC_TUPLE = (MetricSetDescription) resource.getEObject("_CBWPIQIHEeyBwtsHp4B1og");
+        QUALITYGATE_VIOLATION_METRIC_OVER_TIME = (MetricSetDescription) resource.getEObject("_CBWPIQIHEeyBwtsHp4B1og");
         
         SUCCESS = (Identifier) resource.getEObject("_inOiQAJhEeyupI8CZJs1wg");
         

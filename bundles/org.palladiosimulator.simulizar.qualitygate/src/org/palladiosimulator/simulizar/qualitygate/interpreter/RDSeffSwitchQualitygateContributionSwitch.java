@@ -39,8 +39,10 @@ import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchStereotypeContrib
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
+import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ResponseTimeProxyIssue;
+import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
 import org.palladiosimulator.simulizar.utils.PCMPartitionManager;
 import org.palladiosimulator.simulizar.utils.SimulatedStackHelper;
 
@@ -85,12 +87,16 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
     private boolean atRequestMetricCalcAdded = false;
 
     private final BasicInterpreterResultMerger merger;
+    
     private static final Logger LOGGER = Logger.getLogger(RDSeffSwitchQualitygateContributionSwitch.class);
+    
+    // Probe-Registry
+    private QualitygateViolationProbeRegistry probeRegistry;
 
     @AssistedInject
     public RDSeffSwitchQualitygateContributionSwitch(@Assisted final InterpreterDefaultContext context,
             @Assisted RDSeffSwitchElementDispatcher parentSwitch, BasicInterpreterResultMerger merger,
-            ProbeFrameworkContext frameworkContext, PCMPartitionManager partManager) {
+            ProbeFrameworkContext frameworkContext, PCMPartitionManager partManager, QualitygateViolationProbeRegistry probeRegistry) {
 
         this.context = context;
 
@@ -98,6 +104,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         this.merger = merger;
         this.partManager = partManager;
         this.frameworkContext = frameworkContext;
+        this.probeRegistry = probeRegistry;
 
         LOGGER.setLevel(Level.DEBUG);
         responseTime = new Stack<MeasuringValue>();
@@ -294,6 +301,14 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                             this.qualitygate, this.context.getStack()
                                 .currentStackFrame()
                                 .getContents()));
+                    
+                    // triggering probe to measure Success-To-Failure-Rate
+                    probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, false));
+                    
+                    
+                } else {
+                 // triggering probe to measure Success-To-Failure-Rate
+                    probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, true));
                 }
 
                 this.context.getStack()
@@ -315,6 +330,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
     public InterpreterResult caseResultParameterScope(ResultParameterScope object) {
 
         Signature signatureOfQualitygate = object.getSignature();
+        InterpreterResult result = InterpreterResult.OK;
 
         if (callScope.equals(CallScope.RESPONSE) && (signatureOfQualitygate == (this.operationSignature))) {
 
@@ -328,12 +344,19 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                                 .toString());
                 }
 
-                return BasicInterpreterResult.of(new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
+                result = BasicInterpreterResult.of(new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
                         this.context.getCurrentResultFrame()
                             .getContents()));
+                
+                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, false));
+                
+                
+            } else {
+             // triggering probe to measure Success-To-Failure-Rate
+                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, true));
             }
         }
-        return InterpreterResult.OK;
+        return result;
     }
 
     /**

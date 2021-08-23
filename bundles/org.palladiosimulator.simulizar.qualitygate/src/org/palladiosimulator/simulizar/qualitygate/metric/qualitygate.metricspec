@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metricspec:MetricDescriptionRepository xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:metricspec="http://palladiosimulator.org/MetricSpec/1.0" id="_wlkY8AH_EeyBwtsHp4B1og">
-  <metricDescriptions xsi:type="metricspec:MetricSetDescription" id="_CBWPIQIHEeyBwtsHp4B1og" name="QualitygateViolationTuple" textualDescription="Represents Violation of Qualitygate plus the Point in time the measurement was taken" subsumedMetrics="_biPckAJhEeyupI8CZJs1wg"/>
+  <metricDescriptions xsi:type="metricspec:MetricSetDescription" id="_CBWPIQIHEeyBwtsHp4B1og" name="QualitygateViolationTuple" textualDescription="Represents Violation of Qualitygate plus the Point in time the measurement was taken">
+    <subsumedMetrics xsi:type="metricspec:TextualBaseMetricDescription" href="#_biPckAJhEeyupI8CZJs1wg"/>
+    <subsumedMetrics xsi:type="metricspec:NumericalBaseMetricDescription" href="pathmap://METRIC_SPEC_MODELS/commonMetrics.metricspec#_NCRBos7pEeOX_4BzImuHbA"/>
+  </metricDescriptions>
   <metricDescriptions xsi:type="metricspec:TextualBaseMetricDescription" id="_biPckAJhEeyupI8CZJs1wg" name="QualitygateViolation" textualDescription="Represents whether Qualitygate is broken during simulation" dataType="Qualitative">
     <identifiers id="_inOiQAJhEeyupI8CZJs1wg" literal="SUCCESS"/>
     <identifiers id="_k0dO0AJhEeyupI8CZJs1wg" literal="VIOLATION"/>
