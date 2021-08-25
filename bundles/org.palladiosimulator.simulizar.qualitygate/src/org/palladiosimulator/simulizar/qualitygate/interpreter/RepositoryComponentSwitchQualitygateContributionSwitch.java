@@ -80,7 +80,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     private ProvidedRole providedRole;
 
     // Stack to save the measurements from the calculators
-    private static MeasuringValue responseTime2;
+    private static MeasuringValue responseTime;
 
     private final BasicInterpreterResultMerger merger;
     private boolean atRequestMetricCalcAdded = false;
@@ -105,7 +105,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
         this.assembly = assemblyContext;
 
         LOGGER.setLevel(Level.DEBUG);
-//        responseTime2 = new Stack<MeasuringValue>();
     }
 
     /**
@@ -135,11 +134,9 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
         InterpreterResult result = InterpreterResult.OK;
 
         EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
-
         this.callScope = callScope;
         this.stereotypedObject = (Entity) theEObject;
 
-        // Model validation
         if (taggedValues.isEmpty()) {
             throw new IllegalArgumentException(
                     "Qualitygate-Model not valid: Qualitygate-Stereotype needs to have at least one Qualitygate element.");
@@ -147,12 +144,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
         // Processing all the attached Qualitygates
         for (QualityGate e : taggedValues) {
-
-            LOGGER.debug("RepositoryCompoonent: " + e.getPremise()
-                .getSpecification());
-
             result = merger.merge(result, this.doSwitch(e));
-
         }
         return result;
     }
@@ -169,9 +161,9 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
     @Override
     public void newMeasurementAvailable(MeasuringValue newMeasurement) {
-        responseTime2 = (newMeasurement.getMeasuringValueForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC));
-        LOGGER.debug("HERE Added a new Measurement:");
-        LOGGER.debug(responseTime2);
+        responseTime = (newMeasurement.getMeasuringValueForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC));
+        LOGGER.debug("Added a new Measurement:");
+        LOGGER.debug(responseTime);
     }
 
     @Override
@@ -263,7 +255,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
             if (this.callScope.equals(CallScope.REQUEST)) {
 
                 // Loading CommonMetrics-model
-                URI uri = URI.createURI("pathmap://METRIC_SPEC_MODELS/models/commonMetrics.metricspec");
+                URI uri = URI.createURI(MetricDescriptionConstants.PATHMAP_METRIC_SPEC_MODELS_COMMON_METRICS_METRICSPEC);
                 MetricDescriptionRepository res = (MetricDescriptionRepository) partManager.getBlackboard()
                     .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
                     .getResourceSet()
@@ -320,14 +312,15 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
             } else {
 
-                Measure<Object, Quantity> measuringValue = responseTime2
+                Measure<Object, Quantity> measuringValue = responseTime
                     .getMeasureForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
 
+                // TODO so okay, oder Integer berücksichtigen?
+                Double qualitygateResponseTime = (Double) interpreterDefaultContext.evaluate(premise.getSpecification(), this.interpreterDefaultContext.getStack().currentStackFrame());
+                
                 Double responseTime = (Double) measuringValue.getValue();
 
-                Double premiseResponseTime = Double.parseDouble(premise.getSpecification());
-
-                if (responseTime > premiseResponseTime) {
+                if (responseTime > qualitygateResponseTime) {
 
                     LOGGER.debug("Response-Time too long. " + responseTime);
 

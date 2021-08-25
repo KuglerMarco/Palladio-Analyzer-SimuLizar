@@ -7,6 +7,7 @@ import javax.inject.Inject;
 
 import org.apache.log4j.Logger;
 import java.util.Arrays;
+
 import org.palladiosimulator.analyzer.workflow.blackboard.PCMResourceSetPartition;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringpointPackage;
@@ -55,6 +56,8 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
                 .stream()
                 .findAny()
                 .orElse(null);
+            
+            // TODO hier immer Fehler beim ersten starten, andere Vorgehensweise um die MeasuringPoints zu erhalten
             
             QualitygateMeasuringPoint measuringPoint = (QualitygateMeasuringPoint) repo.getMeasuringPoints()
                 .stream()

@@ -57,7 +57,7 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
 
     private MDSDBlackboard blackboard;
     private final StereotypeQualitygateExternalCallPreprocessingSwitch.Factory externalCallPreprocessingSwitch;
-    private StereotypeQualitygateProvidedRolePreprocessingSwitch.Factory rolePreprocessingSwitch;
+    private final StereotypeQualitygateProvidedRolePreprocessingSwitch.Factory rolePreprocessingSwitch;
     private org.palladiosimulator.pcm.system.System systemRepo;
     private MeasuringPointRepository measuringPointRepo;
     private MonitorRepository monitorRepo;
@@ -109,8 +109,7 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
             throw new IllegalArgumentException("No MonitorRepository found!");
         }
 
-        monitorRepo = (MonitorRepository) blackboard
-            .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
+        monitorRepo = (MonitorRepository) blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
             .getElement(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY)
             .get(0);
 
@@ -118,28 +117,16 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
             .getElement(RepositoryPackage.Literals.REPOSITORY)
             .get(1);
 
-        /*
-         * Iterating over all the assemblies to create the monitors for potentially attached
-         * Qualitygates at the ProvidedRoles. Iterating over assemblies to take into account that
-         * some Qualitygates are only attached to specific assembly.
-         */
         systemRepo = (org.palladiosimulator.pcm.system.System) blackboard
             .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
             .getElement(SystemPackage.Literals.SYSTEM)
             .get(0);
-        
+
         this.attachMonitorsAtProvidedRole();
-        
         this.attachMonitorsAtExternalCall();
 
-        // Only for debug reasons
-        MonitorRepository monitorRepository = (MonitorRepository) blackboard
-            .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
-            .getElement(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY)
-            .get(0);
-
-        LOGGER.debug("Following Monitors are in the MonitorRepository.");
-        for (Monitor e : monitorRepository.getMonitors()) {
+        LOGGER.debug("Following MeasurementSpecification are in the repository.");
+        for (Monitor e : monitorRepo.getMonitors()) {
             LOGGER.debug(e.getMeasuringPoint()
                 .getStringRepresentation());
 
@@ -149,8 +136,12 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
             }
         }
     }
-    
+
+    /**
+     * Creating and adding the Monitors at ProvidedRole.
+     */
     public void attachMonitorsAtProvidedRole() {
+        
         for (AssemblyContext assembly : systemRepo.getAssemblyContexts__ComposedStructure()) {
 
             for (ProvidedRole role : assembly.getEncapsulatedComponent__AssemblyContext()
@@ -185,9 +176,12 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
             }
         }
     }
-    
+
+    /**
+     * Creating and adding the Monitors at ExternalCall.
+     */
     public void attachMonitorsAtExternalCall() {
-        
+
         // Creating and adding Qualitygate-Monitors
         for (RepositoryComponent e : repo.getComponents__Repository()) {
 
@@ -195,11 +189,8 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
                 .getServiceEffectSpecifications__BasicComponent()) {
 
                 for (AbstractAction abstractAction : ((ResourceDemandingSEFF) seff).getSteps_Behaviour()) {
-                    if (!StereotypeAPI.getAppliedStereotypes(abstractAction)
-                        .isEmpty() && StereotypeAPI.getAppliedStereotypes(abstractAction)
-                            .get(0)
-                            .getName()
-                            .equals("QualitygateElement")) {
+                    
+                    if (this.hasQualityGate(abstractAction)) {
 
                         if (abstractAction instanceof ExternalCallAction) {
 
@@ -225,11 +216,8 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
 
                                     j.setMonitorRepository(monitorRepo);
                                 }
-
                             }
-
                         }
-
                     }
                 }
             }
@@ -252,7 +240,7 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
     }
 
     /**
-     * Testing whether Monitor is already in MonitorRepository.
+     * Checking whether Monitor is already in MonitorRepository.
      * 
      * @param qualitygateMonitor
      * @return

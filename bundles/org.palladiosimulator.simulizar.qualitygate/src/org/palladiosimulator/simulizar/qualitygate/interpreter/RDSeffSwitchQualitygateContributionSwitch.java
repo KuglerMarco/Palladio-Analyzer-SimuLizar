@@ -57,7 +57,7 @@ import dagger.assisted.AssistedInject;
  *
  */
 public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch<InterpreterResult>
-        implements StereotypeSwitch, IMeasurementSourceListener, ResponseTimeQualitygateSwitch {
+        implements StereotypeSwitch, IMeasurementSourceListener {
 
     @AssistedFactory
     public interface Factory extends RDSeffSwitchStereotypeContributionFactory {
@@ -79,7 +79,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
     private final PCMPartitionManager partManager;
 
     // Information about the qualitygate-processing
-    private static Stack<MeasuringValue> responseTime;
+    private static MeasuringValue responseTime;
     private QualityGate qualitygate;
     private PCMRandomVariable premise;
     private EObject stereotypedObject;
@@ -107,7 +107,6 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         this.probeRegistry = probeRegistry;
 
         LOGGER.setLevel(Level.DEBUG);
-        responseTime = new Stack<MeasuringValue>();
     }
 
     /**
@@ -177,8 +176,8 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
     @Override
     public void newMeasurementAvailable(MeasuringValue newMeasurement) {
-        responseTime.add(newMeasurement.getMeasuringValueForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC));
-        LOGGER.debug("Added a new Measurement: " + responseTime.size());
+        responseTime = (newMeasurement.getMeasuringValueForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC));
+        LOGGER.debug("Added a new Measurement: " + responseTime);
 
     }
 
@@ -266,7 +265,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
              */
             LOGGER.debug("New ResponseTimeProxyIssue.");
             return InterpreterResult
-                .of(new ResponseTimeProxyIssue(premise, this, qualitygate, (Entity) stereotypedObject));
+                .of(new ResponseTimeProxyIssue(premise, this, qualitygate, (Entity) stereotypedObject, this.context));
 
         }
     }
@@ -365,7 +364,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
      */
     public MeasuringValue getLastResponseTimeMeasure() {
 
-        return RDSeffSwitchQualitygateContributionSwitch.responseTime.firstElement();
+        return RDSeffSwitchQualitygateContributionSwitch.responseTime;
 
     }
 

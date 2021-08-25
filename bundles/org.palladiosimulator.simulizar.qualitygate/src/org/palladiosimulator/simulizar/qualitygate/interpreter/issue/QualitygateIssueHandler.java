@@ -11,6 +11,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.palladiosimulator.metricspec.constants.MetricDescriptionConstants;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
+import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
 import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
@@ -81,20 +82,25 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                         .getMeasureForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
 
                     PCMRandomVariable premise = ((ResponseTimeProxyIssue) issue).getPremise();
+                    
+                    InterpreterDefaultContext interpreterDefaultContext = ((ResponseTimeProxyIssue) issue).getContext();
 
 //                    Measure<Integer,Duration> measuringValueCon = Measure.valueOf(Integer.parseInt(premise.getSpecification()), Quantity);
+                    Double qualitygateResponseTime = (Double) interpreterDefaultContext.evaluate(premise.getSpecification(), interpreterDefaultContext.getStack().currentStackFrame());
 
                     Double responseTime = (Double) measuringValue.getValue();
                     
                     Double premiseResponseTime = Double.parseDouble(premise.getSpecification());
 
                     // TODO nicht optimal: mit JScience und Parser arbeiten
-                    if (responseTime > premiseResponseTime) {
+                    if (responseTime > qualitygateResponseTime) {
 
+                        
+                        
                         result.addIssue(new ResponseTimeIssue(((ResponseTimeProxyIssue) issue).getStereotypedObject(),
                                 ((ResponseTimeProxyIssue) issue).getQualitygate(), responseTime));
 
-                        LOGGER.debug("Response-Time too long. " + responseTime);
+                        LOGGER.debug("Following StoEx is broken: " + responseTime);
 
                     }
 
