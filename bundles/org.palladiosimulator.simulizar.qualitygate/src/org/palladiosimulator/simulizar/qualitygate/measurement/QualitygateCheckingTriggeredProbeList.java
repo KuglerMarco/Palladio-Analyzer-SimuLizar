@@ -26,7 +26,6 @@ public class QualitygateCheckingTriggeredProbeList extends TriggeredProbe {
     protected QualitygateCheckingTriggeredProbeList(MetricDescription metricDescription, final List<TriggeredProbe> subsumedProbes) {
         super(metricDescription);
         this.subsumedProbes = subsumedProbes;
-        // TODO Auto-generated constructor stub
     }
     
     public void setIdentifier(Identifier identifier) {
@@ -44,14 +43,12 @@ public class QualitygateCheckingTriggeredProbeList extends TriggeredProbe {
             
             if(childProbe instanceof QualitygateCheckingProbe) {
                 ((QualitygateCheckingProbe) childProbe).setIdentifier(identifier);
-                subsumedMeasureProvider = ((QualitygateCheckingProbe) childProbe).doMeasure(identifier, measurementContext)
+                subsumedMeasureProvider = ((QualitygateCheckingProbe) childProbe).takeMeasurement(measurementContext)
                         .getMeasureProvider();
             } else {
                 subsumedMeasureProvider = ((TriggeredProbe) childProbe).takeMeasurement(measurementContext)
                     .getMeasureProvider();
             }
-            
-
             
             if (!(subsumedMeasureProvider instanceof MeasuringValue)) {
                 throw new IllegalArgumentException("Subsumed measure providers have to be measurements");

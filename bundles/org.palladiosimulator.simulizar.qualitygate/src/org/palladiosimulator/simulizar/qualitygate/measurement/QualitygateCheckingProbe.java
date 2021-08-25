@@ -19,6 +19,13 @@ public class QualitygateCheckingProbe extends TriggeredProbe {
     protected QualitygateCheckingProbe(MetricDescription metricDescription) {
         super(metricDescription);
     }
+    
+    @Override
+    public ProbeMeasurement takeMeasurement(RequestContext measurementContext) {
+        final ProbeMeasurement newMeasurement = doMeasure(measurementContext);
+        notifyMeasurementSourceListener(newMeasurement);
+        return newMeasurement;
+    }
 
     
     @Override
