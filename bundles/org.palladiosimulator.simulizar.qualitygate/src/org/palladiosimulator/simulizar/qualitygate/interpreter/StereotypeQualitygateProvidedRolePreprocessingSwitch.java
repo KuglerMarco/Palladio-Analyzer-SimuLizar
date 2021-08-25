@@ -40,6 +40,7 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
     private ProvidedRole stereotypedRole;
     private final MetricDescriptionRepository metricRepo;
     private AssemblyContext assembly;
+    private QualityGate qualitygate;
 
     @AssistedInject
     public StereotypeQualitygateProvidedRolePreprocessingSwitch(@Assisted MetricDescriptionRepository metricRepo,
@@ -55,6 +56,8 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
     @Override
     public Monitor caseRequestMetricScope(RequestMetricScope object) {
 
+        
+        
         Monitor monitor = MonitorRepositoryFactory.eINSTANCE.createMonitor();
 
         // Activated
@@ -116,7 +119,11 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
     @Override
     public Monitor caseQualityGate(QualityGate object) {
 
-        return doSwitch(object.getScope());
+        this.qualitygate = object;
+        if(object.getAssemblyContext() == null || this.assembly.equals(object.getAssemblyContext())) {
+           return doSwitch(object.getScope()); 
+        }
+        return null;
 
     }
 

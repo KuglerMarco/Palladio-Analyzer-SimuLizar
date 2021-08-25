@@ -49,7 +49,7 @@ public class QualitygatePassedEvent {
         return this.context.getThread();
     }
     
-    public boolean isSucess() {
+    public boolean isSuccess() {
         return success;
     }
 

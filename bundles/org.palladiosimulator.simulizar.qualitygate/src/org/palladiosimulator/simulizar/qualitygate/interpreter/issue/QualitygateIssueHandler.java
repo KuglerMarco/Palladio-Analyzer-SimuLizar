@@ -85,9 +85,11 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
 //                    Measure<Integer,Duration> measuringValueCon = Measure.valueOf(Integer.parseInt(premise.getSpecification()), Quantity);
 
                     Double responseTime = (Double) measuringValue.getValue();
+                    
+                    Double premiseResponseTime = Double.parseDouble(premise.getSpecification());
 
                     // TODO nicht optimal: mit JScience und Parser arbeiten
-                    if (responseTime > Double.parseDouble(premise.getSpecification())) {
+                    if (responseTime > premiseResponseTime) {
 
                         result.addIssue(new ResponseTimeIssue(((ResponseTimeProxyIssue) issue).getStereotypedObject(),
                                 ((ResponseTimeProxyIssue) issue).getQualitygate(), responseTime));
@@ -99,6 +101,7 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                 } catch (NoSuchElementException e) {
                     // FIXME SimuLizar-Bug: No Measurements after simulation had stopped but still in
                     // control flow
+                    LOGGER.debug("NoElement");
                     
                 }
 
