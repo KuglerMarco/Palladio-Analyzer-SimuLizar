@@ -1,6 +1,7 @@
 package org.palladiosimulator.simulizar.qualitygate.interpreter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.log4j.Level;
@@ -128,6 +129,7 @@ public class StereotypeQualitygateExternalCallPreprocessingSwitch extends Qualit
         for (QualityGate e : taggedValues) {
             monitor.add(this.doSwitch(e));
         }
+        monitor.removeAll(Collections.singleton(null));
 
         return monitor;
 

@@ -1,5 +1,8 @@
 package org.palladiosimulator.simulizar.qualitygate.interpreter;
 
+import javax.measure.Measure;
+import javax.measure.quantity.Quantity;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
@@ -38,6 +41,7 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ResponseTimeIssue;
 import org.palladiosimulator.simulizar.utils.PCMPartitionManager;
 
 import dagger.assisted.Assisted;
@@ -70,7 +74,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     // Information about the stereotype-processing
     private QualityGate qualitygate;
     private CallScope callScope = CallScope.REQUEST;
-    private EObject stereotypedObject;
+    private Entity stereotypedObject;
     private PCMRandomVariable premise;
     private AssemblyContext assembly;
     private ProvidedRole providedRole;
@@ -133,7 +137,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
         EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
 
         this.callScope = callScope;
-        this.stereotypedObject = theEObject;
+        this.stereotypedObject = (Entity) theEObject;
 
         // Model validation
         if (taggedValues.isEmpty()) {
@@ -183,7 +187,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     public InterpreterResult caseQualityGate(QualityGate qualitygate) {
         this.qualitygate = qualitygate;
         premise = qualitygate.getPremise();
-        if(qualitygate.getAssemblyContext() == null || qualitygate.getAssemblyContext().equals(this.assembly)) {
+        if (qualitygate.getAssemblyContext() == null || qualitygate.getAssemblyContext()
+            .equals(this.assembly)) {
             return this.doSwitch(qualitygate.getScope());
         }
         return InterpreterResult.OK;
@@ -196,8 +201,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     public InterpreterResult caseRequestParameterScope(RequestParameterScope object) {
 
         Signature signatureOfQualitygate = object.getSignature();
-        
-        
 
         if (callScope.equals(CallScope.REQUEST) && (signatureOfQualitygate == (this.operationSignature))) {
 
@@ -252,13 +255,13 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
     @Override
     public InterpreterResult caseRequestMetricScope(RequestMetricScope object) {
-        
+
         // Checking whether this qualitygate is evaluated at the right point in model TODO Assembly
-        if(this.operationSignature.equals(object.getSignature()) && this.providedRole.equals(stereotypedObject)) {
-            
+        if (this.operationSignature.equals(object.getSignature()) && this.providedRole.equals(stereotypedObject)) {
+
             // Registering at the Calculator in Request-Scope
             if (this.callScope.equals(CallScope.REQUEST)) {
-    
+
                 // Loading CommonMetrics-model
                 URI uri = URI.createURI("pathmap://METRIC_SPEC_MODELS/models/commonMetrics.metricspec");
                 MetricDescriptionRepository res = (MetricDescriptionRepository) partManager.getBlackboard()
@@ -267,66 +270,75 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                     .getResource(uri, false)
                     .getContents()
                     .get(0);
-    
+
                 // Searching for the Measuring-Point
                 MeasuringPointRepository measuringPointRepo = (MeasuringPointRepository) partManager
                     .findModel(MeasuringpointPackage.Literals.MEASURING_POINT_REPOSITORY);
-    
+
                 MeasuringPoint measPoint = null;
-    
+
                 for (MeasuringPoint e : measuringPointRepo.getMeasuringPoints()) {
                     if (e instanceof AssemblyOperationMeasuringPoint) {
                         if (((AssemblyOperationMeasuringPoint) e).getOperationSignature()
                             .equals(object.getSignature())
                                 && ((AssemblyOperationMeasuringPoint) e).getRole()
                                     .equals(stereotypedObject)) {
-    
+
                             measPoint = (AssemblyOperationMeasuringPoint) e;
-    
+
                         }
                     }
                 }
-    
+
                 if (measPoint == null) {
                     throw new IllegalStateException(
                             "No MeasuringPoint found in MeasuringPointRepository for this Qualitygate.");
                 }
-    
+
                 MetricDescription respTimeMetricDesc = res.getMetricDescriptions()
                     .stream()
                     .filter(e -> e.getName()
                         .equals("Response Time Tuple"))
                     .findFirst()
                     .orElse(null);
-    
+
                 // Calculator for this Qualitygate
                 Calculator calc = frameworkContext.getCalculatorRegistry()
                     .getCalculatorByMeasuringPointAndMetricDescription(measPoint, respTimeMetricDesc);
-    
+
                 LOGGER.debug("MeasuringPoint is: " + measPoint.getStringRepresentation());
-    
+
                 if (!this.atRequestMetricCalcAdded) {
                     calc.addObserver(this);
                     LOGGER.debug("Observer added");
                     this.atRequestMetricCalcAdded = true;
                 }
-    
+
                 LOGGER.debug(calc.toString());
-    
+
                 return InterpreterResult.OK;
-    
+
             } else {
-                LOGGER.debug("HERE" + qualitygate.getScope() + callScope);
-                LOGGER.debug(responseTime2);
-    //            LOGGER.debug(responseTime2.getMeasureForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC));
-                return InterpreterResult.OK;
-    
+
+                Measure<Object, Quantity> measuringValue = responseTime2
+                    .getMeasureForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
+
+                Double responseTime = (Double) measuringValue.getValue();
+
+                Double premiseResponseTime = Double.parseDouble(premise.getSpecification());
+
+                if (responseTime > premiseResponseTime) {
+
+                    LOGGER.debug("Response-Time too long. " + responseTime);
+
+                    return InterpreterResult
+                        .of(new ResponseTimeIssue((Entity) this.stereotypedObject, qualitygate, responseTime));
+                }
             }
+
         }
-        
+
         return InterpreterResult.OK;
     }
-
-
 
 }
