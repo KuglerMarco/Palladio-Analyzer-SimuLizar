@@ -37,9 +37,6 @@ import org.palladiosimulator.pcm.seff.ExternalCallAction;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.seff.ServiceEffectSpecification;
 import org.palladiosimulator.pcm.repository.ProvidedRole;
-import org.palladiosimulator.pcm.repository.Repository;
-import org.palladiosimulator.pcm.repository.RepositoryComponent;
-import org.palladiosimulator.pcm.repository.RepositoryPackage;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringpointPackage;
 import org.eclipse.emf.common.util.URI;
@@ -62,7 +59,6 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
     private MeasuringPointRepository measuringPointRepo;
     private MonitorRepository monitorRepo;
     private MetricDescriptionRepository metricDescRepo;
-    private Repository repo;
 
     @Inject
     public QualitygateResponseTimeCalculatorJob(MDSDBlackboard blackboard,
@@ -112,10 +108,6 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
         monitorRepo = (MonitorRepository) blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
             .getElement(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY)
             .get(0);
-
-        repo = (Repository) blackboard.getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
-            .getElement(RepositoryPackage.Literals.REPOSITORY)
-            .get(1);
 
         systemRepo = (org.palladiosimulator.pcm.system.System) blackboard
             .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
@@ -216,58 +208,11 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
                                     monitor.setMonitorRepository(monitorRepo);
                                 }
                             }
-                            
-
                         }
-
                     }
-
                 }
-
             }
-
         }
-
-//        // Creating and adding Qualitygate-Monitors
-//        for (RepositoryComponent e : repo.getComponents__Repository()) {
-//
-//            for (ServiceEffectSpecification seff : ((BasicComponent) e)
-//                .getServiceEffectSpecifications__BasicComponent()) {
-//
-//                for (AbstractAction abstractAction : ((ResourceDemandingSEFF) seff).getSteps_Behaviour()) {
-//
-//                    if (this.hasQualityGate(abstractAction)) {
-//
-//                        if (abstractAction instanceof ExternalCallAction) {
-//
-//                            LOGGER.debug("The ExternalCall " + ((ExternalCallAction) abstractAction).getEntityName()
-//                                    + " has a qualitygate-application");
-//
-//                            // List of generated Monitors for the attached Qualitygates
-////                            List<Monitor> qualitygateMonitors = externalCallPreprocessingSwitch.create(metricDescRepo)
-////                                .handleQualitygate(abstractAction, assembly);
-//
-//                            // Adding the generated Monitors to the repositories
-//                            for (Monitor j : qualitygateMonitors) {
-//
-//                                if (!this.isMonitorPresent(j)) {
-//                                    measuringPointRepo.getMeasuringPoints()
-//                                        .add(j.getMeasuringPoint());
-//
-//                                    monitorRepo.getMonitors()
-//                                        .add(j);
-//
-//                                    j.getMeasuringPoint()
-//                                        .setMeasuringPointRepository(measuringPointRepo);
-//
-//                                    j.setMonitorRepository(monitorRepo);
-//                                }
-//                            }
-//                        }
-//                    }
-//                }
-//            }
-//        }
     }
 
     @Override

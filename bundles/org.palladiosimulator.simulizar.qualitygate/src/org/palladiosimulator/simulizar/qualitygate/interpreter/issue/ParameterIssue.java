@@ -27,6 +27,8 @@ public class ParameterIssue implements QualitygateIssue {
     //Reference of the Qualitygate-element, which was broken
     private EntityReference<QualityGate> qualitygateRef;
     
+    private String qualitygateId;
+    
     
     private static final Logger LOGGER = Logger.getLogger(ParameterIssue.class);
 
@@ -40,6 +42,8 @@ public class ParameterIssue implements QualitygateIssue {
         this.stereotypedObjectRef = stereotypedObjectFac.createCached(object);
         
         this.qualitygateRef = qualitygateFac.createCached(qualitygate);
+        
+        this.qualitygateId = qualitygate.getId();
         
         this.stackContent = stackContent;
         
@@ -75,6 +79,11 @@ public class ParameterIssue implements QualitygateIssue {
 
     public EntityReference<QualityGate> getQualitygateRef() {
         return qualitygateRef;
+    }
+
+    @Override
+    public String getQualitygateId() {
+        return qualitygateId;
     }
 
 

@@ -40,8 +40,11 @@ import org.palladiosimulator.simulizar.interpreter.StereotypeSwitch;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
+import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ResponseTimeIssue;
+import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
+import org.palladiosimulator.simulizar.qualitygate.propagation.QualitygatePropagationRecorder;
 import org.palladiosimulator.simulizar.utils.PCMPartitionManager;
 
 import dagger.assisted.Assisted;
@@ -89,6 +92,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
     private final BasicInterpreterResultMerger merger;
     private boolean atRequestMetricCalcAdded = false;
+    private QualitygateViolationProbeRegistry probeRegistry;
+    private QualitygatePropagationRecorder recorder;
     private static final Logger LOGGER = Logger.getLogger(RepositoryComponentSwitchQualitygateContributionSwitch.class);
 
     @AssistedInject
@@ -97,7 +102,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
             @Assisted final ProvidedRole providedRole,
             @Assisted RepositoryComponentSwitchStereotypeElementDispatcher parentSwitch,
             BasicInterpreterResultMerger merger, ProbeFrameworkContext frameworkContext,
-            PCMPartitionManager partManager) {
+            PCMPartitionManager partManager, QualitygateViolationProbeRegistry probeRegistry,
+            QualitygatePropagationRecorder recorder) {
 
         this.interpreterDefaultContext = context;
         this.operationSignature = signature;
@@ -108,6 +114,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
         this.frameworkContext = frameworkContext;
         this.partManager = partManager;
         this.assembly = assemblyContext;
+        this.probeRegistry = probeRegistry;
+        this.recorder = recorder;
 
         LOGGER.setLevel(Level.DEBUG);
     }
@@ -200,6 +208,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     public InterpreterResult caseRequestParameterScope(RequestParameterScope object) {
 
         Signature signatureOfQualitygate = object.getSignature();
+        InterpreterResult result = InterpreterResult.OK;
 
         if (callScope.equals(CallScope.REQUEST) && (signatureOfQualitygate == (this.operationSignature))) {
 
@@ -214,15 +223,25 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                                 .toString());
                 }
 
-                return BasicInterpreterResult.of(new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
+                ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
                         this.interpreterDefaultContext.getStack()
                             .currentStackFrame()
-                            .getContents()));
+                            .getContents());
 
+                result = BasicInterpreterResult.of(issue);
+
+                // triggering probe to measure Success-To-Failure-Rate case violated
+                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false));
+
+                recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
+
+            } else {
+                // triggering probe to measure Success-To-Failure-Rate case successful
+                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true));
             }
 
         }
-        return InterpreterResult.OK;
+        return result;
 
     }
 
@@ -233,6 +252,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     public InterpreterResult caseResultParameterScope(ResultParameterScope object) {
 
         Signature signatureOfQualitygate = object.getSignature();
+        InterpreterResult result = InterpreterResult.OK;
 
         if (callScope.equals(CallScope.RESPONSE) && (signatureOfQualitygate == (this.operationSignature))) {
 
@@ -245,25 +265,37 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                                 .toString());
                 }
 
-                return BasicInterpreterResult.of(new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
+                ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
                         this.interpreterDefaultContext.getCurrentResultFrame()
-                            .getContents()));
+                            .getContents());
+
+                result = BasicInterpreterResult.of(issue);
+
+                // triggering probe to measure Success-To-Failure-Rate case successful
+                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false));
+
+                recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
+
+            } else {
+                // triggering probe to measure Success-To-Failure-Rate case successful
+                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true));
             }
         }
-        return InterpreterResult.OK;
+        return result;
     }
 
     @Override
     public InterpreterResult caseRequestMetricScope(RequestMetricScope object) {
 
-        // Checking whether this qualitygate is evaluated at the right point in model TODO Assembly
+        InterpreterResult result = InterpreterResult.OK;
+
+        // Checking whether this qualitygate is evaluated at the right point in model
         if (this.operationSignature.equals(object.getSignature()) && this.providedRole.equals(stereotypedObject)
                 && (qualitygate.getAssemblyContext() == null || qualitygate.getAssemblyContext()
                     .equals(this.assembly))) {
 
             // Registering at the Calculator in Request-Scope
             if (this.callScope.equals(CallScope.REQUEST)) {
-                
 
                 // Loading CommonMetrics-model
                 URI uri = URI
@@ -320,7 +352,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                 LOGGER.debug(calc.toString());
 
-                return InterpreterResult.OK;
+                result = InterpreterResult.OK;
 
             } else {
 
@@ -336,47 +368,29 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                 if (responseTime > qualitygateResponseTime) {
 
-                    LOGGER.debug("Response-Time too long. " + responseTime);
+                    LOGGER.debug("Reponsetime Qualitygate broken: " + responseTime);
 
-                    return InterpreterResult
-                        .of(new ResponseTimeIssue((Entity) this.stereotypedObject, qualitygate, responseTime));
+                    ResponseTimeIssue issue = new ResponseTimeIssue((Entity) this.stereotypedObject, qualitygate,
+                            responseTime);
+
+                    result = BasicInterpreterResult.of(issue);
+
+                    // triggering probe to measure Success-To-Failure-Rate case successful
+                    probeRegistry
+                        .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false));
+                    
+                    recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
+                    
+                } else {
+                    // triggering probe to measure Success-To-Failure-Rate case successful
+                    probeRegistry
+                        .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true));
                 }
             }
 
         }
 
-        return InterpreterResult.OK;
+        return result;
     }
-    
-    
-    
-//    public boolean isMonitorPresent() {
-//        
-//        MonitorRepository monitorRepo = (MonitorRepository) partManager.getBlackboard()
-//                .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
-//                .getElement(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY)
-//                .get(0);
-//        
-//        for(Monitor monitor : monitorRepo.getMonitors()) {
-//            
-//            if(monitor.getMeasuringPoint() instanceof ExternalCallActionMeasuringPoint) {
-//                
-//                if ( ((ExternalCallActionMeasuringPoint) monitor.getMeasuringPoint()).getExternalCall().equals(stereotypedObject)) {
-//                    
-//                    for (MeasurementSpecification specification : monitor.getMeasurementSpecifications()) {
-//                        if(specification.getMetricDescription().equals(MetricDescriptionConstants.RESPONSE_TIME_METRIC)) {
-//                            return true;
-//                        }
-//                    }
-//                    
-//                    
-//                }
-//                
-//                
-//            }
-//            
-//        }
-//        return false;
-//    }
 
 }

@@ -7,16 +7,14 @@ import org.palladiosimulator.simulizar.entity.EntityReference;
 import org.palladiosimulator.simulizar.entity.SimuLizarEntityReferenceFactories;
 
 public class ResponseTimeIssue implements QualitygateIssue {
-    
-
-    
-    
 
     //Reference of the stereotyped Object
     private EntityReference<Entity> stereotypedObjectRef;
     
     //Reference of the Qualitygate-element, which was broken
     private EntityReference<QualityGate> qualitygateRef;
+    
+    private String qualitygateId;
     
     private Double responseTime;
     
@@ -32,6 +30,8 @@ public class ResponseTimeIssue implements QualitygateIssue {
         this.stereotypedObjectRef = stereotypedObjectFac.createCached(stereotypedObject);
         
         this.qualitygateRef = qualitygateFac.createCached(qualitygate);
+        
+        this.qualitygateId = qualitygate.getId();
         
         this.responseTime = responseTime;
     }
@@ -55,6 +55,13 @@ public class ResponseTimeIssue implements QualitygateIssue {
     
     public Double getResponseTime() {
         return responseTime;
+    }
+
+
+    @Override
+    public String getQualitygateId() {
+        // TODO Auto-generated method stub
+        return this.qualitygateId;
     }
 
 }

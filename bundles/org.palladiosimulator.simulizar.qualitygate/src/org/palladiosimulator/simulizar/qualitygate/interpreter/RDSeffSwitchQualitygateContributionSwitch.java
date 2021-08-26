@@ -46,6 +46,7 @@ import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ResponseTimeProxyIssue;
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
+import org.palladiosimulator.simulizar.qualitygate.propagation.QualitygatePropagationRecorder;
 import org.palladiosimulator.simulizar.utils.PCMPartitionManager;
 import org.palladiosimulator.simulizar.utils.SimulatedStackHelper;
 
@@ -96,12 +97,13 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
     // Probe-Registry
     private QualitygateViolationProbeRegistry probeRegistry;
     private AssemblyContext assembly;
+    private QualitygatePropagationRecorder recorder;
 
     @AssistedInject
     public RDSeffSwitchQualitygateContributionSwitch(@Assisted final InterpreterDefaultContext context,
             @Assisted RDSeffSwitchElementDispatcher parentSwitch, BasicInterpreterResultMerger merger,
             ProbeFrameworkContext frameworkContext, PCMPartitionManager partManager,
-            QualitygateViolationProbeRegistry probeRegistry) {
+            QualitygateViolationProbeRegistry probeRegistry, QualitygatePropagationRecorder recorder) {
 
         this.context = context;
 
@@ -112,6 +114,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         this.probeRegistry = probeRegistry;
         this.assembly = context.getAssemblyContextStack()
             .get(1);
+        this.recorder = recorder;
 
         LOGGER.setLevel(Level.DEBUG);
     }
@@ -277,6 +280,8 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 LOGGER.debug("New ResponseTimeProxyIssue.");
                 return InterpreterResult
                     .of(new ResponseTimeProxyIssue(premise, this, qualitygate, stereotypedObject, this.context));
+                
+                
 
             }
         }
@@ -312,13 +317,17 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                                     .currentStackFrame()
                                     .toString());
                     }
-                    result = BasicInterpreterResult.of(new ParameterIssue((Entity) this.stereotypedObject,
+                    ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject,
                             this.qualitygate, this.context.getStack()
-                                .currentStackFrame()
-                                .getContents()));
+                            .currentStackFrame()
+                            .getContents());
+                    
+                    result = BasicInterpreterResult.of(issue);
 
                     // triggering probe to measure Success-To-Failure-Rate case violated
                     probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, false));
+                    
+                    recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
                 } else {
                     // triggering probe to measure Success-To-Failure-Rate case successful
@@ -359,12 +368,16 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                                 .toString());
                 }
 
-                result = BasicInterpreterResult.of(new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
+                ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
                         this.context.getCurrentResultFrame()
-                            .getContents()));
+                        .getContents());
+                
+                result = BasicInterpreterResult.of(issue);
 
                 // triggering probe to measure Success-To-Failure-Rate case successful
                 probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, false));
+                
+                recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful

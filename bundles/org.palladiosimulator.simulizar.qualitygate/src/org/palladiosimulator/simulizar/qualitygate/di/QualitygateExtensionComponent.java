@@ -10,6 +10,8 @@ import org.palladiosimulator.simulizar.qualitygate.interpreter.ComposedStructure
 import org.palladiosimulator.simulizar.qualitygate.interpreter.RDSeffSwitchQualitygateContributionSwitch;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.RepositoryComponentSwitchQualitygateContributionSwitch;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.QualitygateIssueHandler;
+import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
+import org.palladiosimulator.simulizar.qualitygate.propagation.QualitygatePropagationRecorder;
 import org.palladiosimulator.simulizar.scopes.RuntimeExtensionScope;
 
 import dagger.Component;
@@ -29,6 +31,10 @@ public interface QualitygateExtensionComponent extends ExtensionComponent {
     RDSeffSwitchQualitygateContributionSwitch.Factory seffQualitygateContribution();
 
     QualitygateIssueHandler issueHandler();
+    
+    QualitygateViolationProbeRegistry probeRegistry();
+    
+    QualitygatePropagationRecorder propagationRecorder();
 
     @Component.Factory
     public static interface Factory extends ExtensionComponent.Factory {

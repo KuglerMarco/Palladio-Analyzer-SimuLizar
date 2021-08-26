@@ -5,6 +5,7 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
+import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import java.util.Arrays;
 
@@ -12,6 +13,10 @@ import org.palladiosimulator.analyzer.workflow.blackboard.PCMResourceSetPartitio
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringpointPackage;
 import org.palladiosimulator.failuremodel.qualitygatemeasuringpoint.QualitygateMeasuringPoint;
+import org.palladiosimulator.monitorrepository.MeasurementSpecification;
+import org.palladiosimulator.monitorrepository.Monitor;
+import org.palladiosimulator.monitorrepository.MonitorRepository;
+import org.palladiosimulator.monitorrepository.MonitorRepositoryPackage;
 import org.palladiosimulator.probeframework.calculator.DefaultCalculatorProbeSets;
 import org.palladiosimulator.probeframework.calculator.IGenericCalculatorFactory;
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
@@ -33,7 +38,9 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
     private final PCMResourceSetPartition pcmPartition;
     private final IGenericCalculatorFactory calculatorFactory;
 
-    private final Map<String, QualitygateCheckingTriggeredProbeList> currentProbes = new HashMap<String, QualitygateCheckingTriggeredProbeList>();
+    private Map<String, QualitygateCheckingTriggeredProbeList> currentProbes = new HashMap<String, QualitygateCheckingTriggeredProbeList>();
+    
+    private Map<String, Boolean> isProbeCreated = new HashMap<String, Boolean>();
 
     @Inject
     public QualitygateViolationProbeRegistry(@Global final PCMResourceSetPartition pcmPartition,
@@ -41,23 +48,28 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
         this.pcmPartition = pcmPartition;
         this.calculatorFactory = calculatorFactory;
         this.simulationControl = simulationControl;
+        
+        LOGGER.setLevel(Level.DEBUG);
 
     }
 
     public void triggerProbe(final QualitygatePassedEvent event) {
 
+        
+        
         // Create probe and calculator for this qualitygate
-        if (!currentProbes.containsKey(event.getModelElement()
+        if (!isProbeCreated.containsKey(event.getModelElement()
             .getId())) {
+            
+            // TODO hier überprüfen ob QualitygateMonitor im Repository vorliegt
 
-            // probe
             MeasuringPointRepository repo = (MeasuringPointRepository) pcmPartition
                 .getElement(MeasuringpointPackage.eINSTANCE.getMeasuringPointRepository())
                 .stream()
                 .findAny()
                 .orElse(null);
             
-            // TODO hier immer Fehler beim ersten starten, andere Vorgehensweise um die MeasuringPoints zu erhalten
+            // TODO hier immer Fehler beim ersten starten -> andere Vorgehensweise um die MeasuringPoints zu erhalten
             
             QualitygateMeasuringPoint measuringPoint = (QualitygateMeasuringPoint) repo.getMeasuringPoints()
                 .stream()
@@ -68,26 +80,33 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
             
             if(measuringPoint != null) {
 
+                // Creating Probes
                 QualitygateCheckingProbe probe = new QualitygateCheckingProbe(
                         QualitygateMetricDescriptionConstants.QUALITYGATE_VIOLATION_METRIC);
                 
                 TakeCurrentSimulationTimeProbe timeProbe = new TakeCurrentSimulationTimeProbe(simulationControl);
-    
+
                 QualitygateCheckingTriggeredProbeList probeOverTime = new QualitygateCheckingTriggeredProbeList(
                         QualitygateMetricDescriptionConstants.QUALITYGATE_VIOLATION_METRIC_OVER_TIME,
                         Arrays.asList(probe, timeProbe));
     
                 this.currentProbes.put(event.getModelElement()
                     .getId(), probeOverTime);
-    
+                
+                this.isProbeCreated.put(event.getModelElement().getId(), true);
+                
+                // Creating and registering the calculator
                 this.calculatorFactory.buildCalculator(
                         QualitygateMetricDescriptionConstants.QUALITYGATE_VIOLATION_METRIC_OVER_TIME, measuringPoint,
                         DefaultCalculatorProbeSets.createSingularProbeConfiguration(probeOverTime));
             
+            } else {
+                this.isProbeCreated.put(event.getModelElement().getId(), false);
             }
         }
 
-        if (event.isSuccess()) {
+        // trigger probe according to the evaluation
+        if (event.isSuccess() && this.isProbeCreated.get(event.getModelElement().getId()) == true) {
             this.currentProbes.get(event.getModelElement()
                 .getId())
                 .setIdentifier(QualitygateMetricDescriptionConstants.SUCCESS);
@@ -96,7 +115,7 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
                 .takeMeasurement(event.getThread()
                     .getRequestContext());
 
-        } else {
+        } else if (this.isProbeCreated.get(event.getModelElement().getId()) == true) {
 
             this.currentProbes.get(event.getModelElement()
                 .getId())
@@ -112,6 +131,35 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
     @Override
     public void cleanup() {
         currentProbes.clear();
+    }
+    
+    
+    // TODO später für die Überprüfung nutzen
+    public boolean isQualitygateMonitorInRepository(final QualitygatePassedEvent event) {
+        
+        MonitorRepository monitorRepo = (MonitorRepository) pcmPartition
+                .getElement(MonitorRepositoryPackage.eINSTANCE.getMonitorRepository())
+                .stream()
+                .findAny()
+                .orElse(null);
+        
+        for(Monitor monitor : monitorRepo.getMonitors()) {
+            
+            if(monitor.getMeasuringPoint() instanceof QualitygateMeasuringPoint) {
+                
+                if(((QualitygateMeasuringPoint) monitor.getMeasuringPoint()).getQualitygate().equals(event.getModelElement())) {
+                    
+                    for(MeasurementSpecification spec : monitor.getMeasurementSpecifications()) {
+                        
+                        if(spec.getMetricDescription().equals(QualitygateMetricDescriptionConstants.QUALITYGATE_VIOLATION_METRIC_OVER_TIME)) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return false;
     }
 
 }

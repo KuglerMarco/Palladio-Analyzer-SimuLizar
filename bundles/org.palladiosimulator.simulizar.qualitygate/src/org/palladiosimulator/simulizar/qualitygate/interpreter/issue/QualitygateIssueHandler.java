@@ -16,6 +16,7 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
+import org.palladiosimulator.simulizar.qualitygate.propagation.QualitygatePropagationRecorder;
 
 import com.google.common.collect.Streams;
 
@@ -28,10 +29,12 @@ import com.google.common.collect.Streams;
 public class QualitygateIssueHandler implements InterpreterResultHandler {
 
     private static final Logger LOGGER = Logger.getLogger(QualitygateIssueHandler.class);
+    private QualitygatePropagationRecorder recorder;
 
     @Inject
-    public QualitygateIssueHandler() {
+    public QualitygateIssueHandler(QualitygatePropagationRecorder recorder) {
         LOGGER.setLevel(Level.DEBUG);
+        this.recorder = recorder;
     }
 
     
@@ -91,8 +94,12 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                     
                     if (responseTime > qualitygateResponseTime) {
 
-                        result.addIssue(new ResponseTimeIssue(((ResponseTimeProxyIssue) issue).getStereotypedObject(),
-                                ((ResponseTimeProxyIssue) issue).getQualitygate(), responseTime));
+                        ResponseTimeIssue respIssue = new ResponseTimeIssue(((ResponseTimeProxyIssue) issue).getStereotypedObject(),
+                                ((ResponseTimeProxyIssue) issue).getQualitygate(), responseTime);
+                        
+                        result.addIssue(respIssue);
+                        
+                        recorder.recordQualitygateIssue(((ResponseTimeProxyIssue) issue).getQualitygate(), ((ResponseTimeProxyIssue) issue).getStereotypedObject(), respIssue);
 
                         LOGGER.debug("Following StoEx is broken: " + responseTime);
 
