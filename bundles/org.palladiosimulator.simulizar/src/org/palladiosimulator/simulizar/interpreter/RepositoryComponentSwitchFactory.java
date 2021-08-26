@@ -6,8 +6,6 @@ import org.palladiosimulator.pcm.repository.ProvidedRole;
 import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 
-import dagger.assisted.AssistedFactory;
-
 public interface RepositoryComponentSwitchFactory {
     Switch<InterpreterResult> create(final InterpreterDefaultContext context, final AssemblyContext assemblyContext,
             final Signature signature, final ProvidedRole providedRole);

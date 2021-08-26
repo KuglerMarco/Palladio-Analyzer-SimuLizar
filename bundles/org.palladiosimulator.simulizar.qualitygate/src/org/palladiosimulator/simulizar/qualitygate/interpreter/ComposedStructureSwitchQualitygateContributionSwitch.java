@@ -29,7 +29,7 @@ import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
 /**
- * Switch to process the qualitygates attached at elements of ComposedStructures.
+ * Switch to process the qualitygates attached at ProvidedRoles.
  * 
  * @author Marco Kugler
  *
@@ -57,7 +57,7 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
     private QualityGate qualitygate;
     private PCMRandomVariable premise;
     private CallScope callScope = CallScope.REQUEST;
-    private EObject stereotypedObject;
+    private Entity stereotypedObject;
 
     private static final Logger LOGGER = Logger.getLogger(ComposedStructureSwitchQualitygateContributionSwitch.class);
     private final BasicInterpreterResultMerger merger;
@@ -99,24 +99,25 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
      */
     @Override
     public InterpreterResult handleStereotype(Stereotype stereotype, EObject theEObject, CallScope callScope) {
+
         InterpreterResult result = InterpreterResult.OK;
 
         EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
 
         this.callScope = callScope;
-        this.stereotypedObject = theEObject;
+        this.stereotypedObject = (Entity) theEObject;
 
-        // Model validation
         if (taggedValues.isEmpty()) {
             throw new IllegalArgumentException(
-                    "Qualitygate-Model not valid: Qualitygate-Stereotype needs to have at least one Qualitygate element.");
+                    "Qualitygate-Stereotype not valid: Qualitygate-Stereotype needs to have at least one Qualitygate element.");
         }
 
         // Processing all the attached Qualitygates
         for (QualityGate e : taggedValues) {
 
-            LOGGER.debug("ComposedStructure: " + e.getPremise()
-                .getSpecification());
+            LOGGER.debug("Following StoEx was processed at " + this.stereotypedObject.getEntityName()
+                    + " with the StoEx: " + e.getPremise()
+                        .getSpecification());
 
             result = merger.merge(result, this.doSwitch(e));
 
@@ -153,7 +154,7 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
     public InterpreterResult caseRequestParameterScope(RequestParameterScope requestParameterScope) {
 
         Signature signatureOfQualitygate = requestParameterScope.getSignature();
-        
+
         if (callScope.equals(CallScope.REQUEST) && (signatureOfQualitygate == (this.operationSignature))) {
 
             if (!((boolean) context.evaluate(premise.getSpecification(), this.context.getStack()
@@ -200,7 +201,7 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
                             .getContents()));
             }
         }
-        
+
         return InterpreterResult.OK;
     }
 

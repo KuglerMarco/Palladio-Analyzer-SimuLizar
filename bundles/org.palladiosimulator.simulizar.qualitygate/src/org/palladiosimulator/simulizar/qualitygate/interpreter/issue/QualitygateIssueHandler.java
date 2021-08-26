@@ -85,18 +85,12 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                     
                     InterpreterDefaultContext interpreterDefaultContext = ((ResponseTimeProxyIssue) issue).getContext();
 
-//                    Measure<Integer,Duration> measuringValueCon = Measure.valueOf(Integer.parseInt(premise.getSpecification()), Quantity);
                     Double qualitygateResponseTime = (Double) interpreterDefaultContext.evaluate(premise.getSpecification(), interpreterDefaultContext.getStack().currentStackFrame());
 
                     Double responseTime = (Double) measuringValue.getValue();
                     
-                    Double premiseResponseTime = Double.parseDouble(premise.getSpecification());
-
-                    // TODO nicht optimal: mit JScience und Parser arbeiten
                     if (responseTime > qualitygateResponseTime) {
 
-                        
-                        
                         result.addIssue(new ResponseTimeIssue(((ResponseTimeProxyIssue) issue).getStereotypedObject(),
                                 ((ResponseTimeProxyIssue) issue).getQualitygate(), responseTime));
 

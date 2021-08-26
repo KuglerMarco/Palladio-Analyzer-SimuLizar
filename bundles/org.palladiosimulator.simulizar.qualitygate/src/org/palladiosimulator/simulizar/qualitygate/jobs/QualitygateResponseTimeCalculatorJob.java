@@ -141,7 +141,7 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
      * Creating and adding the Monitors at ProvidedRole.
      */
     public void attachMonitorsAtProvidedRole() {
-        
+
         for (AssemblyContext assembly : systemRepo.getAssemblyContexts__ComposedStructure()) {
 
             for (ProvidedRole role : assembly.getEncapsulatedComponent__AssemblyContext()
@@ -182,46 +182,92 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
      */
     public void attachMonitorsAtExternalCall() {
 
-        // Creating and adding Qualitygate-Monitors
-        for (RepositoryComponent e : repo.getComponents__Repository()) {
+        for (AssemblyContext assembly : systemRepo.getAssemblyContexts__ComposedStructure()) {
 
-            for (ServiceEffectSpecification seff : ((BasicComponent) e)
-                .getServiceEffectSpecifications__BasicComponent()) {
+            for (ServiceEffectSpecification seff : ((BasicComponent) assembly
+                .getEncapsulatedComponent__AssemblyContext()).getServiceEffectSpecifications__BasicComponent()) {
 
                 for (AbstractAction abstractAction : ((ResourceDemandingSEFF) seff).getSteps_Behaviour()) {
-                    
+
                     if (this.hasQualityGate(abstractAction)) {
 
                         if (abstractAction instanceof ExternalCallAction) {
-
+                            
                             LOGGER.debug("The ExternalCall " + ((ExternalCallAction) abstractAction).getEntityName()
                                     + " has a qualitygate-application");
-
+                            
                             // List of generated Monitors for the attached Qualitygates
-                            List<Monitor> qualitygateMonitors = externalCallPreprocessingSwitch.create(metricDescRepo)
+                            List<Monitor> qualitygateMonitors = externalCallPreprocessingSwitch.create(metricDescRepo, assembly)
                                 .handleQualitygate(abstractAction);
+                            
+                         // Adding the generated Monitors to the repositories
+                            for (Monitor monitor : qualitygateMonitors) {
 
-                            // Adding the generated Monitors to the repositories
-                            for (Monitor j : qualitygateMonitors) {
-
-                                if (!this.isMonitorPresent(j)) {
+                                if (!this.isMonitorPresent(monitor)) {
                                     measuringPointRepo.getMeasuringPoints()
-                                        .add(j.getMeasuringPoint());
+                                        .add(monitor.getMeasuringPoint());
 
                                     monitorRepo.getMonitors()
-                                        .add(j);
+                                        .add(monitor);
 
-                                    j.getMeasuringPoint()
+                                    monitor.getMeasuringPoint()
                                         .setMeasuringPointRepository(measuringPointRepo);
 
-                                    j.setMonitorRepository(monitorRepo);
+                                    monitor.setMonitorRepository(monitorRepo);
                                 }
                             }
+                            
+
                         }
+
                     }
+
                 }
+
             }
+
         }
+
+//        // Creating and adding Qualitygate-Monitors
+//        for (RepositoryComponent e : repo.getComponents__Repository()) {
+//
+//            for (ServiceEffectSpecification seff : ((BasicComponent) e)
+//                .getServiceEffectSpecifications__BasicComponent()) {
+//
+//                for (AbstractAction abstractAction : ((ResourceDemandingSEFF) seff).getSteps_Behaviour()) {
+//
+//                    if (this.hasQualityGate(abstractAction)) {
+//
+//                        if (abstractAction instanceof ExternalCallAction) {
+//
+//                            LOGGER.debug("The ExternalCall " + ((ExternalCallAction) abstractAction).getEntityName()
+//                                    + " has a qualitygate-application");
+//
+//                            // List of generated Monitors for the attached Qualitygates
+////                            List<Monitor> qualitygateMonitors = externalCallPreprocessingSwitch.create(metricDescRepo)
+////                                .handleQualitygate(abstractAction, assembly);
+//
+//                            // Adding the generated Monitors to the repositories
+//                            for (Monitor j : qualitygateMonitors) {
+//
+//                                if (!this.isMonitorPresent(j)) {
+//                                    measuringPointRepo.getMeasuringPoints()
+//                                        .add(j.getMeasuringPoint());
+//
+//                                    monitorRepo.getMonitors()
+//                                        .add(j);
+//
+//                                    j.getMeasuringPoint()
+//                                        .setMeasuringPointRepository(measuringPointRepo);
+//
+//                                    j.setMonitorRepository(monitorRepo);
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }
     }
 
     @Override

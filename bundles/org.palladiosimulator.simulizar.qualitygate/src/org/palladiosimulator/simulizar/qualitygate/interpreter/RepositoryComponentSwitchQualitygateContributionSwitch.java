@@ -48,6 +48,12 @@ import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
+/**
+ * Switch to process the qualitygates attached at elements of ExternalCalls.
+ * 
+ * @author Marco Kugler
+ *
+ */
 public class RepositoryComponentSwitchQualitygateContributionSwitch extends QualitygateSwitch<InterpreterResult>
         implements StereotypeSwitch, IMeasurementSourceListener {
 
@@ -79,7 +85,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     private AssemblyContext assembly;
     private ProvidedRole providedRole;
 
-    // Stack to save the measurements from the calculators
     private static MeasuringValue responseTime;
 
     private final BasicInterpreterResultMerger merger;
@@ -161,9 +166,10 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
     @Override
     public void newMeasurementAvailable(MeasuringValue newMeasurement) {
+
         responseTime = (newMeasurement.getMeasuringValueForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC));
-        LOGGER.debug("Added a new Measurement:");
-        LOGGER.debug(responseTime);
+        LOGGER.debug("Added a new Measurement at " + stereotypedObject.getEntityName());
+
     }
 
     @Override
@@ -177,6 +183,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
      */
     @Override
     public InterpreterResult caseQualityGate(QualityGate qualitygate) {
+
         this.qualitygate = qualitygate;
         premise = qualitygate.getPremise();
         if (qualitygate.getAssemblyContext() == null || qualitygate.getAssemblyContext()
@@ -228,6 +235,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
         Signature signatureOfQualitygate = object.getSignature();
 
         if (callScope.equals(CallScope.RESPONSE) && (signatureOfQualitygate == (this.operationSignature))) {
+
             if (!((boolean) interpreterDefaultContext.evaluate(premise.getSpecification(),
                     this.interpreterDefaultContext.getCurrentResultFrame()))) {
 
@@ -249,13 +257,17 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     public InterpreterResult caseRequestMetricScope(RequestMetricScope object) {
 
         // Checking whether this qualitygate is evaluated at the right point in model TODO Assembly
-        if (this.operationSignature.equals(object.getSignature()) && this.providedRole.equals(stereotypedObject)) {
+        if (this.operationSignature.equals(object.getSignature()) && this.providedRole.equals(stereotypedObject)
+                && (qualitygate.getAssemblyContext() == null || qualitygate.getAssemblyContext()
+                    .equals(this.assembly))) {
 
             // Registering at the Calculator in Request-Scope
             if (this.callScope.equals(CallScope.REQUEST)) {
+                
 
                 // Loading CommonMetrics-model
-                URI uri = URI.createURI(MetricDescriptionConstants.PATHMAP_METRIC_SPEC_MODELS_COMMON_METRICS_METRICSPEC);
+                URI uri = URI
+                    .createURI(MetricDescriptionConstants.PATHMAP_METRIC_SPEC_MODELS_COMMON_METRICS_METRICSPEC);
                 MetricDescriptionRepository res = (MetricDescriptionRepository) partManager.getBlackboard()
                     .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
                     .getResourceSet()
@@ -316,8 +328,10 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                     .getMeasureForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
 
                 // TODO so okay, oder Integer berücksichtigen?
-                Double qualitygateResponseTime = (Double) interpreterDefaultContext.evaluate(premise.getSpecification(), this.interpreterDefaultContext.getStack().currentStackFrame());
-                
+                Double qualitygateResponseTime = (Double) interpreterDefaultContext.evaluate(premise.getSpecification(),
+                        this.interpreterDefaultContext.getStack()
+                            .currentStackFrame());
+
                 Double responseTime = (Double) measuringValue.getValue();
 
                 if (responseTime > qualitygateResponseTime) {
@@ -333,5 +347,36 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
         return InterpreterResult.OK;
     }
+    
+    
+    
+//    public boolean isMonitorPresent() {
+//        
+//        MonitorRepository monitorRepo = (MonitorRepository) partManager.getBlackboard()
+//                .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
+//                .getElement(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY)
+//                .get(0);
+//        
+//        for(Monitor monitor : monitorRepo.getMonitors()) {
+//            
+//            if(monitor.getMeasuringPoint() instanceof ExternalCallActionMeasuringPoint) {
+//                
+//                if ( ((ExternalCallActionMeasuringPoint) monitor.getMeasuringPoint()).getExternalCall().equals(stereotypedObject)) {
+//                    
+//                    for (MeasurementSpecification specification : monitor.getMeasurementSpecifications()) {
+//                        if(specification.getMetricDescription().equals(MetricDescriptionConstants.RESPONSE_TIME_METRIC)) {
+//                            return true;
+//                        }
+//                    }
+//                    
+//                    
+//                }
+//                
+//                
+//            }
+//            
+//        }
+//        return false;
+//    }
 
 }

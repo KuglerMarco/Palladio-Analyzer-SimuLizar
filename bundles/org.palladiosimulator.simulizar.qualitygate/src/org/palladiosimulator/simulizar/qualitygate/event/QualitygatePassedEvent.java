@@ -5,6 +5,12 @@ import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import de.uka.ipd.sdq.simucomframework.Context;
 import de.uka.ipd.sdq.simucomframework.SimuComSimProcess;
 
+/**
+ * Event in case of a broken qualitygate.
+ * 
+ * @author Marco Kugler
+ *
+ */
 public class QualitygatePassedEvent {
     
     private final QualityGate modelElement;
@@ -49,6 +55,9 @@ public class QualitygatePassedEvent {
         return this.context.getThread();
     }
     
+    /**
+     * @return whether the qualitygate-evaluation was successful
+     */
     public boolean isSuccess() {
         return success;
     }

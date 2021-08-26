@@ -56,8 +56,6 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
     @Override
     public Monitor caseRequestMetricScope(RequestMetricScope object) {
 
-        
-        
         Monitor monitor = MonitorRepositoryFactory.eINSTANCE.createMonitor();
 
         // Activated
@@ -120,10 +118,7 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
     public Monitor caseQualityGate(QualityGate object) {
 
         this.qualitygate = object;
-        if(object.getAssemblyContext() == null || this.assembly.equals(object.getAssemblyContext())) {
-           return doSwitch(object.getScope()); 
-        }
-        return null;
+        return doSwitch(object.getScope());
 
     }
 
@@ -136,7 +131,11 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
         List<Monitor> monitor = new ArrayList<Monitor>();
 
         for (QualityGate e : taggedValues) {
-            monitor.add(this.doSwitch(e));
+
+            if (e.getAssemblyContext() == null || e.getAssemblyContext()
+                .equals(this.assembly)) {
+                monitor.add(this.doSwitch(e));
+            }
         }
         monitor.removeAll(Collections.singleton(null));
 

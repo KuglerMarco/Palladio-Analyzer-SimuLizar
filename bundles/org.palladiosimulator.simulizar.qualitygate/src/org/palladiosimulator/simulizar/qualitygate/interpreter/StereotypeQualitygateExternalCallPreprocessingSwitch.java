@@ -20,6 +20,7 @@ import org.palladiosimulator.monitorrepository.MonitorRepositoryFactory;
 import org.palladiosimulator.monitorrepository.ProcessingType;
 import org.palladiosimulator.pcmmeasuringpoint.ExternalCallActionMeasuringPoint;
 import org.palladiosimulator.pcmmeasuringpoint.PcmmeasuringpointFactory;
+import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.seff.ExternalCallAction;
 
 import dagger.assisted.Assisted;
@@ -37,17 +38,19 @@ public class StereotypeQualitygateExternalCallPreprocessingSwitch extends Qualit
 
     @AssistedFactory
     public static interface Factory {
-        StereotypeQualitygateExternalCallPreprocessingSwitch create(MetricDescriptionRepository metricRepo);
+        StereotypeQualitygateExternalCallPreprocessingSwitch create(MetricDescriptionRepository metricRepo, AssemblyContext assembly);
     }
 
     Logger LOGGER = Logger.getLogger(StereotypeQualitygateExternalCallPreprocessingSwitch.class);
     private EObject stereotypedObject;
     private final MetricDescriptionRepository metricRepo;
+    private final AssemblyContext assembly;
 
     @AssistedInject
-    public StereotypeQualitygateExternalCallPreprocessingSwitch(@Assisted MetricDescriptionRepository metricRepo) {
+    public StereotypeQualitygateExternalCallPreprocessingSwitch(@Assisted MetricDescriptionRepository metricRepo, @Assisted AssemblyContext assembly) {
         LOGGER.setLevel(Level.DEBUG);
         this.metricRepo = metricRepo;
+        this.assembly = assembly;
     }
 
     /**
@@ -127,7 +130,13 @@ public class StereotypeQualitygateExternalCallPreprocessingSwitch extends Qualit
         List<Monitor> monitor = new ArrayList<Monitor>();
 
         for (QualityGate e : taggedValues) {
-            monitor.add(this.doSwitch(e));
+            
+            // Only monitors added to the assembly, which is optionally reffered to
+            if (e.getAssemblyContext() == null || e.getAssemblyContext()
+                .equals(this.assembly)) {
+                monitor.add(this.doSwitch(e));
+            }
+
         }
         monitor.removeAll(Collections.singleton(null));
 
