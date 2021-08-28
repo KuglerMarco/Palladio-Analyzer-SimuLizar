@@ -375,12 +375,12 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                     result = BasicInterpreterResult.of(issue);
 
-                    // triggering probe to measure Success-To-Failure-Rate case successful
+                    // triggering probe to measure Success-To-Failure-Rate case violation
                     probeRegistry
                         .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false));
-                    
+
                     recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
-                    
+
                 } else {
                     // triggering probe to measure Success-To-Failure-Rate case successful
                     probeRegistry

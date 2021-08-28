@@ -16,6 +16,8 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
+import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
+import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
 import org.palladiosimulator.simulizar.qualitygate.propagation.QualitygatePropagationRecorder;
 
 import com.google.common.collect.Streams;
@@ -30,11 +32,13 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
 
     private static final Logger LOGGER = Logger.getLogger(QualitygateIssueHandler.class);
     private QualitygatePropagationRecorder recorder;
+    private QualitygateViolationProbeRegistry probeRegistry;
 
     @Inject
-    public QualitygateIssueHandler(QualitygatePropagationRecorder recorder) {
+    public QualitygateIssueHandler(QualitygatePropagationRecorder recorder, QualitygateViolationProbeRegistry probeRegistry) {
         LOGGER.setLevel(Level.DEBUG);
         this.recorder = recorder;
+        this.probeRegistry = probeRegistry;
     }
 
     
@@ -101,8 +105,16 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                         
                         recorder.recordQualitygateIssue(((ResponseTimeProxyIssue) issue).getQualitygate(), ((ResponseTimeProxyIssue) issue).getStereotypedObject(), respIssue);
 
+                     // triggering probe to measure Success-To-Failure-Rate case violation
+                        probeRegistry
+                            .triggerProbe(new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext, false));
+                        
                         LOGGER.debug("Following StoEx is broken: " + responseTime);
 
+                    } else {
+                     // triggering probe to measure Success-To-Failure-Rate case successful
+                        probeRegistry
+                            .triggerProbe(new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext, true));
                     }
 
                 } catch (NoSuchElementException e) {

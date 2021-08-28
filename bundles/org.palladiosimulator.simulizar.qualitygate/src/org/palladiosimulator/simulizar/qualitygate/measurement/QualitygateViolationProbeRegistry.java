@@ -7,6 +7,8 @@ import javax.inject.Inject;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.eclipse.emf.ecore.util.EcoreUtil;
+
 import java.util.Arrays;
 
 import org.palladiosimulator.analyzer.workflow.blackboard.PCMResourceSetPartition;
@@ -61,6 +63,8 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
         if (!isProbeCreated.containsKey(event.getModelElement()
             .getId())) {
             
+            EcoreUtil.resolveAll(pcmPartition.getResourceSet());
+            
             // TODO hier überprüfen ob QualitygateMonitor im Repository vorliegt
 
             MeasuringPointRepository repo = (MeasuringPointRepository) pcmPartition
@@ -88,7 +92,7 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
 
                 QualitygateCheckingTriggeredProbeList probeOverTime = new QualitygateCheckingTriggeredProbeList(
                         QualitygateMetricDescriptionConstants.QUALITYGATE_VIOLATION_METRIC_OVER_TIME,
-                        Arrays.asList(probe, timeProbe));
+                        Arrays.asList(timeProbe, probe));
     
                 this.currentProbes.put(event.getModelElement()
                     .getId(), probeOverTime);

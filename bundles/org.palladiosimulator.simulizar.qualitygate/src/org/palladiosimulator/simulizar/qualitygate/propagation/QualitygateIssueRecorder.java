@@ -37,7 +37,7 @@ public class QualitygateIssueRecorder {
         this.qualitygateRef = qualitygateFac.createCached(qualitygate);
         this.stereotypedObjectRef = stereotypedObjectFac.createCached(stereotypedObject);
         this.issueList = new ArrayList<QualitygateIssue>();
-        this.numberOfBreaking = 1;
+        this.numberOfBreaking = 0;
         
     }
     
@@ -61,7 +61,7 @@ public class QualitygateIssueRecorder {
     
     public double getPercentageOfPresenceForIssue(QualitygateIssue issue) {
         double result = issueCounter.get(issue.getQualitygateId());
-        return result / numberOfBreaking;
+        return (result / numberOfBreaking) * 100;
     }    
     
     public List<QualitygateIssue> getIssueList() {

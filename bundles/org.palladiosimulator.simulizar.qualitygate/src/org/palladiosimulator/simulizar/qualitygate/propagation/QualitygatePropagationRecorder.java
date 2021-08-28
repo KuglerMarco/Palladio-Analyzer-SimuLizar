@@ -18,7 +18,7 @@ public class QualitygatePropagationRecorder implements RuntimeStateEntityManager
 
     // String means here the id of the qualitygate, for which the issues should be recorded
     Map<String, QualitygateIssueRecorder> issueRecorder = new HashMap<String, QualitygateIssueRecorder>();
-    
+
     PCMResourceSetPartition pcmPartition;
 
     @Inject
@@ -37,24 +37,31 @@ public class QualitygatePropagationRecorder implements RuntimeStateEntityManager
             // Create new QualitygateIssueRecorder for this Qualitygate
             issueRecorder.put(qualitygate.getId(), new QualitygateIssueRecorder(qualitygate, stereotypedObject));
         } else {
-            issueRecorder.get(qualitygate.getId()).addIssue(issue);
+            issueRecorder.get(qualitygate.getId())
+                .addIssue(issue);
         }
 
     }
 
     @Override
     public void cleanup() {
-        
-        for(QualitygateIssueRecorder rec : issueRecorder.values()) {
-            
-            System.out.println(rec.getQualitygateRef().getModelElement(pcmPartition).getEntityName() + " " + rec.getNumberOfBreaking());
-            for(QualitygateIssue issue : rec.getIssueList()) {
-                System.out.println(rec.getPercentageOfPresenceForIssue(issue));
+
+        for (QualitygateIssueRecorder rec : issueRecorder.values()) {
+
+
+            for (QualitygateIssue issue : rec.getIssueList()) {
+                System.out.println("When the qualitygate " + rec.getQualitygateRef()
+                    .getModelElement(pcmPartition).getEntityName() + " was broken in ");
+                
+                System.out.println(rec.getPercentageOfPresenceForIssue(issue) + "%");
+                
+                System.out.println("the issue of " + issue.getQualitygateRef()
+                    .getModelElement(pcmPartition)
+                    .getEntityName() + " was present.");
             }
-            
+
         }
-        
-        
+
         issueRecorder.clear();
     }
 
