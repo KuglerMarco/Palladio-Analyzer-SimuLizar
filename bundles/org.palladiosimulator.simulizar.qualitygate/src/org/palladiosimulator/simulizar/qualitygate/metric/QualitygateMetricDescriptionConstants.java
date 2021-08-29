@@ -35,6 +35,20 @@ public final class QualitygateMetricDescriptionConstants {
     
     public final static Identifier VIOLATION;
     
+    public final static TextualBaseMetricDescription SEVERITY_METRIC;
+    
+    public final static MetricSetDescription SEVERITY_METRIC_OVER_TIME;
+    
+    public final static Identifier NO_SAFETY_EFFECT;
+    
+    public final static Identifier MINOR;
+    
+    public final static Identifier MAJOR;
+    
+    public final static Identifier HAZARDOUS;
+    
+    public final static Identifier CATASTROPHIC ;
+    
     static {
         
         final ResourceSet resourceSet = new ResourceSetImpl();
@@ -76,6 +90,22 @@ public final class QualitygateMetricDescriptionConstants {
         SUCCESS = (Identifier) resource.getEObject("_inOiQAJhEeyupI8CZJs1wg");
         
         VIOLATION = (Identifier) resource.getEObject("_k0dO0AJhEeyupI8CZJs1wg");
+        
+        
+        
+        SEVERITY_METRIC = (TextualBaseMetricDescription) resource.getEObject("_bnYmwAf9Eey9TNWaDr7jMQ");
+        
+        SEVERITY_METRIC_OVER_TIME = (MetricSetDescription) resource.getEObject("_rU4aYQf9Eey9TNWaDr7jMQ");
+        
+        NO_SAFETY_EFFECT = (Identifier) resource.getEObject("_uPp3gAf_Eey9TNWaDr7jMQ");
+        
+        MINOR = (Identifier) resource.getEObject("_ul3YEAf_Eey9TNWaDr7jMQ");
+        
+        MAJOR = (Identifier) resource.getEObject("_u5amMAf_Eey9TNWaDr7jMQ");
+        
+        HAZARDOUS = (Identifier) resource.getEObject("_vLQkIAf_Eey9TNWaDr7jMQ");
+        
+        CATASTROPHIC = (Identifier) resource.getEObject("_vfOB8Af_Eey9TNWaDr7jMQ");
         
         
     }

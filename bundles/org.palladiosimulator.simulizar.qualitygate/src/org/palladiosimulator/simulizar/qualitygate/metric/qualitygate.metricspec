@@ -1,11 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metricspec:MetricDescriptionRepository xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:metricspec="http://palladiosimulator.org/MetricSpec/1.0" id="_wlkY8AH_EeyBwtsHp4B1og">
-  <metricDescriptions xsi:type="metricspec:MetricSetDescription" id="_CBWPIQIHEeyBwtsHp4B1og" name="QualitygateViolationTuple" textualDescription="Represents Violation of Qualitygate plus the Point in time the measurement was taken">
+  <metricDescriptions xsi:type="metricspec:MetricSetDescription" id="_CBWPIQIHEeyBwtsHp4B1og" name="QualitygateViolationOverTime" textualDescription="Represents Violation of Qualitygate plus the Point in time the measurement was taken">
     <subsumedMetrics xsi:type="metricspec:NumericalBaseMetricDescription" href="pathmap://METRIC_SPEC_MODELS/commonMetrics.metricspec#_NCRBos7pEeOX_4BzImuHbA"/>
     <subsumedMetrics xsi:type="metricspec:TextualBaseMetricDescription" href="#_biPckAJhEeyupI8CZJs1wg"/>
   </metricDescriptions>
   <metricDescriptions xsi:type="metricspec:TextualBaseMetricDescription" id="_biPckAJhEeyupI8CZJs1wg" name="QualitygateViolation" textualDescription="Represents whether Qualitygate is broken during simulation">
     <identifiers id="_inOiQAJhEeyupI8CZJs1wg" literal="SUCCESS"/>
     <identifiers id="_k0dO0AJhEeyupI8CZJs1wg" literal="VIOLATION"/>
+  </metricDescriptions>
+  <metricDescriptions xsi:type="metricspec:TextualBaseMetricDescription" id="_bnYmwAf9Eey9TNWaDr7jMQ" name="Severity" textualDescription="This Metric represents the sverity of failures within the simulation" dataType="Qualitative">
+    <identifiers id="_uPp3gAf_Eey9TNWaDr7jMQ" literal="NoSafetyEffect"/>
+    <identifiers id="_ul3YEAf_Eey9TNWaDr7jMQ" literal="Minor"/>
+    <identifiers id="_u5amMAf_Eey9TNWaDr7jMQ" literal="Major"/>
+    <identifiers id="_vLQkIAf_Eey9TNWaDr7jMQ" literal="Hazardous"/>
+    <identifiers id="_vfOB8Af_Eey9TNWaDr7jMQ" literal="Catastrophic"/>
+  </metricDescriptions>
+  <metricDescriptions xsi:type="metricspec:MetricSetDescription" id="_rU4aYQf9Eey9TNWaDr7jMQ" name="SeverityOverTime" textualDescription="This metric represents the severity of failures over time.">
+    <subsumedMetrics xsi:type="metricspec:NumericalBaseMetricDescription" href="pathmap://METRIC_SPEC_MODELS/commonMetrics.metricspec#_NCRBos7pEeOX_4BzImuHbA"/>
+    <subsumedMetrics xsi:type="metricspec:TextualBaseMetricDescription" href="#_bnYmwAf9Eey9TNWaDr7jMQ"/>
   </metricDescriptions>
 </metricspec:MetricDescriptionRepository>

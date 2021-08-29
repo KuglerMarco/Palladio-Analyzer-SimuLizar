@@ -325,13 +325,15 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                     result = BasicInterpreterResult.of(issue);
 
                     // triggering probe to measure Success-To-Failure-Rate case violated
-                    probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, false));
+                    probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, false, null));
+
+                    probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getCriticality()));
                     
                     recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
                 } else {
                     // triggering probe to measure Success-To-Failure-Rate case successful
-                    probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, true));
+                    probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, true, null));
                 }
 
                 // Removing Stack again
@@ -375,13 +377,16 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 result = BasicInterpreterResult.of(issue);
 
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, false));
+                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, false, null));
+                
+                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getCriticality()));
+
                 
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, true));
+                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, true, null));
             }
         }
         return result;

@@ -231,13 +231,15 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 result = BasicInterpreterResult.of(issue);
 
                 // triggering probe to measure Success-To-Failure-Rate case violated
-                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false));
+                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
+
+                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, qualitygate.getCriticality()));
 
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true));
+                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null));
             }
 
         }
@@ -272,13 +274,16 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 result = BasicInterpreterResult.of(issue);
 
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false));
+                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
 
+                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, qualitygate.getCriticality()));
+
+                
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true));
+                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null));
             }
         }
         return result;
@@ -377,14 +382,17 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                     // triggering probe to measure Success-To-Failure-Rate case violation
                     probeRegistry
-                        .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false));
+                        .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
 
+                    probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, qualitygate.getCriticality()));
+
+                    
                     recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
                 } else {
                     // triggering probe to measure Success-To-Failure-Rate case successful
                     probeRegistry
-                        .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true));
+                        .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null));
                 }
             }
 

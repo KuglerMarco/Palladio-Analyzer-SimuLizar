@@ -107,14 +107,17 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
 
                      // triggering probe to measure Success-To-Failure-Rate case violation
                         probeRegistry
-                            .triggerProbe(new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext, false));
+                            .triggerProbe(new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext, false, null));
+                        
+                        probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext, false, ((ResponseTimeProxyIssue) issue).getQualitygate().getCriticality()));
                         
                         LOGGER.debug("Following StoEx is broken: " + responseTime);
 
                     } else {
                      // triggering probe to measure Success-To-Failure-Rate case successful
                         probeRegistry
-                            .triggerProbe(new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext, true));
+                            .triggerProbe(new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext, true, null));
+                        
                     }
 
                 } catch (NoSuchElementException e) {
