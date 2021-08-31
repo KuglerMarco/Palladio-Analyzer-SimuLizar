@@ -56,7 +56,7 @@ public class QualitygatePropagationRecorder implements RuntimeStateEntityManager
          // Create new QualitygateIssueRecorder for this Qualitygate
             issueRecorder.put(qualitygate.getModelElement(pcmPartition).getId(), new QualitygateIssueRecorder(qualitygate.getModelElement(pcmPartition)));
         } else {
-            issueRecorder.get(qualitygate.getModelElement(pcmPartition).getId());
+            issueRecorder.get(qualitygate.getModelElement(pcmPartition).getId()); // TODO
         }
     }
 
