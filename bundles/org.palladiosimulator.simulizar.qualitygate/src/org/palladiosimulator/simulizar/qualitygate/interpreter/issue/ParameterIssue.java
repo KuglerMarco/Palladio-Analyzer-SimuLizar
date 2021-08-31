@@ -29,11 +29,13 @@ public class ParameterIssue implements QualitygateIssue {
     
     private String qualitygateId;
     
+    private boolean isHandled;
+    
     
     private static final Logger LOGGER = Logger.getLogger(ParameterIssue.class);
 
     
-    public ParameterIssue(Entity object, QualityGate qualitygate, ArrayList<Entry<String, Object>> stackContent) {
+    public ParameterIssue(Entity object, QualityGate qualitygate, ArrayList<Entry<String, Object>> stackContent, boolean isHandled) {
         
         //Factories for EntityReferences
         EntityReference.AbstractEntityReferenceFactory<org.palladiosimulator.pcm.core.entity.Entity> stereotypedObjectFac = new SimuLizarEntityReferenceFactories.Entity();
@@ -47,6 +49,8 @@ public class ParameterIssue implements QualitygateIssue {
         
         this.stackContent = stackContent;
         
+        this.isHandled = isHandled;
+        
         LOGGER.setLevel(Level.DEBUG);
         
         if (LOGGER.isDebugEnabled()) {
@@ -59,8 +63,7 @@ public class ParameterIssue implements QualitygateIssue {
 
 
     public boolean isHandled() {
-        // TODO Auto-generated method stub
-        return false;
+        return isHandled;
     }
 
 
@@ -84,6 +87,15 @@ public class ParameterIssue implements QualitygateIssue {
     @Override
     public String getQualitygateId() {
         return qualitygateId;
+    }
+
+
+
+
+    @Override
+    public void setHandled(boolean handled) {
+        this.isHandled = handled;
+        
     }
 
 

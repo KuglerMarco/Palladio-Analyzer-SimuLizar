@@ -28,14 +28,13 @@ public class QualitygateIssueRecorder {
     private Integer numberOfBreaking;
     
 
-    public QualitygateIssueRecorder(QualityGate qualitygate, Entity stereotypedObject) {
+    public QualitygateIssueRecorder(QualityGate qualitygate) {
         
       //Factories for EntityReferences
         EntityReference.AbstractEntityReferenceFactory<org.palladiosimulator.pcm.core.entity.Entity> stereotypedObjectFac = new SimuLizarEntityReferenceFactories.Entity();
         EntityReference.AbstractEntityReferenceFactory<org.palladiosimulator.failuremodel.qualitygate.QualityGate> qualitygateFac = new SimuLizarEntityReferenceFactories.Qualitygate();
         
         this.qualitygateRef = qualitygateFac.createCached(qualitygate);
-        this.stereotypedObjectRef = stereotypedObjectFac.createCached(stereotypedObject);
         this.issueList = new ArrayList<QualitygateIssue>();
         this.numberOfBreaking = 0;
         

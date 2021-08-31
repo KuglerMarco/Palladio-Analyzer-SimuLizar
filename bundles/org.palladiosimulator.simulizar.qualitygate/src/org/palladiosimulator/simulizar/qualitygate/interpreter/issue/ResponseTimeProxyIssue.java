@@ -15,6 +15,9 @@ public class ResponseTimeProxyIssue implements InterpretationIssue {
     private QualityGate qualitygate;
     private Entity stereotypedObject;
     private InterpreterDefaultContext context;
+    
+    //because of handler in Dispatch
+    private boolean isHandledOnce = false;
 
 
 
@@ -43,8 +46,15 @@ public class ResponseTimeProxyIssue implements InterpretationIssue {
 
     @Override
     public boolean isHandled() {
-        // TODO Auto-generated method stub
         return false;
+    }
+    
+    public boolean isHandledOnce() {
+        return isHandledOnce;
+    }
+    
+    public void setHandledOnce(boolean bool) {
+        this.isHandledOnce = bool;
     }
 
     public QualityGate getQualitygate() {

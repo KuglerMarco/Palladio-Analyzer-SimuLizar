@@ -226,9 +226,10 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
                         this.interpreterDefaultContext.getStack()
                             .currentStackFrame()
-                            .getContents());
+                            .getContents(), true);
 
                 result = BasicInterpreterResult.of(issue);
+                
 
                 // triggering probe to measure Success-To-Failure-Rate case violated
                 probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
@@ -269,9 +270,10 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                 ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
                         this.interpreterDefaultContext.getCurrentResultFrame()
-                            .getContents());
+                            .getContents(), false);
 
                 result = BasicInterpreterResult.of(issue);
+                
 
                 // triggering probe to measure Success-To-Failure-Rate case successful
                 probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
@@ -376,9 +378,10 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                     LOGGER.debug("Reponsetime Qualitygate broken: " + responseTime);
 
                     ResponseTimeIssue issue = new ResponseTimeIssue((Entity) this.stereotypedObject, qualitygate,
-                            responseTime);
+                            responseTime, false);
 
                     result = BasicInterpreterResult.of(issue);
+                    
 
                     // triggering probe to measure Success-To-Failure-Rate case violation
                     probeRegistry

@@ -22,6 +22,7 @@ import org.palladiosimulator.monitorrepository.MonitorRepository;
 import org.palladiosimulator.monitorrepository.MonitorRepositoryPackage;
 import org.palladiosimulator.probeframework.calculator.DefaultCalculatorProbeSets;
 import org.palladiosimulator.probeframework.calculator.IGenericCalculatorFactory;
+import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
 import org.palladiosimulator.simulizar.qualitygate.metric.QualitygateMetricDescriptionConstants;
 import org.palladiosimulator.simulizar.utils.PCMPartitionManager.Global;
@@ -41,7 +42,9 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
     private final PCMResourceSetPartition pcmPartition;
     private final IGenericCalculatorFactory calculatorFactory;
 
-    private Map<String, QualitygateCheckingTriggeredProbeList> currentProbes = new HashMap<String, QualitygateCheckingTriggeredProbeList>();
+    private Map<String, QualitygateCheckingTriggeredProbeList> qualitygateEvaluationProbe = new HashMap<String, QualitygateCheckingTriggeredProbeList>();
+    
+    private Map<String, QualitygateCheckingTriggeredProbeList> interpreterResultIssueProbe = new HashMap<String, QualitygateCheckingTriggeredProbeList>();
 
     private SeverityTriggeredProbeList severityProbe;
 
@@ -97,7 +100,7 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
                         QualitygateMetricDescriptionConstants.QUALITYGATE_VIOLATION_METRIC_OVER_TIME,
                         Arrays.asList(timeProbe, probe));
 
-                this.currentProbes.put(event.getModelElement()
+                this.qualitygateEvaluationProbe.put(event.getModelElement()
                     .getId(), probeOverTime);
 
                 this.isProbeCreated.put(event.getModelElement()
@@ -117,10 +120,10 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
         // trigger probe according to the evaluation
         if (event.isSuccess() && this.isProbeCreated.get(event.getModelElement()
             .getId()) == true) {
-            this.currentProbes.get(event.getModelElement()
+            this.qualitygateEvaluationProbe.get(event.getModelElement()
                 .getId())
                 .setIdentifier(QualitygateMetricDescriptionConstants.SUCCESS);
-            this.currentProbes.get(event.getModelElement()
+            this.qualitygateEvaluationProbe.get(event.getModelElement()
                 .getId())
                 .takeMeasurement(event.getThread()
                     .getRequestContext());
@@ -128,10 +131,10 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
         } else if (this.isProbeCreated.get(event.getModelElement()
             .getId()) == true) {
 
-            this.currentProbes.get(event.getModelElement()
+            this.qualitygateEvaluationProbe.get(event.getModelElement()
                 .getId())
                 .setIdentifier(QualitygateMetricDescriptionConstants.VIOLATION);
-            this.currentProbes.get(event.getModelElement()
+            this.qualitygateEvaluationProbe.get(event.getModelElement()
                 .getId())
                 .takeMeasurement(event.getThread()
                     .getRequestContext());
@@ -184,10 +187,16 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
         }
 
     }
+    
+    public void triggerIssueProbes(InterpreterResult interpreterResult) {
+        
+        
+        
+    }
 
     @Override
     public void cleanup() {
-        currentProbes.clear();
+        qualitygateEvaluationProbe.clear();
     }
 
     // TODO später für die Überprüfung nutzen

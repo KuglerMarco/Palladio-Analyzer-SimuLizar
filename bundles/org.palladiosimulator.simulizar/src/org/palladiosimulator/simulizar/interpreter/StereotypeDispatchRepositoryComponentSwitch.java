@@ -81,6 +81,8 @@ public class StereotypeDispatchRepositoryComponentSwitch extends Switch<Interpre
             interpreterResult = merger.merge(interpreterResult,
                     this.handleAttachedStereotypes(theEObject, CallScope.RESPONSE));
         }
+        
+        handler.handleIssues(interpreterResult);
 
         return interpreterResult;
 

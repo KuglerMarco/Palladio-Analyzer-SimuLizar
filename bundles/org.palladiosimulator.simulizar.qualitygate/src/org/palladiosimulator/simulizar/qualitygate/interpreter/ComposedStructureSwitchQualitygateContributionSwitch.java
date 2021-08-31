@@ -170,7 +170,7 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
                 return BasicInterpreterResult.of(new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
                         this.context.getStack()
                             .currentStackFrame()
-                            .getContents()));
+                            .getContents(), true));
 
             }
 
@@ -198,7 +198,7 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
 
                 return BasicInterpreterResult.of(new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
                         this.context.getCurrentResultFrame()
-                            .getContents()));
+                            .getContents(), false));
             }
         }
 

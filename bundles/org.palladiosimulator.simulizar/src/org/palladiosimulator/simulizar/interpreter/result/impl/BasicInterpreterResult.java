@@ -10,7 +10,7 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import com.google.common.collect.ImmutableList;
 
 public class BasicInterpreterResult implements InterpreterResult {
-    List<InterpretationIssue> issues;
+    public List<InterpretationIssue> issues;
 
     @Override
     public boolean hasNoIssues() {

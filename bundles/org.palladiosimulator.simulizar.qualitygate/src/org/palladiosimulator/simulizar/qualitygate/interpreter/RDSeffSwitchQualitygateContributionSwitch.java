@@ -211,6 +211,8 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
     @Override
     public InterpreterResult caseRequestMetricScope(RequestMetricScope object) {
+        
+        InterpreterResult result = InterpreterResult.OK;
 
         if (qualitygate.getAssemblyContext() == null || qualitygate.getAssemblyContext()
             .equals(this.assembly)) {
@@ -270,7 +272,6 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                     this.atRequestMetricCalcAdded = true;
                 }
 
-                return InterpreterResult.OK;
 
             } else {
                 /*
@@ -278,15 +279,14 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                  * is added as Issue
                  */
                 LOGGER.debug("New ResponseTimeProxyIssue.");
-                return InterpreterResult
+                result = InterpreterResult
                     .of(new ResponseTimeProxyIssue(premise, this, qualitygate, stereotypedObject, this.context));
-                
                 
 
             }
         }
         
-        return InterpreterResult.OK;
+        return result;
 
     }
 
@@ -320,7 +320,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                     ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject,
                             this.qualitygate, this.context.getStack()
                             .currentStackFrame()
-                            .getContents());
+                            .getContents(), true);
                     
                     result = BasicInterpreterResult.of(issue);
 
@@ -372,11 +372,12 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
                 ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
                         this.context.getCurrentResultFrame()
-                        .getContents());
+                        .getContents(), false);
                 
                 result = BasicInterpreterResult.of(issue);
+                
 
-                // triggering probe to measure Success-To-Failure-Rate case successful
+                // triggering probe to measure Success-To-Failure-Rate case violation
                 probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, false, null));
                 
                 probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getCriticality()));

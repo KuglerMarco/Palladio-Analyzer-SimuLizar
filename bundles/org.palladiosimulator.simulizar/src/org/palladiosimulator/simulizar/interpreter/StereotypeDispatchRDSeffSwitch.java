@@ -91,6 +91,8 @@ public class StereotypeDispatchRDSeffSwitch extends Switch<InterpreterResult> im
             interpreterResult = merger.merge(interpreterResult,
                     this.handleAttachedStereotypes(theEObject, CallScope.RESPONSE));
         }
+        
+        handler.handleIssues(interpreterResult);
 
 //        if (LOGGER.isDebugEnabled()) {
 //            ArrayList<InterpretationIssue> list1 = Lists.newArrayList(interpreterResult.getIssues());
