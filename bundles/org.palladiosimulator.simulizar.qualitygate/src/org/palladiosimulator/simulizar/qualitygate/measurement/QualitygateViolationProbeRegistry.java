@@ -28,9 +28,6 @@ import org.palladiosimulator.metricspec.Scale;
 import org.palladiosimulator.metricspec.ScopeOfValidity;
 import org.palladiosimulator.metricspec.TextualBaseMetricDescription;
 import org.palladiosimulator.metricspec.constants.MetricDescriptionConstants;
-import org.palladiosimulator.metricspec.util.builder.MetricspecBuilders;
-import org.palladiosimulator.metricspec.util.builder.TextualBaseMetricDescriptionBuilder;
-import org.palladiosimulator.monitorrepository.MeasurementSpecification;
 import org.palladiosimulator.monitorrepository.Monitor;
 import org.palladiosimulator.monitorrepository.MonitorRepository;
 import org.palladiosimulator.monitorrepository.MonitorRepositoryPackage;
@@ -38,7 +35,6 @@ import org.palladiosimulator.probeframework.calculator.DefaultCalculatorProbeSet
 import org.palladiosimulator.probeframework.calculator.IGenericCalculatorFactory;
 import org.palladiosimulator.simulizar.entity.EntityReference;
 import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
-import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.QualitygateIssue;
 import org.palladiosimulator.simulizar.qualitygate.metric.QualitygateMetricDescriptionConstants;
@@ -50,6 +46,12 @@ import de.uka.ipd.sdq.simulation.abstractsimengine.ISimulationControl;
 import org.palladiosimulator.simulizar.runtimestate.RuntimeStateEntityManager;
 import org.palladiosimulator.simulizar.scopes.RuntimeExtensionScope;
 
+/**
+ * Registry for the probes used to evaluate the qualitygates during simulation.
+ * 
+ * @author Marco Kugler
+ *
+ */
 @RuntimeExtensionScope
 public class QualitygateViolationProbeRegistry implements RuntimeStateEntityManager {
 
@@ -59,29 +61,24 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
     private final PCMResourceSetPartition pcmPartition;
     private final IGenericCalculatorFactory calculatorFactory;
 
+    // Probes for QualitygateViolationOverTime
     private Map<String, QualitygateCheckingTriggeredProbeList> qualitygateEvaluationProbe = new HashMap<String, QualitygateCheckingTriggeredProbeList>();
-
-    /*
-     * For Histogram, which issues were present at the time of violation
-     */
-    private Map<String, QualitygateCheckingTriggeredProbeList> interpreterResultIssueProbe = new HashMap<String, QualitygateCheckingTriggeredProbeList>();
-
-    private TextualBaseMetricDescription textMetricDesc;
     
-    private MetricSetDescription metricSetDesc;
-    
-    private MetricDescriptionRepository metricRepository;
-    
-    private Map<String, Boolean> isIssueProbeCreated = new HashMap<String, Boolean>();
-    
-    private Map<String, Identifier> createdIdentifier = new HashMap<String, Identifier>();
-    
-    
-
-    private SeverityTriggeredProbeList severityProbe;
-
     private Map<String, Boolean> isProbeCreated = new HashMap<String, Boolean>();
     
+    // Probes for InvolvedIssuesOverTime
+    private Map<String, QualitygateCheckingTriggeredProbeList> interpreterResultIssueProbe = new HashMap<String, QualitygateCheckingTriggeredProbeList>();
+
+    // MetricDescriptions for InvolvedIssuesOderTime
+    private TextualBaseMetricDescription textMetricDesc;
+    private MetricSetDescription metricSetDesc;
+    private MetricDescriptionRepository metricRepository;
+    private Map<String, Identifier> createdIdentifier = new HashMap<String, Identifier>();
+    private Map<String, Boolean> isIssueProbeCreated = new HashMap<String, Boolean>();
+
+    // Probes for SeverityOverTime
+    private QualitygateCheckingTriggeredProbeList severityProbe;
+
 
     @Inject
     public QualitygateViolationProbeRegistry(@Global final PCMResourceSetPartition pcmPartition,
@@ -90,54 +87,67 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
         this.calculatorFactory = calculatorFactory;
         this.simulationControl = simulationControl;
         this.severityProbe = null;
-        
-        
+
         this.metricRepository = MetricSpecFactory.eINSTANCE.createMetricDescriptionRepository();
         this.textMetricDesc = this.createInvolvedIssuesMetric();
         this.metricSetDesc = this.createInvolvedIssueMetricSet();
-        
-
 
         LOGGER.setLevel(Level.DEBUG);
 
     }
-    
+
+    /**
+     * Creates the Metric for the involved issues at a qualitygate break
+     * 
+     * @return
+     */
     public TextualBaseMetricDescription createInvolvedIssuesMetric() {
-        
+
         TextualBaseMetricDescription result = MetricSpecFactory.eINSTANCE.createTextualBaseMetricDescription();
         result.setCaptureType(CaptureType.IDENTIFIER);
         result.setDataType(DataType.QUALITATIVE);
         result.setName("InvolvedIssues");
         result.setScale(Scale.NOMINAL);
         result.setScopeOfValidity(ScopeOfValidity.DISCRETE);
-        result.setTextualDescription("This Metric represents the Issues which are involved when a qualitygate is broken.");
+        result.setTextualDescription(
+                "This Metric represents the Issues which are involved when a qualitygate is broken.");
         // Identifier to count how many times the Qualitygate was broken in general
         Identifier defaultBrokenIdentifier = MetricSpecFactory.eINSTANCE.createIdentifier();
         this.createdIdentifier.put("default", defaultBrokenIdentifier);
-        defaultBrokenIdentifier.setLiteral("QualitygateBroken");
-        result.getIdentifiers().add(defaultBrokenIdentifier);
-        
-        
+        defaultBrokenIdentifier.setLiteral("Overall count of violation");
+        result.getIdentifiers()
+            .add(defaultBrokenIdentifier);
+
         result.setRepository(this.metricRepository);
-        
-        
+
         return result;
-        
-        
+
     }
-    
+
+    /**
+     * Creates the Metric-Set for the involved issues at a qualitygate break
+     * 
+     * @return
+     */
     public MetricSetDescription createInvolvedIssueMetricSet() {
         MetricSetDescription result = MetricSpecFactory.eINSTANCE.createMetricSetDescription();
         result.setName("InvolvedIssuesOverTime");
-        result.getSubsumedMetrics().add(MetricDescriptionConstants.POINT_IN_TIME_METRIC);
-        result.getSubsumedMetrics().add(this.textMetricDesc);
+        result.getSubsumedMetrics()
+            .add(MetricDescriptionConstants.POINT_IN_TIME_METRIC);
+        result.getSubsumedMetrics()
+            .add(this.textMetricDesc);
         result.setTextualDescription("This metric represents the issue present when the qualitygate was broken.");
-        
+
         result.setRepository(this.metricRepository);
         return result;
     }
     
 
+    /**
+     * Triggers the probes for QualitygateViolationOverTime
+     * 
+     * @param event
+     */
     public void triggerProbe(final QualitygatePassedEvent event) {
 
         // Create probe and calculator for this qualitygate
@@ -145,8 +155,6 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
             .getId())) {
 
             EcoreUtil.resolveAll(pcmPartition.getResourceSet());
-
-            // TODO hier überprüfen ob QualitygateMonitor im Repository vorliegt
 
             MeasuringPointRepository repo = (MeasuringPointRepository) pcmPartition
                 .getElement(MeasuringpointPackage.eINSTANCE.getMeasuringPointRepository())
@@ -164,7 +172,7 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
                 .findAny()
                 .orElse(null);
 
-            if (measuringPoint != null) {
+            if (measuringPoint != null && this.isQualitygateMonitorInRepository(event.getModelElement())) {
 
                 // Creating Probes
                 QualitygateCheckingProbe probe = new QualitygateCheckingProbe(
@@ -198,26 +206,25 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
             .getId()) == true) {
             this.qualitygateEvaluationProbe.get(event.getModelElement()
                 .getId())
-                .setIdentifier(QualitygateMetricDescriptionConstants.SUCCESS);
-            this.qualitygateEvaluationProbe.get(event.getModelElement()
-                .getId())
                 .takeMeasurement(event.getThread()
-                    .getRequestContext());
+                    .getRequestContext(), QualitygateMetricDescriptionConstants.SUCCESS);
 
         } else if (this.isProbeCreated.get(event.getModelElement()
             .getId()) == true) {
 
             this.qualitygateEvaluationProbe.get(event.getModelElement()
                 .getId())
-                .setIdentifier(QualitygateMetricDescriptionConstants.VIOLATION);
-            this.qualitygateEvaluationProbe.get(event.getModelElement()
-                .getId())
                 .takeMeasurement(event.getThread()
-                    .getRequestContext());
+                    .getRequestContext(), QualitygateMetricDescriptionConstants.VIOLATION);
         }
 
     }
-
+    
+    /**
+     * Triggers the probes for SeverityOverTime
+     * 
+     * @param event
+     */
     public void triggerSeverityProbe(final QualitygatePassedEvent event) {
 
         if (this.severityProbe == null) {
@@ -234,14 +241,14 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
                 .findAny()
                 .orElse(null);
 
-            if (measuringPoint != null) {
+            if (measuringPoint != null && this.isQualitygateMonitorInRepository(event.getModelElement())) {
 
                 // Creating Probes
-                SeverityProbe probe = new SeverityProbe(QualitygateMetricDescriptionConstants.SEVERITY_METRIC);
+                QualitygateCheckingProbe probe = new QualitygateCheckingProbe(QualitygateMetricDescriptionConstants.SEVERITY_METRIC);
 
                 TakeCurrentSimulationTimeProbe timeProbe = new TakeCurrentSimulationTimeProbe(simulationControl);
 
-                SeverityTriggeredProbeList probeOverTime = new SeverityTriggeredProbeList(
+                QualitygateCheckingTriggeredProbeList probeOverTime = new QualitygateCheckingTriggeredProbeList(
                         QualitygateMetricDescriptionConstants.SEVERITY_METRIC_OVER_TIME,
                         Arrays.asList(timeProbe, probe));
 
@@ -254,20 +261,25 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
 
         }
 
-        if (event.getSeverity() != null) {
+        if (event.getSeverity() != null && severityProbe != null) {
 
-            this.severityProbe.setIdentifier(event.getSeverity());
             this.severityProbe.takeMeasurement(event.getThread()
-                .getRequestContext());
+                .getRequestContext(), event.getSeverity());
 
         }
 
     }
 
-    public void triggerIssueProbes(List<InterpretationIssue> issuesWhenBroken, EntityReference<QualityGate> qualitygateRef) {
-        
+    /**
+     * Triggers the probes for InvolvedIssuesOverTime
+     * 
+     * @param event
+     */
+    public void triggerIssueProbes(List<InterpretationIssue> issuesWhenBroken,
+            EntityReference<QualityGate> qualitygateRef) {
+
         QualityGate qualitygate = qualitygateRef.getModelElement(pcmPartition);
-        
+
         // in case no probe for htis qualitygate is registered
         if (!interpreterResultIssueProbe.containsKey(qualitygate.getId())) {
 
@@ -286,64 +298,58 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
                     .equals(qualitygate)))
                 .findAny()
                 .orElse(null);
-            
-            if (measuringPoint != null) {
+
+            if (measuringPoint != null && this.isQualitygateMonitorInRepository(qualitygate)) {
 
                 // Creating Probes
-                QualitygateCheckingProbe probe = new QualitygateCheckingProbe(
-                        textMetricDesc);
+                QualitygateCheckingProbe probe = new QualitygateCheckingProbe(textMetricDesc);
 
                 TakeCurrentSimulationTimeProbe timeProbe = new TakeCurrentSimulationTimeProbe(simulationControl);
 
                 QualitygateCheckingTriggeredProbeList probeOverTime = new QualitygateCheckingTriggeredProbeList(
-                        metricSetDesc,
-                        Arrays.asList(timeProbe, probe));
+                        metricSetDesc, Arrays.asList(timeProbe, probe));
 
                 this.interpreterResultIssueProbe.put(qualitygate.getId(), probeOverTime);
 
                 this.isIssueProbeCreated.put(qualitygate.getId(), true);
 
                 // Creating and registering the calculator
-                this.calculatorFactory.buildCalculator(
-                        metricSetDesc, measuringPoint,
+                this.calculatorFactory.buildCalculator(metricSetDesc, measuringPoint,
                         DefaultCalculatorProbeSets.createSingularProbeConfiguration(probeOverTime));
             } else {
                 this.isIssueProbeCreated.put(qualitygate.getId(), false);
             }
         }
-        
-        // Trigger default identifier
-        this.interpreterResultIssueProbe.get(qualitygate.getId())
-        .setIdentifier(createdIdentifier.get("default"));
-        this.interpreterResultIssueProbe.get(qualitygate.getId())
-        .takeMeasurement();
-        
-        
-        for(InterpretationIssue issue : issuesWhenBroken) {
-            
-            if(issue instanceof QualitygateIssue) {
-                if(!this.createdIdentifier.containsKey(((QualitygateIssue) issue).getQualitygateId())) {
 
-                    // Adding Identifier for every issue not yet registered as Identifier
-                    Identifier identifier = MetricSpecFactory.eINSTANCE.createIdentifier();
-                    identifier.setLiteral(((QualitygateIssue) issue).getQualitygateId());
-                    this.textMetricDesc.getIdentifiers().add(identifier);
-                    this.createdIdentifier.put(((QualitygateIssue) issue).getQualitygateId(), identifier);
-                    
+        if (this.isIssueProbeCreated.get(qualitygate.getId())) {
+
+            this.interpreterResultIssueProbe.get(qualitygate.getId())
+                .takeMeasurement(createdIdentifier.get("default"));
+
+            for (InterpretationIssue issue : issuesWhenBroken) {
+
+                if (issue instanceof QualitygateIssue) {
+                    if (!this.createdIdentifier.containsKey(((QualitygateIssue) issue).getQualitygateId())) {
+
+                        // Adding Identifier for every issue not yet registered as Identifier
+                        Identifier identifier = MetricSpecFactory.eINSTANCE.createIdentifier();
+                        identifier.setLiteral(((QualitygateIssue) issue).getQualitygateRef()
+                            .getModelElement(pcmPartition)
+                            .getEntityName());
+                        this.textMetricDesc.getIdentifiers()
+                            .add(identifier);
+                        this.createdIdentifier.put(((QualitygateIssue) issue).getQualitygateId(), identifier);
+
+                    }
+
+                    this.interpreterResultIssueProbe.get(qualitygate.getId())
+                        .takeMeasurement(createdIdentifier.get(((QualitygateIssue) issue).getQualitygateId()));
+
                 }
-                
-                this.interpreterResultIssueProbe.get(qualitygate.getId())
-                .setIdentifier(createdIdentifier.get(((QualitygateIssue) issue).getQualitygateId()));
-                this.interpreterResultIssueProbe.get(qualitygate.getId())
-                .takeMeasurement();
-                
+
             }
-            
-            
-            
         }
-        
-        
+
     }
 
     @Override
@@ -352,8 +358,13 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
         interpreterResultIssueProbe.clear();
     }
 
-    // TODO später für die Überprüfung nutzen
-    public boolean isQualitygateMonitorInRepository(final QualitygatePassedEvent event) {
+    /**
+     * Checks whether the a monitor is present in MonitorRepository.
+     * 
+     * @param qualitygate
+     * @return
+     */
+    public boolean isQualitygateMonitorInRepository(final QualityGate qualitygate) {
 
         MonitorRepository monitorRepo = (MonitorRepository) pcmPartition
             .getElement(MonitorRepositoryPackage.eINSTANCE.getMonitorRepository())
@@ -366,15 +377,9 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
             if (monitor.getMeasuringPoint() instanceof QualitygateMeasuringPoint) {
 
                 if (((QualitygateMeasuringPoint) monitor.getMeasuringPoint()).getQualitygate()
-                    .equals(event.getModelElement())) {
-
-                    for (MeasurementSpecification spec : monitor.getMeasurementSpecifications()) {
-
-                        if (spec.getMetricDescription()
-                            .equals(QualitygateMetricDescriptionConstants.QUALITYGATE_VIOLATION_METRIC_OVER_TIME)) {
-                            return true;
-                        }
-                    }
+                    .getId()
+                    .equals(qualitygate.getId())) {
+                    return true;
                 }
             }
         }

@@ -55,7 +55,7 @@ import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
 /**
- * Switch to process the qualitygates attached at elements of ExternalCalls.
+ * Switch to process the qualitygates attached at ExternalCalls.
  * 
  * @author Marco Kugler
  *
@@ -149,22 +149,22 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         this.stereotypedObject = (Entity) theEObject;
         this.callScope = callScope;
 
-        EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
+        EList<QualityGate> qualitygates = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
 
         // Model validation
-        if (taggedValues.isEmpty()) {
+        if (qualitygates.isEmpty()) {
             throw new IllegalArgumentException(
                     "Qualitygate-Model not valid: Qualitygate-Stereotype needs to have at least one Qualitygate element.");
         }
 
         // Processing all the attached Qualitygates
-        for (QualityGate e : taggedValues) {
+        for (QualityGate qualitygate : qualitygates) {
 
-            LOGGER.debug("RepositoryCompoonent: " + e.getPremise()
+            LOGGER.debug("RepositoryCompoonent: " + qualitygate.getPremise()
                 .getSpecification());
 
             if (theEObject instanceof ExternalCallAction) {
-                result = merger.merge(result, this.doSwitch(e));
+                result = merger.merge(result, this.doSwitch(qualitygate));
             } else {
                 throw new IllegalStateException(
                         "The element, which was attached with a qualitygate is not (yet) supported");
@@ -188,7 +188,6 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
     public void newMeasurementAvailable(MeasuringValue newMeasurement) {
         responseTime = newMeasurement.getMeasuringValueForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
         LOGGER.debug("Added a new Measurement: " + responseTime);
-
     }
 
     @Override
@@ -209,9 +208,13 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
     }
 
+    /**
+     * Processing in RequestMetricScope.
+     *
+     */
     @Override
     public InterpreterResult caseRequestMetricScope(RequestMetricScope object) {
-        
+
         InterpreterResult result = InterpreterResult.OK;
 
         if (qualitygate.getAssemblyContext() == null || qualitygate.getAssemblyContext()
@@ -272,7 +275,6 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                     this.atRequestMetricCalcAdded = true;
                 }
 
-
             } else {
                 /*
                  * Response-Time is checked, when the measurements are available - Processing-Proxy
@@ -281,11 +283,10 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 LOGGER.debug("New ResponseTimeProxyIssue.");
                 result = InterpreterResult
                     .of(new ResponseTimeProxyIssue(premise, this, qualitygate, stereotypedObject, this.context));
-                
 
             }
         }
-        
+
         return result;
 
     }
@@ -317,18 +318,20 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                                     .currentStackFrame()
                                     .toString());
                     }
-                    ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject,
-                            this.qualitygate, this.context.getStack()
-                            .currentStackFrame()
-                            .getContents(), true);
-                    
+                    ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
+                            this.context.getStack()
+                                .currentStackFrame()
+                                .getContents(),
+                            true);
+
                     result = BasicInterpreterResult.of(issue);
 
                     // triggering probe to measure Success-To-Failure-Rate case violated
                     probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, false, null));
 
-                    probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getCriticality()));
-                    
+                    probeRegistry.triggerSeverityProbe(
+                            new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getCriticality()));
+
                     recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
                 } else {
@@ -372,17 +375,17 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
                 ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
                         this.context.getCurrentResultFrame()
-                        .getContents(), false);
-                
+                            .getContents(),
+                        false);
+
                 result = BasicInterpreterResult.of(issue);
-                
 
                 // triggering probe to measure Success-To-Failure-Rate case violation
                 probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, false, null));
-                
-                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getCriticality()));
 
-                
+                probeRegistry.triggerSeverityProbe(
+                        new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getCriticality()));
+
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
             } else {

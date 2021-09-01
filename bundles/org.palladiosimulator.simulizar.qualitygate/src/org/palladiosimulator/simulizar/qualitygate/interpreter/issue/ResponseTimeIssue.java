@@ -64,7 +64,6 @@ public class ResponseTimeIssue implements QualitygateIssue {
 
     @Override
     public String getQualitygateId() {
-        // TODO Auto-generated method stub
         return this.qualitygateId;
     }
 

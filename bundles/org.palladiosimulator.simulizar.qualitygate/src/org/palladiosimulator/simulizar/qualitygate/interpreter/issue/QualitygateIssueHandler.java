@@ -138,8 +138,6 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                     // Removing the Proxy
                     result.removeIssue(issue);
     
-                    LOGGER.debug(result.getIssues());
-    
                     iter = result.getIssues()
                         .iterator();
                 } else {
@@ -185,7 +183,7 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                 
                 for(InterpretationIssue logIssue : issuesWhenBroken) {
                     if(issue instanceof QualitygateIssue) {
-                        LOGGER.debug(((QualitygateIssue) issue).getQualitygateId());
+                        LOGGER.debug(((QualitygateIssue) logIssue).getQualitygateId());
                     }
                 }
                 

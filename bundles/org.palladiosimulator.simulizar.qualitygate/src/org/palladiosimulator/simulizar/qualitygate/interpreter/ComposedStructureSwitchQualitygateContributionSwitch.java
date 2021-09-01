@@ -29,7 +29,7 @@ import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
 /**
- * Switch to process the qualitygates attached at ProvidedRoles.
+ * Switch to process the qualitygates attached at AssemblyConnectors.
  * 
  * @author Marco Kugler
  *
@@ -68,9 +68,10 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
             @Assisted ComposedStructureInnerSwitchStereotypeElementDispatcher parentSwitch,
             BasicInterpreterResultMerger merger) {
 
-        this.merger = merger;
-        this.context = context;
         this.operationSignature = operationSignature;
+        this.context = context;
+        // Injected
+        this.merger = merger;
 
         LOGGER.setLevel(Level.DEBUG);
 
@@ -94,7 +95,7 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
     }
 
     /**
-     * Entry-Point to process the attached stereotypes.
+     * Entry-Point to process the attached stereotype.
      *
      */
     @Override
@@ -170,7 +171,8 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
                 return BasicInterpreterResult.of(new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
                         this.context.getStack()
                             .currentStackFrame()
-                            .getContents(), true));
+                            .getContents(),
+                        true));
 
             }
 
@@ -198,7 +200,8 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
 
                 return BasicInterpreterResult.of(new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
                         this.context.getCurrentResultFrame()
-                            .getContents(), false));
+                            .getContents(),
+                        false));
             }
         }
 

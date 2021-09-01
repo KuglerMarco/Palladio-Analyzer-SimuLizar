@@ -7,7 +7,6 @@ import org.palladiosimulator.failuremodel.qualitygate.Minor;
 import org.palladiosimulator.failuremodel.qualitygate.NoSafetyEffect;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.failuremodel.qualitygate.Severity;
-import org.palladiosimulator.failuremodel.qualitygate.NoSafetyEffect;
 import org.palladiosimulator.metricspec.Identifier;
 import org.palladiosimulator.simulizar.qualitygate.metric.QualitygateMetricDescriptionConstants;
 

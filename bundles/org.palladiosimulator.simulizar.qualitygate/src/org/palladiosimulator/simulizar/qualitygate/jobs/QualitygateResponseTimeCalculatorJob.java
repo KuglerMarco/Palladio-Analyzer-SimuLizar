@@ -184,15 +184,16 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
                     if (this.hasQualityGate(abstractAction)) {
 
                         if (abstractAction instanceof ExternalCallAction) {
-                            
+
                             LOGGER.debug("The ExternalCall " + ((ExternalCallAction) abstractAction).getEntityName()
                                     + " has a qualitygate-application");
-                            
+
                             // List of generated Monitors for the attached Qualitygates
-                            List<Monitor> qualitygateMonitors = externalCallPreprocessingSwitch.create(metricDescRepo, assembly)
+                            List<Monitor> qualitygateMonitors = externalCallPreprocessingSwitch
+                                .create(metricDescRepo, assembly)
                                 .handleQualitygate(abstractAction);
-                            
-                         // Adding the generated Monitors to the repositories
+
+                            // Adding the generated Monitors to the repositories
                             for (Monitor monitor : qualitygateMonitors) {
 
                                 if (!this.isMonitorPresent(monitor)) {

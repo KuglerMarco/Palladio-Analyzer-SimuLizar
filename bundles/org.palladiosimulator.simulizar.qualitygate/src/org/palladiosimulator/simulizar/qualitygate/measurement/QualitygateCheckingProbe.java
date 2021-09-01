@@ -20,9 +20,17 @@ public class QualitygateCheckingProbe extends TriggeredProbe {
         super(metricDescription);
     }
     
-    @Override
-    public ProbeMeasurement takeMeasurement(RequestContext measurementContext) {
+    
+    public ProbeMeasurement takeMeasurement(RequestContext measurementContext, Identifier identifier) {
+        this.setIdentifier(identifier);
         final ProbeMeasurement newMeasurement = doMeasure(measurementContext);
+        notifyMeasurementSourceListener(newMeasurement);
+        return newMeasurement;
+    }
+    
+    public ProbeMeasurement takeMeasurement(Identifier identifier) {
+        this.setIdentifier(identifier);
+        final ProbeMeasurement newMeasurement = doMeasure(RequestContext.EMPTY_REQUEST_CONTEXT);
         notifyMeasurementSourceListener(newMeasurement);
         return newMeasurement;
     }

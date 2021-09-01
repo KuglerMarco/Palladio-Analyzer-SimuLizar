@@ -131,7 +131,7 @@ public class StereotypeQualitygateExternalCallPreprocessingSwitch extends Qualit
 
         for (QualityGate e : taggedValues) {
             
-            // Only monitors added to the assembly, which is optionally reffered to
+            // Only monitors added to the assembly, which is optionally referred to
             if (e.getAssemblyContext() == null || e.getAssemblyContext()
                 .equals(this.assembly)) {
                 monitor.add(this.doSwitch(e));

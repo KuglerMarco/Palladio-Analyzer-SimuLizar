@@ -32,6 +32,20 @@ public class QualitygateCheckingTriggeredProbeList extends TriggeredProbe {
         this.identifier = identifier;
     }
     
+    public ProbeMeasurement takeMeasurement(RequestContext measurementContext, Identifier identifier) {
+        this.setIdentifier(identifier);
+        final ProbeMeasurement newMeasurement = doMeasure(measurementContext);
+        notifyMeasurementSourceListener(newMeasurement);
+        return newMeasurement;
+    }
+    
+    public ProbeMeasurement takeMeasurement(Identifier identifier) {
+        this.setIdentifier(identifier);
+        final ProbeMeasurement newMeasurement = doMeasure(RequestContext.EMPTY_REQUEST_CONTEXT);
+        notifyMeasurementSourceListener(newMeasurement);
+        return newMeasurement;
+    }
+    
 
     @Override
     protected ProbeMeasurement doMeasure(RequestContext measurementContext) {
@@ -60,6 +74,8 @@ public class QualitygateCheckingTriggeredProbeList extends TriggeredProbe {
         final IMeasureProvider measureProvider = new MeasurementListMeasureProvider(childMeasurements);
         return new ProbeMeasurement(measureProvider, this, measurementContext);
     }
+
+
     
     
 

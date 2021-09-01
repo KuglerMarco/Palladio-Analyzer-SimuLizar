@@ -25,15 +25,10 @@ import dagger.Component;
 public interface QualitygateExtensionComponent extends ExtensionComponent {
 
     ComposedStructureSwitchQualitygateContributionSwitch.Factory composedStructureQualitygateContribution();
-
     RepositoryComponentSwitchQualitygateContributionSwitch.Factory repositoryQualityGateContribution();
-
     RDSeffSwitchQualitygateContributionSwitch.Factory seffQualitygateContribution();
-
     QualitygateIssueHandler issueHandler();
-    
     QualitygateViolationProbeRegistry probeRegistry();
-    
     QualitygatePropagationRecorder propagationRecorder();
 
     @Component.Factory
@@ -43,12 +38,10 @@ public interface QualitygateExtensionComponent extends ExtensionComponent {
     }
 
     public static class EclipseFactory implements IExecutableExtensionFactory {
-
         @Override
         public Object create() throws CoreException {
             return DaggerQualitygateExtensionComponent.factory();
         }
-
     }
 
 }

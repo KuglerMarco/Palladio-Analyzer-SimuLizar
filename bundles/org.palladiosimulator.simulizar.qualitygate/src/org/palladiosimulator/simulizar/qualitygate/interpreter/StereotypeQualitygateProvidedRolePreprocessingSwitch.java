@@ -28,6 +28,13 @@ import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
+/**
+ * Switch to create the necessary Monitors for the Qualitygate-Elements in order to use the
+ * calculators within the simulation.
+ * 
+ * @author Marco Kugler
+ *
+ */
 public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends QualitygateSwitch<Monitor> {
 
     @AssistedFactory
