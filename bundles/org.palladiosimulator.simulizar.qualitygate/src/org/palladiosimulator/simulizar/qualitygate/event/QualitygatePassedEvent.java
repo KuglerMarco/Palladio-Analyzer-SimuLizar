@@ -26,9 +26,10 @@ public class QualitygatePassedEvent {
     private final Context context;
     private final boolean success;
     private Identifier severity;
+    private org.palladiosimulator.failuremodel.severityhierarchy.Severity severityNew;
     
 
-    public QualitygatePassedEvent(final QualityGate modelElement, final Context context, final boolean success, final Severity severity) {
+    public QualitygatePassedEvent(final QualityGate modelElement, final Context context, final boolean success, final org.palladiosimulator.failuremodel.severityhierarchy.Severity severity2) {
         
         this.modelElement = modelElement;
         this.context = context;
@@ -37,17 +38,21 @@ public class QualitygatePassedEvent {
         
         this.severity = null;
         
-        if(severity instanceof NoSafetyEffect) { 
+        // TODO hier (im Registry dann abgelegt) müsste Identifier gemäß severity erstellet werden, bei selbst konfigurierbarer Hierarchie
+        
+        if(severity2 instanceof NoSafetyEffect) { 
             this.severity = QualitygateMetricDescriptionConstants.NO_SAFETY_EFFECT;
-        } else if(severity instanceof Minor) {
+        } else if(severity2 instanceof Minor) {
             this.severity = QualitygateMetricDescriptionConstants.MINOR;
-        } else if(severity instanceof Major) {
+        } else if(severity2 instanceof Major) {
             this.severity = QualitygateMetricDescriptionConstants.MAJOR;
-        } else if(severity instanceof Hazardous) {
+        } else if(severity2 instanceof Hazardous) {
             this.severity = QualitygateMetricDescriptionConstants.HAZARDOUS;
-        } else if(severity instanceof Catastrophic) { 
+        } else if(severity2 instanceof Catastrophic) { 
             this.severity = QualitygateMetricDescriptionConstants.CATASTROPHIC;
         } 
+        
+        this.severityNew = severity2;
         
     }
     /**
@@ -86,8 +91,12 @@ public class QualitygatePassedEvent {
     }
     
     
-    public Identifier getSeverity() {
-        return severity;
+//    public Identifier getSeverity() {
+//        return severity;
+//    }
+    
+    public org.palladiosimulator.failuremodel.severityhierarchy.Severity getSeverityNew() {
+        return this.severityNew;
     }
 
 }

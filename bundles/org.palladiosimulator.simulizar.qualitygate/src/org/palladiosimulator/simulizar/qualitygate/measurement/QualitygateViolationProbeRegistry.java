@@ -18,6 +18,7 @@ import org.palladiosimulator.edp2.models.measuringpoint.MeasuringpointPackage;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.failuremodel.qualitygatemeasuringpoint.QualitygateMeasuringPoint;
 import org.palladiosimulator.failuremodel.qualitygatemeasuringpoint.SeverityMeasuringPoint;
+import org.palladiosimulator.failuremodel.severityhierarchy.Severity;
 import org.palladiosimulator.metricspec.CaptureType;
 import org.palladiosimulator.metricspec.DataType;
 import org.palladiosimulator.metricspec.Identifier;
@@ -78,6 +79,10 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
 
     // Probes for SeverityOverTime
     private QualitygateCheckingTriggeredProbeList severityProbe;
+    
+    // Identifier for Severity
+    private TextualBaseMetricDescription textMetricDescForSeverity;
+    private Map<String, Identifier> createdIdentifierForSeverity = new HashMap<String, Identifier>();
 
 
     @Inject
@@ -91,6 +96,8 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
         this.metricRepository = MetricSpecFactory.eINSTANCE.createMetricDescriptionRepository();
         this.textMetricDesc = this.createInvolvedIssuesMetric();
         this.metricSetDesc = this.createInvolvedIssueMetricSet();
+        
+        this.textMetricDescForSeverity = this.createSeverityMetric();
 
         LOGGER.setLevel(Level.DEBUG);
 
@@ -122,6 +129,18 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
 
         return result;
 
+    }
+    
+    public TextualBaseMetricDescription createSeverityMetric() {
+        TextualBaseMetricDescription result = MetricSpecFactory.eINSTANCE.createTextualBaseMetricDescription();
+        result.setCaptureType(CaptureType.IDENTIFIER);
+        result.setDataType(DataType.QUALITATIVE);
+        result.setName("Severity");
+        result.setScale(Scale.NOMINAL);
+        result.setScopeOfValidity(ScopeOfValidity.DISCRETE);
+        result.setTextualDescription(
+                "This Metric represents severity of simulation runs.");
+        return result;
     }
 
     /**
@@ -240,8 +259,10 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
                 .filter(e -> (e instanceof SeverityMeasuringPoint))
                 .findAny()
                 .orElse(null);
+            
+            // TODO Check ob Monitor definiert
 
-            if (measuringPoint != null && this.isQualitygateMonitorInRepository(event.getModelElement())) {
+            if (measuringPoint != null) {
 
                 // Creating Probes
                 QualitygateCheckingProbe probe = new QualitygateCheckingProbe(QualitygateMetricDescriptionConstants.SEVERITY_METRIC);
@@ -261,10 +282,27 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
 
         }
 
-        if (event.getSeverity() != null && severityProbe != null) {
+        if (event.getSeverityNew() != null && severityProbe != null) {
 
-            this.severityProbe.takeMeasurement(event.getThread()
-                .getRequestContext(), event.getSeverity());
+            if(!this.createdIdentifierForSeverity.containsKey(event.getSeverityNew().getEntityName())) {
+                // First create Identifier
+                
+                // Adding Identifier for every issue not yet registered as Identifier
+                Identifier identifier = MetricSpecFactory.eINSTANCE.createIdentifier();
+                identifier.setLiteral(event.getSeverityNew().getEntityName());
+                this.textMetricDescForSeverity.getIdentifiers()
+                    .add(identifier);
+                this.createdIdentifierForSeverity.put(event.getSeverityNew().getEntityName(), identifier);
+                
+                
+                
+            }
+            
+            this.severityProbe.takeMeasurement(this.createdIdentifierForSeverity.get(event.getSeverityNew().getEntityName()));
+            
+            
+//            this.severityProbe.takeMeasurement(event.getThread()
+//                .getRequestContext(), event.getSeverity());
 
         }
 
@@ -386,5 +424,6 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
 
         return false;
     }
+    
 
 }

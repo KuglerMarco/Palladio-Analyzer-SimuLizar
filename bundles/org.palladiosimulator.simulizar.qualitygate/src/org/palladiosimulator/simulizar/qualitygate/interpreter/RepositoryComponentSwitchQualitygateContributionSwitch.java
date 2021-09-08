@@ -234,7 +234,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 // triggering probe to measure Success-To-Failure-Rate case violated
                 probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
 
-                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, qualitygate.getCriticality()));
+                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, qualitygate.getSeverity()));
 
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
@@ -278,7 +278,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 // triggering probe to measure Success-To-Failure-Rate case successful
                 probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
 
-                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, qualitygate.getCriticality()));
+                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, qualitygate.getSeverity()));
 
                 
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
@@ -387,7 +387,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                     probeRegistry
                         .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
 
-                    probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, qualitygate.getCriticality()));
+                    probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, qualitygate.getSeverity()));
 
                     
                     recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);

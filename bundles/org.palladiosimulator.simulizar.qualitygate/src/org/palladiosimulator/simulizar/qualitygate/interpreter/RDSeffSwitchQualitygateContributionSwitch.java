@@ -330,7 +330,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                     probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, false, null));
 
                     probeRegistry.triggerSeverityProbe(
-                            new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getCriticality()));
+                            new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getSeverity()));
 
                     recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
@@ -384,7 +384,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, false, null));
 
                 probeRegistry.triggerSeverityProbe(
-                        new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getCriticality()));
+                        new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getSeverity()));
 
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 

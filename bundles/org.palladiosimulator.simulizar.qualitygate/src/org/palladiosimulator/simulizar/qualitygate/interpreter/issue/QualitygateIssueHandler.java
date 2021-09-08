@@ -117,7 +117,7 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                             probeRegistry
                                 .triggerProbe(new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext, false, null));
                             
-                            probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext, false, ((ResponseTimeProxyIssue) issue).getQualitygate().getCriticality()));
+                            probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext, false, ((ResponseTimeProxyIssue) issue).getQualitygate().getSeverity()));
                             
                             LOGGER.debug("Following StoEx is broken: " + responseTime);
     
