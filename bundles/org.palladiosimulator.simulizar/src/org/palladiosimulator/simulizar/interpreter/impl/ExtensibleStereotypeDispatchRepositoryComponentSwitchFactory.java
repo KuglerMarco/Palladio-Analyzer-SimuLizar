@@ -58,9 +58,9 @@ public class ExtensibleStereotypeDispatchRepositoryComponentSwitchFactory implem
 
         var elementFactories = elementFactoriesProvider.get();
         // TODO brauche ich nicht, soll weiterlaufen, wenn es keine gibt?
-        if (elementFactories.isEmpty()) {
-            throw new IllegalStateException("No StereotypeSwitches for RepositoryComponents are registered.");
-        }
+//        if (elementFactories.isEmpty()) {
+//            throw new IllegalStateException("No StereotypeSwitches for RepositoryComponents are registered.");
+//        }
         elementFactories.stream()
             .forEach(s -> interpreter
                 .addSwitch(s.create(context, assemblyContext, signature, providedRole, interpreter)));

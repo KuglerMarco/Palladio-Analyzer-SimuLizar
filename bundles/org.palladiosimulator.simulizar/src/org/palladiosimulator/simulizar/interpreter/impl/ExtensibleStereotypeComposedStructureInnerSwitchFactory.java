@@ -66,9 +66,9 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory implements 
                         operationSignature, requiredRole));
 
         var elementFactories = elementFactoriesProvider.get();
-        if (elementFactories.isEmpty()) {
-            throw new IllegalStateException("No StereotypeSwitches for ComposedStructures are registered.");
-        }
+//        if (elementFactories.isEmpty()) {
+//            throw new IllegalStateException("No StereotypeSwitches for ComposedStructures are registered.");
+//        }
         elementFactories.stream()
             .forEach(s -> interpreter
                 .addSwitch(s.createStereotypeSwitch(context, operationSignature, requiredRole, interpreter)));

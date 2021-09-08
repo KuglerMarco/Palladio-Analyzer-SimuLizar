@@ -55,9 +55,9 @@ public class ExtensibleStereotypeDispatchRDSeffSwitchFactory implements Composed
                 merger, handler, composedRDSeffSwitchFactory.createRDSeffSwitch(context));
 
         var elementFactories = elementFactoriesProvider.get();
-        if (elementFactories.isEmpty()) {
-            throw new IllegalStateException("No StereotypeSwitches for ComposedStructures are registered.");
-        }
+//        if (elementFactories.isEmpty()) {
+//            throw new IllegalStateException("No StereotypeSwitches for ComposedStructures are registered.");
+//        }
         elementFactories.stream()
             .forEach(s -> interpreter
                 .addSwitch(s.create(context, interpreter)));

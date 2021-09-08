@@ -13,4 +13,50 @@
             factory="org.palladiosimulator.simulizar.qualitygate.di.QualitygateRootExtensionComponent$EclipseFactory">
       </component>
    </extension>
+   <extension
+         point="org.eclipse.ui.elementFactories">
+      <factory
+            class="org.palladiosimulator.simulizar.qualitygate.visualization.piechart.QualitygatePieChartVisualizationInputFactory"
+            id="org.palladiosimulator.simulizar.qualitygate.visualization.piechart.QualitygatePieChartVisualizationInputFactory">
+      </factory>
+      <factory
+            class="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygateBarchartVisualizationInputFactory"
+            id="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygateBarchartVisualizationInputFactory">
+      </factory>
+   </extension>
+   <extension
+         point="org.palladiosimulator.edp2.visualization.datasink">
+      <datasink
+            class="org.palladiosimulator.simulizar.qualitygate.visualization.piechart.QualitygatePieChartVisualizationInput"
+            editor="org.palladiosimulator.edp2.visualization.editors.JFreeChartEditor"
+            factory="org.palladiosimulator.simulizar.qualitygate.visualization.piechart.QualitygatePieChartVisualizationInputFactory"
+            id="org.palladiosimulator.simulizar.qualitygate.visualization.piechart.QualitygatePieChartVisualizationInput">
+      </datasink>
+      <datasink
+            class="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygateBarchartVisualizationInput"
+            editor="org.palladiosimulator.edp2.visualization.editors.JFreeChartEditor"
+            factory="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygateBarchartVisualizationInputFactory"
+            id="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygateBarchartVisualizationInput">
+      </datasink>
+   </extension>
+   <extension
+         point="org.palladiosimulator.edp2.datastream.chainDescription">
+      <chainDescription
+            id="org.palladiosimulator.simulizar.qualitygate.visualization.piechart"
+            name="Qualitygate Evaluation Result">
+         <datasink
+               sinkID="org.palladiosimulator.simulizar.qualitygate.visualization.piechart.QualitygatePieChartVisualizationInput">
+         </datasink>
+      </chainDescription>
+   </extension>
+   <extension
+         point="org.palladiosimulator.edp2.datastream.chainDescription">
+      <chainDescription
+            id="org.palladiosimulator.simulizar.qualitygate.visualization.barchart"
+            name="Failure Propagation Evaluation">
+         <datasink
+               sinkID="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygateBarchartVisualizationInput">
+         </datasink>
+      </chainDescription>
+   </extension>
 </plugin>
