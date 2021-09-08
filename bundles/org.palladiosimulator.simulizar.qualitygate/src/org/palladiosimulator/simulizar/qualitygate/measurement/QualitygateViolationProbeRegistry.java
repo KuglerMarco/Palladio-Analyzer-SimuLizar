@@ -282,23 +282,23 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
 
         }
 
-        if (event.getSeverityNew() != null && severityProbe != null) {
+        if (event.getSeverity() != null && severityProbe != null) {
 
-            if(!this.createdIdentifierForSeverity.containsKey(event.getSeverityNew().getEntityName())) {
+            if(!this.createdIdentifierForSeverity.containsKey(event.getSeverity().getEntityName())) {
                 // First create Identifier
                 
                 // Adding Identifier for every issue not yet registered as Identifier
                 Identifier identifier = MetricSpecFactory.eINSTANCE.createIdentifier();
-                identifier.setLiteral(event.getSeverityNew().getEntityName());
+                identifier.setLiteral(event.getSeverity().getEntityName());
                 this.textMetricDescForSeverity.getIdentifiers()
                     .add(identifier);
-                this.createdIdentifierForSeverity.put(event.getSeverityNew().getEntityName(), identifier);
+                this.createdIdentifierForSeverity.put(event.getSeverity().getEntityName(), identifier);
                 
                 
                 
             }
             
-            this.severityProbe.takeMeasurement(this.createdIdentifierForSeverity.get(event.getSeverityNew().getEntityName()));
+            this.severityProbe.takeMeasurement(this.createdIdentifierForSeverity.get(event.getSeverity().getEntityName()));
             
             
 //            this.severityProbe.takeMeasurement(event.getThread()

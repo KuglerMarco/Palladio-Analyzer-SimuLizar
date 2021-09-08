@@ -14,19 +14,21 @@ public class ResponseTimeProxyIssue implements InterpretationIssue {
     private QualityGate qualitygate;
     private Entity stereotypedObject;
     private InterpreterDefaultContext context;
+    private boolean isLateTimingScope;
 
     // because of handler in Dispatch (one time pass for ProxyIssue)
     private boolean isHandledOnce = false;
 
     public ResponseTimeProxyIssue(PCMRandomVariable premise,
             RDSeffSwitchQualitygateContributionSwitch responseTimeQualitygateSwitch, QualityGate qualitygate,
-            Entity stereotypedObject, InterpreterDefaultContext context) {
+            Entity stereotypedObject, InterpreterDefaultContext context, boolean isLateTimingScope) {
 
         this.premise = premise;
         this.responseTimeQualitygateSwitch = responseTimeQualitygateSwitch;
         this.qualitygate = qualitygate;
         this.stereotypedObject = stereotypedObject;
         this.context = context;
+        this.isLateTimingScope = isLateTimingScope;
 
     }
 
@@ -61,6 +63,10 @@ public class ResponseTimeProxyIssue implements InterpretationIssue {
 
     public Entity getStereotypedObject() {
         return stereotypedObject;
+    }
+
+    public boolean isLateTimingScope() {
+        return isLateTimingScope;
     }
 
 }

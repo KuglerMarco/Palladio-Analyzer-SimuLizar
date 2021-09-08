@@ -13,6 +13,8 @@ import org.palladiosimulator.analyzer.workflow.ConstantsContainer;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPoint;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringpointPackage;
+import org.palladiosimulator.failuremodel.qualitygate.EarlyTimingScope;
+import org.palladiosimulator.failuremodel.qualitygate.LateTimingScope;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.failuremodel.qualitygate.RequestMetricScope;
 import org.palladiosimulator.failuremodel.qualitygate.RequestParameterScope;
@@ -292,7 +294,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     }
 
     @Override
-    public InterpreterResult caseRequestMetricScope(RequestMetricScope object) {
+    public InterpreterResult caseLateTimingScope(LateTimingScope object) {
 
         InterpreterResult result = InterpreterResult.OK;
 
@@ -374,6 +376,119 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 Double responseTime = (Double) measuringValue.getValue();
 
                 if (responseTime > qualitygateResponseTime) {
+
+                    LOGGER.debug("Reponsetime Qualitygate broken: " + responseTime);
+
+                    ResponseTimeIssue issue = new ResponseTimeIssue((Entity) this.stereotypedObject, qualitygate,
+                            responseTime, false);
+
+                    result = BasicInterpreterResult.of(issue);
+                    
+
+                    // triggering probe to measure Success-To-Failure-Rate case violation
+                    probeRegistry
+                        .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
+
+                    probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, qualitygate.getSeverity()));
+
+                    
+                    recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
+
+                } else {
+                    // triggering probe to measure Success-To-Failure-Rate case successful
+                    probeRegistry
+                        .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null));
+                }
+            }
+
+        }
+
+        return result;
+    }
+    
+    @Override
+    public InterpreterResult caseEarlyTimingScope(EarlyTimingScope object) {
+
+        InterpreterResult result = InterpreterResult.OK;
+
+        // Checking whether this qualitygate is evaluated at the right point in model
+        if (this.operationSignature.equals(object.getSignature()) && this.providedRole.equals(stereotypedObject)
+                && (qualitygate.getAssemblyContext() == null || qualitygate.getAssemblyContext()
+                    .equals(this.assembly))) {
+
+            // Registering at the Calculator in Request-Scope
+            if (this.callScope.equals(CallScope.REQUEST)) {
+
+                // Loading CommonMetrics-model
+                URI uri = URI
+                    .createURI(MetricDescriptionConstants.PATHMAP_METRIC_SPEC_MODELS_COMMON_METRICS_METRICSPEC);
+                MetricDescriptionRepository res = (MetricDescriptionRepository) partManager.getBlackboard()
+                    .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
+                    .getResourceSet()
+                    .getResource(uri, false)
+                    .getContents()
+                    .get(0);
+
+                // Searching for the Measuring-Point
+                MeasuringPointRepository measuringPointRepo = (MeasuringPointRepository) partManager
+                    .findModel(MeasuringpointPackage.Literals.MEASURING_POINT_REPOSITORY);
+
+                MeasuringPoint measPoint = null;
+
+                for (MeasuringPoint e : measuringPointRepo.getMeasuringPoints()) {
+                    if (e instanceof AssemblyOperationMeasuringPoint) {
+                        if (((AssemblyOperationMeasuringPoint) e).getOperationSignature()
+                            .equals(object.getSignature())
+                                && ((AssemblyOperationMeasuringPoint) e).getRole()
+                                    .equals(stereotypedObject)) {
+
+                            measPoint = (AssemblyOperationMeasuringPoint) e;
+
+                        }
+                    }
+                }
+
+                if (measPoint == null) {
+                    throw new IllegalStateException(
+                            "No MeasuringPoint found in MeasuringPointRepository for this Qualitygate.");
+                }
+
+                MetricDescription respTimeMetricDesc = res.getMetricDescriptions()
+                    .stream()
+                    .filter(e -> e.getName()
+                        .equals("Response Time Tuple"))
+                    .findFirst()
+                    .orElse(null);
+
+                // Calculator for this Qualitygate
+                Calculator calc = frameworkContext.getCalculatorRegistry()
+                    .getCalculatorByMeasuringPointAndMetricDescription(measPoint, respTimeMetricDesc);
+
+                LOGGER.debug("MeasuringPoint is: " + measPoint.getStringRepresentation());
+
+                if (!this.atRequestMetricCalcAdded) {
+                    calc.addObserver(this);
+                    LOGGER.debug("Observer added");
+                    this.atRequestMetricCalcAdded = true;
+                }
+
+                LOGGER.debug(calc.toString());
+
+                result = InterpreterResult.OK;
+
+            } else {
+
+                Measure<Object, Quantity> measuringValue = responseTime
+                    .getMeasureForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
+
+                // TODO so okay, oder Integer berücksichtigen?
+                Double qualitygateResponseTime = (Double) interpreterDefaultContext.evaluate(premise.getSpecification(),
+                        this.interpreterDefaultContext.getStack()
+                            .currentStackFrame());
+
+                Double responseTime = (Double) measuringValue.getValue();
+
+                if (responseTime < qualitygateResponseTime) {
 
                     LOGGER.debug("Reponsetime Qualitygate broken: " + responseTime);
 
