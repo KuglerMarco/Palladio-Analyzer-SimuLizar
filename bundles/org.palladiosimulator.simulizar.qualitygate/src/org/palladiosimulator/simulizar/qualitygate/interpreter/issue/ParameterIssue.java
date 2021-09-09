@@ -56,7 +56,7 @@ public class ParameterIssue implements QualitygateIssue {
         LOGGER.setLevel(Level.DEBUG);
 
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("New ParameterIssue StackContent at qualitygate: " + qualitygate.getEntityName());
+            LOGGER.debug("New ParameterIssue at qualitygate: " + qualitygate.getEntityName());
         }
 
     }

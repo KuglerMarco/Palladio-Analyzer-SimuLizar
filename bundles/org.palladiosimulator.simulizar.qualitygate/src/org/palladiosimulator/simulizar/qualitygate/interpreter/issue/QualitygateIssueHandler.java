@@ -13,6 +13,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.palladiosimulator.metricspec.constants.MetricDescriptionConstants;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
+import org.palladiosimulator.simulizar.failurescenario.interpreter.issue.FailureOccurredIssue;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
 import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
@@ -48,8 +49,9 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
     public InterpreterResumptionPolicy handleIssues(InterpreterResult result) {
 
         result = this.handleResponseTimeProxy(result);
+        result= this.handleCrashProxyIssues(result);
+        
         result = this.recordIssues(result);
-        // TODO hier die Issues aufnehmen
 
         if (!Streams.stream(result.getIssues())
             .allMatch(QualitygateIssue.class::isInstance)) {
@@ -245,6 +247,64 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
 
         return result;
 
+    }
+    
+    public InterpreterResult handleCrashProxyIssues(InterpreterResult result) {
+        
+        /*
+         * Processing the Proxies in Issues
+         */
+        Iterator<InterpretationIssue> iter = result.getIssues()
+            .iterator();
+
+        while (iter.hasNext()) {
+
+            var issue = iter.next();
+            
+            if(issue instanceof CrashProxyIssue) {
+                
+                InterpreterDefaultContext interpreterDefaultContext = ((CrashProxyIssue) issue)
+                        .getContext();
+                
+                if (!Streams.stream(result.getIssues()).anyMatch(FailureOccurredIssue.class:: isInstance)) {
+                    
+                 // triggering probe to measure Success-To-Failure-Rate case
+                    // violation
+                    probeRegistry.triggerProbe(
+                            new QualitygatePassedEvent(((CrashProxyIssue) issue).getQualitygate(),
+                                    interpreterDefaultContext, false, null));
+
+                    probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(
+                            ((CrashProxyIssue) issue).getQualitygate(), interpreterDefaultContext,
+                            false, ((CrashProxyIssue) issue).getQualitygate()
+                                .getSeverity()));
+                    
+                    
+                } else {
+                    
+                    // triggering probe to measure Success-To-Failure-Rate case
+                    // successful
+                    probeRegistry.triggerProbe(
+                            new QualitygatePassedEvent(((CrashProxyIssue) issue).getQualitygate(),
+                                    interpreterDefaultContext, true, null));
+                    
+                }
+                
+                // Removing the Proxy
+                result.removeIssue(issue);
+
+                iter = result.getIssues()
+                    .iterator();
+                
+                
+            }
+            
+        
+        
+        }
+        
+        return result;
+        
     }
 
 }

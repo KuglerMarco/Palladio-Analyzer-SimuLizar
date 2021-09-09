@@ -8,15 +8,16 @@ import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.modelversioning.emfprofile.Stereotype;
 import org.palladiosimulator.analyzer.workflow.ConstantsContainer;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPoint;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringpointPackage;
+import org.palladiosimulator.failuremodel.qualitygate.CrashScope;
 import org.palladiosimulator.failuremodel.qualitygate.EarlyTimingScope;
 import org.palladiosimulator.failuremodel.qualitygate.LateTimingScope;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
-import org.palladiosimulator.failuremodel.qualitygate.RequestMetricScope;
 import org.palladiosimulator.failuremodel.qualitygate.RequestParameterScope;
 import org.palladiosimulator.failuremodel.qualitygate.ResultParameterScope;
 import org.palladiosimulator.failuremodel.qualitygate.util.QualitygateSwitch;
@@ -43,6 +44,7 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.CrashProxyIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ResponseTimeIssue;
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
@@ -429,10 +431,12 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                     .getContents()
                     .get(0);
 
+                
+                
                 // Searching for the Measuring-Point
                 MeasuringPointRepository measuringPointRepo = (MeasuringPointRepository) partManager
                     .findModel(MeasuringpointPackage.Literals.MEASURING_POINT_REPOSITORY);
-
+                
                 MeasuringPoint measPoint = null;
 
                 for (MeasuringPoint e : measuringPointRepo.getMeasuringPoints()) {
@@ -517,6 +521,26 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
         }
 
         return result;
+    }
+    
+    /**
+     * Inducing the check in the next ResultHandler, whether CrashIssue is existent.
+     *
+     */
+    @Override
+    public InterpreterResult caseCrashScope(CrashScope object) {
+        
+        Signature signatureOfQualitygate = object.getSignature();
+        InterpreterResult result = InterpreterResult.OK;
+
+        if (callScope.equals(CallScope.RESPONSE) && (signatureOfQualitygate == (this.operationSignature))) {
+            
+            result = InterpreterResult.of(new CrashProxyIssue(qualitygate, object, interpreterDefaultContext));
+            
+        }
+        
+        return result;
+        
     }
 
 }
