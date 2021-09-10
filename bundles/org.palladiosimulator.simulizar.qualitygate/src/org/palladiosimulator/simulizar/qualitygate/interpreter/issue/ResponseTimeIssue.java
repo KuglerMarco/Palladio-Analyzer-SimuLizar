@@ -21,8 +21,7 @@ public class ResponseTimeIssue implements QualitygateIssue {
     private boolean isHandled;
     
 
-    public ResponseTimeIssue(Entity stereotypedObject, QualityGate qualitygate,
-            Double responseTime, boolean isHandled) {
+    public ResponseTimeIssue(Entity stereotypedObject, QualityGate qualitygate, boolean isHandled) {
         super();
         //Factories for EntityReferences
         EntityReference.AbstractEntityReferenceFactory<org.palladiosimulator.pcm.core.entity.Entity> stereotypedObjectFac = new SimuLizarEntityReferenceFactories.Entity();
@@ -34,8 +33,6 @@ public class ResponseTimeIssue implements QualitygateIssue {
         this.qualitygateRef = qualitygateFac.createCached(qualitygate);
         
         this.qualitygateId = qualitygate.getId();
-        
-        this.responseTime = responseTime;
         
         this.isHandled = isHandled;
     }

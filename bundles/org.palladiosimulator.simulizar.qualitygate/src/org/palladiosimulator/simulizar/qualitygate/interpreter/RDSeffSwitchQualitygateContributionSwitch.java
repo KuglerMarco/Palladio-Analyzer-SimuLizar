@@ -10,10 +10,8 @@ import org.palladiosimulator.analyzer.workflow.ConstantsContainer;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPoint;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringpointPackage;
-import org.palladiosimulator.failuremodel.qualitygate.CrashScope;
-import org.palladiosimulator.failuremodel.qualitygate.EarlyTimingScope;
-import org.palladiosimulator.failuremodel.qualitygate.LateTimingScope;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
+import org.palladiosimulator.failuremodel.qualitygate.RequestMetricScope;
 import org.palladiosimulator.failuremodel.qualitygate.RequestParameterScope;
 import org.palladiosimulator.failuremodel.qualitygate.ResultParameterScope;
 import org.palladiosimulator.failuremodel.qualitygate.util.QualitygateSwitch;
@@ -45,7 +43,6 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
-import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.CrashProxyIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ResponseTimeProxyIssue;
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
@@ -216,7 +213,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
      *
      */
     @Override
-    public InterpreterResult caseLateTimingScope(LateTimingScope object) {
+    public InterpreterResult caseRequestMetricScope(RequestMetricScope object) {
 
         InterpreterResult result = InterpreterResult.OK;
 
@@ -253,6 +250,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                     }
                 }
 
+                // TODO wenn kein measuringPoint vorliegt, dann eventuell einfach kein Monitor gesetzt?
                 if (measPoint == null) {
                     throw new IllegalStateException(
                             "No MeasuringPoint found in MeasuringPointRepository for this Qualitygate.");
@@ -294,89 +292,6 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
     }
     
-    
-    /**
-     * Processing in RequestMetricScope.
-     *
-     */
-    @Override
-    public InterpreterResult caseEarlyTimingScope(EarlyTimingScope object) {
-
-        InterpreterResult result = InterpreterResult.OK;
-
-        if (qualitygate.getAssemblyContext() == null || qualitygate.getAssemblyContext()
-            .equals(this.assembly)) {
-
-            // Registering at the Calculator in Request-Scope
-            if (callScope.equals(CallScope.REQUEST)) {
-
-                // Loading CommonMetrics-model
-                URI uri = URI
-                    .createURI(MetricDescriptionConstants.PATHMAP_METRIC_SPEC_MODELS_COMMON_METRICS_METRICSPEC);
-                MetricDescriptionRepository res = (MetricDescriptionRepository) partManager.getBlackboard()
-                    .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
-                    .getResourceSet()
-                    .getResource(uri, false)
-                    .getContents()
-                    .get(0);
-
-                // Searching for the Measuring-Point
-                MeasuringPointRepository measuringPointRepo = (MeasuringPointRepository) partManager
-                    .findModel(MeasuringpointPackage.Literals.MEASURING_POINT_REPOSITORY);
-
-                MeasuringPoint measPoint = null;
-
-                for (MeasuringPoint e : measuringPointRepo.getMeasuringPoints()) {
-                    if (e instanceof ExternalCallActionMeasuringPoint) {
-                        if (((ExternalCallActionMeasuringPoint) e).getExternalCall()
-                            .equals(stereotypedObject)) {
-
-                            measPoint = (ExternalCallActionMeasuringPoint) e;
-
-                        }
-                    }
-                }
-
-                if (measPoint == null) {
-                    throw new IllegalStateException(
-                            "No MeasuringPoint found in MeasuringPointRepository for this Qualitygate.");
-                }
-
-                // Loading the ResponseTime MetricDescription
-                MetricDescription respTimeMetricDesc = res.getMetricDescriptions()
-                    .stream()
-                    .filter(e -> e.getName()
-                        .equals("Response Time Tuple"))
-                    .findFirst()
-                    .orElse(null);
-
-                // Calculator for this Qualitygate TODO Noch MetricDescription raussuchen
-                Calculator calc = frameworkContext.getCalculatorRegistry()
-                    .getCalculatorByMeasuringPointAndMetricDescription(measPoint, respTimeMetricDesc);
-
-                LOGGER.debug("MeasuringPoint is: " + measPoint.getStringRepresentation());
-
-                if (!this.atRequestMetricCalcAdded) {
-                    calc.addObserver(this);
-                    LOGGER.debug("Observer added");
-                    this.atRequestMetricCalcAdded = true;
-                }
-
-            } else {
-                /*
-                 * Response-Time is checked, when the measurements are available - Processing-Proxy
-                 * is added as Issue
-                 */
-                LOGGER.debug("New ResponseTimeProxyIssue.");
-                result = InterpreterResult
-                    .of(new ResponseTimeProxyIssue(premise, this, qualitygate, stereotypedObject, this.context, false));
-
-            }
-        }
-
-        return result;
-
-    }
     
     
 
@@ -485,25 +400,6 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         return result;
     }
     
-    /**
-     * Inducing the check in the next ResultHandler, whether CrashIssue is existent.
-     *
-     */
-    @Override
-    public InterpreterResult caseCrashScope(CrashScope object) {
-        
-        Signature signatureOfQualitygate = object.getSignature();
-        InterpreterResult result = InterpreterResult.OK;
-
-        if (callScope.equals(CallScope.RESPONSE) && (signatureOfQualitygate == (this.operationSignature))) {
-            
-            result = InterpreterResult.of(new CrashProxyIssue(qualitygate, object, context));
-            
-        }
-        
-        return result;
-        
-    }
 
     /**
      * Last measurement of the ResponseTime-calculators

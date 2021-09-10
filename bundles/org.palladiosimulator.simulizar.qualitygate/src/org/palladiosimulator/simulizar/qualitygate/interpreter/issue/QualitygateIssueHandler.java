@@ -25,6 +25,8 @@ import org.palladiosimulator.simulizar.qualitygate.propagation.QualitygatePropag
 
 import com.google.common.collect.Streams;
 
+import de.uka.ipd.sdq.simucomframework.variables.stackframe.SimulatedStackframe;
+
 /**
  * Handler to process the impact of QualitygateIssues in the InterpreterResult.
  * 
@@ -89,95 +91,139 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                 if (((ResponseTimeProxyIssue) issue).isHandledOnce()) {
                     // Checking the Qualitygate-Premise
                     try {
+                        
+                     // set temporary stack for evaluation
+                        final SimulatedStackframe<Object> frame = ((ResponseTimeProxyIssue) issue).getContext().getStack().createAndPushNewStackFrame();
 
                         Measure<Object, Quantity> measuringValue = ((ResponseTimeProxyIssue) issue)
                             .getResponseTimeQualitygateSwitch()
                             .getLastResponseTimeMeasure()
                             .getMeasureForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
-
+                        
+                        frame.addValue("ResponseTime.VALUE", (Double) measuringValue.getValue());
+                        
                         PCMRandomVariable premise = ((ResponseTimeProxyIssue) issue).getPremise();
-
+                        
                         InterpreterDefaultContext interpreterDefaultContext = ((ResponseTimeProxyIssue) issue)
-                            .getContext();
+                                .getContext();
+                        
+                        if (!((boolean) interpreterDefaultContext.evaluate(premise.getSpecification(), interpreterDefaultContext.getStack()
+                                .currentStackFrame()))) {
+                            
+                            
+                            ResponseTimeIssue respIssue = new ResponseTimeIssue(
+                                    ((ResponseTimeProxyIssue) issue).getStereotypedObject(),
+                                    ((ResponseTimeProxyIssue) issue).getQualitygate(), false);
 
-                        Double qualitygateResponseTime = (Double) interpreterDefaultContext
-                            .evaluate(premise.getSpecification(), interpreterDefaultContext.getStack()
-                                .currentStackFrame());
+                            result.addIssue(respIssue);
 
-                        Double responseTime = (Double) measuringValue.getValue();
+                            recorder.recordQualitygateIssue(((ResponseTimeProxyIssue) issue).getQualitygate(),
+                                    ((ResponseTimeProxyIssue) issue).getStereotypedObject(), respIssue);
 
-                        if (((ResponseTimeProxyIssue) issue).isLateTimingScope()) {
+                            // triggering probe to measure Success-To-Failure-Rate case
+                            // violation
+                            probeRegistry.triggerProbe(
+                                    new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
+                                            interpreterDefaultContext, false, null));
 
-                            if (responseTime > qualitygateResponseTime) {
+                            probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(
+                                    ((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext,
+                                    false, ((ResponseTimeProxyIssue) issue).getQualitygate()
+                                        .getSeverity()));
 
-                                ResponseTimeIssue respIssue = new ResponseTimeIssue(
-                                        ((ResponseTimeProxyIssue) issue).getStereotypedObject(),
-                                        ((ResponseTimeProxyIssue) issue).getQualitygate(), responseTime, false);
-
-                                result.addIssue(respIssue);
-
-                                recorder.recordQualitygateIssue(((ResponseTimeProxyIssue) issue).getQualitygate(),
-                                        ((ResponseTimeProxyIssue) issue).getStereotypedObject(), respIssue);
-
-                                // triggering probe to measure Success-To-Failure-Rate case
-                                // violation
-                                probeRegistry.triggerProbe(
-                                        new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
-                                                interpreterDefaultContext, false, null));
-
-                                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(
-                                        ((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext,
-                                        false, ((ResponseTimeProxyIssue) issue).getQualitygate()
-                                            .getSeverity()));
-
-                                LOGGER.debug("Following StoEx is broken: " + responseTime);
-
-                            } else {
-                                // triggering probe to measure Success-To-Failure-Rate case
-                                // successful
-                                probeRegistry.triggerProbe(
-                                        new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
-                                                interpreterDefaultContext, true, null));
-
-                            }
+                            
                         } else {
-                            
-                            if (responseTime < qualitygateResponseTime) {
-
-                                ResponseTimeIssue respIssue = new ResponseTimeIssue(
-                                        ((ResponseTimeProxyIssue) issue).getStereotypedObject(),
-                                        ((ResponseTimeProxyIssue) issue).getQualitygate(), responseTime, false);
-
-                                result.addIssue(respIssue);
-
-                                recorder.recordQualitygateIssue(((ResponseTimeProxyIssue) issue).getQualitygate(),
-                                        ((ResponseTimeProxyIssue) issue).getStereotypedObject(), respIssue);
-
-                                // triggering probe to measure Success-To-Failure-Rate case
-                                // violation
-                                probeRegistry.triggerProbe(
-                                        new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
-                                                interpreterDefaultContext, false, null));
-
-                                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(
-                                        ((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext,
-                                        false, ((ResponseTimeProxyIssue) issue).getQualitygate()
-                                            .getSeverity()));
-
-                                LOGGER.debug("Following StoEx is broken: " + responseTime);
-
-                            } else {
-                                // triggering probe to measure Success-To-Failure-Rate case
-                                // successful
-                                probeRegistry.triggerProbe(
-                                        new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
-                                                interpreterDefaultContext, true, null));
-
-                            }
-                            
-                            
-                            
+                            probeRegistry.triggerProbe(
+                                    new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
+                                            interpreterDefaultContext, true, null));
                         }
+                        
+                        
+                        interpreterDefaultContext.getStack().removeStackFrame();
+//
+//                        
+//
+//                        InterpreterDefaultContext interpreterDefaultContext = ((ResponseTimeProxyIssue) issue)
+//                            .getContext();
+//
+//                        Double qualitygateResponseTime = (Double) interpreterDefaultContext
+//                            .evaluate(premise.getSpecification(), interpreterDefaultContext.getStack()
+//                                .currentStackFrame());
+//
+//                        Double responseTime = (Double) measuringValue.getValue();
+//
+//                        if (((ResponseTimeProxyIssue) issue).isLateTimingScope()) {
+//
+//                            if (responseTime > qualitygateResponseTime) {
+//
+//                                ResponseTimeIssue respIssue = new ResponseTimeIssue(
+//                                        ((ResponseTimeProxyIssue) issue).getStereotypedObject(),
+//                                        ((ResponseTimeProxyIssue) issue).getQualitygate(), false);
+//
+//                                result.addIssue(respIssue);
+//
+//                                recorder.recordQualitygateIssue(((ResponseTimeProxyIssue) issue).getQualitygate(),
+//                                        ((ResponseTimeProxyIssue) issue).getStereotypedObject(), respIssue);
+//
+//                                // triggering probe to measure Success-To-Failure-Rate case
+//                                // violation
+//                                probeRegistry.triggerProbe(
+//                                        new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
+//                                                interpreterDefaultContext, false, null));
+//
+//                                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(
+//                                        ((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext,
+//                                        false, ((ResponseTimeProxyIssue) issue).getQualitygate()
+//                                            .getSeverity()));
+//
+//                                LOGGER.debug("Following StoEx is broken: " + responseTime);
+//
+//                            } else {
+//                                // triggering probe to measure Success-To-Failure-Rate case
+//                                // successful
+//                                probeRegistry.triggerProbe(
+//                                        new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
+//                                                interpreterDefaultContext, true, null));
+//
+//                            }
+//                        } else {
+//                            
+//                            if (responseTime < qualitygateResponseTime) {
+//
+//                                ResponseTimeIssue respIssue = new ResponseTimeIssue(
+//                                        ((ResponseTimeProxyIssue) issue).getStereotypedObject(),
+//                                        ((ResponseTimeProxyIssue) issue).getQualitygate(), false);
+//
+//                                result.addIssue(respIssue);
+//
+//                                recorder.recordQualitygateIssue(((ResponseTimeProxyIssue) issue).getQualitygate(),
+//                                        ((ResponseTimeProxyIssue) issue).getStereotypedObject(), respIssue);
+//
+//                                // triggering probe to measure Success-To-Failure-Rate case
+//                                // violation
+//                                probeRegistry.triggerProbe(
+//                                        new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
+//                                                interpreterDefaultContext, false, null));
+//
+//                                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(
+//                                        ((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext,
+//                                        false, ((ResponseTimeProxyIssue) issue).getQualitygate()
+//                                            .getSeverity()));
+//
+//                                LOGGER.debug("Following StoEx is broken: " + responseTime);
+//
+//                            } else {
+//                                // triggering probe to measure Success-To-Failure-Rate case
+//                                // successful
+//                                probeRegistry.triggerProbe(
+//                                        new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
+//                                                interpreterDefaultContext, true, null));
+//
+//                            }
+//                            
+//                            
+//                            
+//                        }
 
                     } catch (NoSuchElementException e) {
                         // FIXME SimuLizar-Bug: No Measurements after simulation had stopped but
