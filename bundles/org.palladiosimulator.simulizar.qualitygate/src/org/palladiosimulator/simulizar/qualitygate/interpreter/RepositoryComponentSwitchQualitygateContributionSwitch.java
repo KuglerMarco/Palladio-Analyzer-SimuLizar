@@ -1,5 +1,8 @@
 package org.palladiosimulator.simulizar.qualitygate.interpreter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.measure.Measure;
 import javax.measure.quantity.Quantity;
 
@@ -13,6 +16,10 @@ import org.palladiosimulator.analyzer.workflow.ConstantsContainer;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPoint;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringpointPackage;
+import org.palladiosimulator.failuremodel.failuretype.Failure;
+import org.palladiosimulator.failuremodel.failuretype.SWContentFailure;
+import org.palladiosimulator.failuremodel.failuretype.SWCrashFailure;
+import org.palladiosimulator.failuremodel.failuretype.SWTimingFailure;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.failuremodel.qualitygate.RequestMetricScope;
 import org.palladiosimulator.failuremodel.qualitygate.RequestParameterScope;
@@ -32,11 +39,15 @@ import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.pcmmeasuringpoint.AssemblyOperationMeasuringPoint;
 import org.palladiosimulator.probeframework.ProbeFrameworkContext;
 import org.palladiosimulator.probeframework.calculator.Calculator;
+import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.CorruptContentBehavior;
+import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.CrashBehavior;
+import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.DelayBehavior;
 import org.palladiosimulator.simulizar.interpreter.CallScope;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
 import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitchStereotypeContributionFactory.RepositoryComponentSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.StereotypeSwitch;
+import org.palladiosimulator.simulizar.interpreter.preinterpretation.PreInterpretationBehavior;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
@@ -46,17 +57,10 @@ import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ResponseTim
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
 import org.palladiosimulator.simulizar.qualitygate.propagation.QualitygatePropagationRecorder;
 import org.palladiosimulator.simulizar.utils.PCMPartitionManager;
-import org.palladiosimulator.pcm.parameter.ParameterFactory;
-import org.palladiosimulator.pcm.parameter.VariableCharacterisation;
-import org.palladiosimulator.pcm.parameter.VariableCharacterisationType;
-import org.palladiosimulator.pcm.parameter.VariableUsage;
-import org.palladiosimulator.pcm.PcmFactory;
-import org.palladiosimulator.pcm.core.CoreFactory;
 
 import dagger.assisted.Assisted;
 import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
-import de.uka.ipd.sdq.simucomframework.variables.stackframe.SimulatedStack;
 import de.uka.ipd.sdq.simucomframework.variables.stackframe.SimulatedStackframe;
 
 /**
@@ -245,6 +249,10 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, qualitygate.getSeverity()));
 
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
+                
+                if(qualitygate.getImpact() != null) {
+                    result = merger.merge(result, this.handleImpact(qualitygate.getImpact().getFailure(), interpreterDefaultContext));
+                }
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
@@ -290,6 +298,12 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                 
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
+                
+                if(qualitygate.getImpact() != null) {
+                    
+                    result = merger.merge(result, this.handleImpact(qualitygate.getImpact().getFailure(), interpreterDefaultContext));
+                    
+                }
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
@@ -303,6 +317,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     public InterpreterResult caseRequestMetricScope(RequestMetricScope object) {
 
         InterpreterResult result = InterpreterResult.OK;
+        List<Failure> failureImpactList = new ArrayList<Failure>();
+
 
         // Checking whether this qualitygate is evaluated at the right point in model
         if (this.operationSignature.equals(object.getSignature()) && this.providedRole.equals(stereotypedObject)
@@ -377,6 +393,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 Measure<Object, Quantity> measuringValue = responseTime
                     .getMeasureForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
                 
+                // TODO Premise noch zuerst auf den originalen Stack auswerten, falls Parameter drauf sind (?)
+                
                 frame.addValue("ResponseTime.VALUE", (Double) measuringValue.getValue());
 
                 if (!((boolean) interpreterDefaultContext.evaluate(premise.getSpecification(), this.interpreterDefaultContext.getStack()
@@ -397,6 +415,12 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                             interpreterDefaultContext, false, qualitygate.getSeverity()));
 
                     recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
+                    
+                    if(qualitygate.getImpact() != null) {
+                        
+                        failureImpactList.addAll(qualitygate.getImpact().getFailure());
+                        
+                    }
 
                 } else {
                     // triggering probe to measure Success-To-Failure-Rate case successful
@@ -407,6 +431,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 // pop temporary stack
                 this.interpreterDefaultContext.getStack().removeStackFrame();
                 
+                result = merger.merge(result, this.handleImpact(failureImpactList, interpreterDefaultContext));
             }
 
         }
@@ -415,7 +440,42 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     }
     
 
-    
+    private InterpreterResult handleImpact(List<Failure> failureList, InterpreterDefaultContext interpreterDefaultContext) {
+        
+        
+        InterpreterResult result = InterpreterResult.OK;
+        
+            
+        for (Failure failure : failureList) {
+
+            if (failure instanceof SWTimingFailure) {
+
+                PreInterpretationBehavior behavior = new DelayBehavior(((SWTimingFailure) failure).getDelay()
+                    .getSpecification());
+
+                result = merger.merge(result, behavior.execute(interpreterDefaultContext));
+
+            } else if (failure instanceof SWContentFailure) {
+
+                PreInterpretationBehavior behavior = new CorruptContentBehavior(
+                        ((SWContentFailure) failure).getDegreeOfCorruption()
+                            .getSpecification());
+
+                result = merger.merge(result, behavior.execute(interpreterDefaultContext));
+
+            } else if (failure instanceof SWCrashFailure) {
+
+                PreInterpretationBehavior behavior = new CrashBehavior(failure);
+                result = merger.merge(result, behavior.execute(interpreterDefaultContext));
+
+            }
+
+        }
+            
+        
+        return result;
+        
+    }
     
 
 }

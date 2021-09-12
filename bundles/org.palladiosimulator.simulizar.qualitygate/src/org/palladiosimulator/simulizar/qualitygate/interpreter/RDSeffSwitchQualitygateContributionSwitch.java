@@ -1,5 +1,7 @@
 package org.palladiosimulator.simulizar.qualitygate.interpreter;
 
+import java.util.List;
+
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
@@ -10,6 +12,10 @@ import org.palladiosimulator.analyzer.workflow.ConstantsContainer;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPoint;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringpointPackage;
+import org.palladiosimulator.failuremodel.failuretype.Failure;
+import org.palladiosimulator.failuremodel.failuretype.SWContentFailure;
+import org.palladiosimulator.failuremodel.failuretype.SWCrashFailure;
+import org.palladiosimulator.failuremodel.failuretype.SWTimingFailure;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.failuremodel.qualitygate.RequestMetricScope;
 import org.palladiosimulator.failuremodel.qualitygate.RequestParameterScope;
@@ -34,11 +40,15 @@ import org.palladiosimulator.pcm.seff.ExternalCallAction;
 import org.palladiosimulator.pcmmeasuringpoint.ExternalCallActionMeasuringPoint;
 import org.palladiosimulator.probeframework.ProbeFrameworkContext;
 import org.palladiosimulator.probeframework.calculator.Calculator;
+import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.CorruptContentBehavior;
+import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.CrashBehavior;
+import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.DelayBehavior;
 import org.palladiosimulator.simulizar.interpreter.CallScope;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.StereotypeSwitch;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchStereotypeContributionFactory.RDSeffSwitchElementDispatcher;
+import org.palladiosimulator.simulizar.interpreter.preinterpretation.PreInterpretationBehavior;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
@@ -337,6 +347,12 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                             new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getSeverity()));
 
                     recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
+                    
+                    if(qualitygate.getImpact() != null) {
+                        
+                        result = merger.merge(result, this.handleImpact(qualitygate.getImpact().getFailure(), context));
+                        
+                    }
 
                 } else {
                     // triggering probe to measure Success-To-Failure-Rate case successful
@@ -391,6 +407,12 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                         new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getSeverity()));
 
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
+                
+                if(qualitygate.getImpact() != null) {
+                    
+                    result = merger.merge(result, this.handleImpact(qualitygate.getImpact().getFailure(), context));
+                    
+                }
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
@@ -439,6 +461,43 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
         }
         return false;
+    }
+    
+    private InterpreterResult handleImpact(List<Failure> failureList, InterpreterDefaultContext interpreterDefaultContext) {
+        
+        
+        InterpreterResult result = InterpreterResult.OK;
+        
+            
+        for (Failure failure : failureList) {
+
+            if (failure instanceof SWTimingFailure) {
+
+                PreInterpretationBehavior behavior = new DelayBehavior(((SWTimingFailure) failure).getDelay()
+                    .getSpecification());
+
+                result = merger.merge(result, behavior.execute(interpreterDefaultContext));
+
+            } else if (failure instanceof SWContentFailure) {
+
+                PreInterpretationBehavior behavior = new CorruptContentBehavior(
+                        ((SWContentFailure) failure).getDegreeOfCorruption()
+                            .getSpecification());
+
+                result = merger.merge(result, behavior.execute(interpreterDefaultContext));
+
+            } else if (failure instanceof SWCrashFailure) {
+
+                PreInterpretationBehavior behavior = new CrashBehavior(failure);
+                result = merger.merge(result, behavior.execute(interpreterDefaultContext));
+
+            }
+
+        }
+            
+        
+        return result;
+        
     }
 
 }

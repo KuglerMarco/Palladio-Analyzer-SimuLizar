@@ -11,14 +11,24 @@ import javax.measure.quantity.Quantity;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.palladiosimulator.failuremodel.failuretype.Failure;
+import org.palladiosimulator.failuremodel.failuretype.SWContentFailure;
+import org.palladiosimulator.failuremodel.failuretype.SWCrashFailure;
+import org.palladiosimulator.failuremodel.failuretype.SWTimingFailure;
 import org.palladiosimulator.metricspec.constants.MetricDescriptionConstants;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
+import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.CorruptContentBehavior;
+import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.CrashBehavior;
+import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.DelayBehavior;
 import org.palladiosimulator.simulizar.failurescenario.interpreter.issue.FailureOccurredIssue;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
+import org.palladiosimulator.simulizar.interpreter.preinterpretation.PreInterpretationBehavior;
 import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
+import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
+import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
 import org.palladiosimulator.simulizar.qualitygate.propagation.QualitygatePropagationRecorder;
@@ -38,20 +48,21 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
     private static final Logger LOGGER = Logger.getLogger(QualitygateIssueHandler.class);
     private QualitygatePropagationRecorder recorder;
     private QualitygateViolationProbeRegistry probeRegistry;
+    private BasicInterpreterResultMerger merger;
 
     @Inject
     public QualitygateIssueHandler(QualitygatePropagationRecorder recorder,
-            QualitygateViolationProbeRegistry probeRegistry) {
+            QualitygateViolationProbeRegistry probeRegistry, BasicInterpreterResultMerger merger) {
         LOGGER.setLevel(Level.DEBUG);
         this.recorder = recorder;
         this.probeRegistry = probeRegistry;
+        this.merger = merger;
     }
 
     @Override
     public InterpreterResumptionPolicy handleIssues(InterpreterResult result) {
 
         result = this.handleResponseTimeProxy(result);
-        result= this.handleCrashProxyIssues(result);
         
         result = this.recordIssues(result);
 
@@ -81,6 +92,8 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
          */
         Iterator<InterpretationIssue> iter = result.getIssues()
             .iterator();
+        
+        List<Failure> failureImpactList = new ArrayList<Failure>();
 
         while (iter.hasNext()) {
 
@@ -130,6 +143,12 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                                     ((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext,
                                     false, ((ResponseTimeProxyIssue) issue).getQualitygate()
                                         .getSeverity()));
+                            
+                            if(((ResponseTimeProxyIssue) issue).getQualitygate().getImpact() != null) {
+                                
+                                failureImpactList.addAll(((ResponseTimeProxyIssue) issue).getQualitygate().getImpact().getFailure());
+                                
+                            }                            
 
                             
                         } else {
@@ -140,90 +159,9 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                         
                         
                         interpreterDefaultContext.getStack().removeStackFrame();
-//
-//                        
-//
-//                        InterpreterDefaultContext interpreterDefaultContext = ((ResponseTimeProxyIssue) issue)
-//                            .getContext();
-//
-//                        Double qualitygateResponseTime = (Double) interpreterDefaultContext
-//                            .evaluate(premise.getSpecification(), interpreterDefaultContext.getStack()
-//                                .currentStackFrame());
-//
-//                        Double responseTime = (Double) measuringValue.getValue();
-//
-//                        if (((ResponseTimeProxyIssue) issue).isLateTimingScope()) {
-//
-//                            if (responseTime > qualitygateResponseTime) {
-//
-//                                ResponseTimeIssue respIssue = new ResponseTimeIssue(
-//                                        ((ResponseTimeProxyIssue) issue).getStereotypedObject(),
-//                                        ((ResponseTimeProxyIssue) issue).getQualitygate(), false);
-//
-//                                result.addIssue(respIssue);
-//
-//                                recorder.recordQualitygateIssue(((ResponseTimeProxyIssue) issue).getQualitygate(),
-//                                        ((ResponseTimeProxyIssue) issue).getStereotypedObject(), respIssue);
-//
-//                                // triggering probe to measure Success-To-Failure-Rate case
-//                                // violation
-//                                probeRegistry.triggerProbe(
-//                                        new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
-//                                                interpreterDefaultContext, false, null));
-//
-//                                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(
-//                                        ((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext,
-//                                        false, ((ResponseTimeProxyIssue) issue).getQualitygate()
-//                                            .getSeverity()));
-//
-//                                LOGGER.debug("Following StoEx is broken: " + responseTime);
-//
-//                            } else {
-//                                // triggering probe to measure Success-To-Failure-Rate case
-//                                // successful
-//                                probeRegistry.triggerProbe(
-//                                        new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
-//                                                interpreterDefaultContext, true, null));
-//
-//                            }
-//                        } else {
-//                            
-//                            if (responseTime < qualitygateResponseTime) {
-//
-//                                ResponseTimeIssue respIssue = new ResponseTimeIssue(
-//                                        ((ResponseTimeProxyIssue) issue).getStereotypedObject(),
-//                                        ((ResponseTimeProxyIssue) issue).getQualitygate(), false);
-//
-//                                result.addIssue(respIssue);
-//
-//                                recorder.recordQualitygateIssue(((ResponseTimeProxyIssue) issue).getQualitygate(),
-//                                        ((ResponseTimeProxyIssue) issue).getStereotypedObject(), respIssue);
-//
-//                                // triggering probe to measure Success-To-Failure-Rate case
-//                                // violation
-//                                probeRegistry.triggerProbe(
-//                                        new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
-//                                                interpreterDefaultContext, false, null));
-//
-//                                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(
-//                                        ((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext,
-//                                        false, ((ResponseTimeProxyIssue) issue).getQualitygate()
-//                                            .getSeverity()));
-//
-//                                LOGGER.debug("Following StoEx is broken: " + responseTime);
-//
-//                            } else {
-//                                // triggering probe to measure Success-To-Failure-Rate case
-//                                // successful
-//                                probeRegistry.triggerProbe(
-//                                        new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
-//                                                interpreterDefaultContext, true, null));
-//
-//                            }
-//                            
-//                            
-//                            
-//                        }
+                        
+                        result = merger.merge(result, this.handleImpact(failureImpactList, interpreterDefaultContext));
+
 
                     } catch (NoSuchElementException e) {
                         // FIXME SimuLizar-Bug: No Measurements after simulation had stopped but
@@ -251,6 +189,46 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
         return result;
 
     }
+    
+    
+    
+    private InterpreterResult handleImpact(List<Failure> failureList, InterpreterDefaultContext interpreterDefaultContext) {
+        
+        
+        InterpreterResult result = InterpreterResult.OK;
+        
+        
+        for (Failure failure : failureList) {
+
+            if (failure instanceof SWTimingFailure) {
+
+                PreInterpretationBehavior behavior = new DelayBehavior(((SWTimingFailure) failure).getDelay()
+                    .getSpecification());
+
+                result = merger.merge(result, behavior.execute(interpreterDefaultContext));
+
+            } else if (failure instanceof SWContentFailure) {
+
+                PreInterpretationBehavior behavior = new CorruptContentBehavior(
+                        ((SWContentFailure) failure).getDegreeOfCorruption()
+                            .getSpecification());
+
+                result = merger.merge(result, behavior.execute(interpreterDefaultContext));
+
+            } else if (failure instanceof SWCrashFailure) {
+
+                PreInterpretationBehavior behavior = new CrashBehavior(failure);
+                result = merger.merge(result, behavior.execute(interpreterDefaultContext));
+
+            }
+
+        }
+            
+        
+        return result;
+        
+    }
+    
 
     public InterpreterResult recordIssues(InterpreterResult interpreterResult) {
 
@@ -295,62 +273,6 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
 
     }
     
-    public InterpreterResult handleCrashProxyIssues(InterpreterResult result) {
-        
-        /*
-         * Processing the Proxies in Issues
-         */
-        Iterator<InterpretationIssue> iter = result.getIssues()
-            .iterator();
-
-        while (iter.hasNext()) {
-
-            var issue = iter.next();
-            
-            if(issue instanceof CrashProxyIssue) {
-                
-                InterpreterDefaultContext interpreterDefaultContext = ((CrashProxyIssue) issue)
-                        .getContext();
-                
-                if (!Streams.stream(result.getIssues()).anyMatch(FailureOccurredIssue.class:: isInstance)) {
-                    
-                 // triggering probe to measure Success-To-Failure-Rate case
-                    // violation
-                    probeRegistry.triggerProbe(
-                            new QualitygatePassedEvent(((CrashProxyIssue) issue).getQualitygate(),
-                                    interpreterDefaultContext, false, null));
-
-                    probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(
-                            ((CrashProxyIssue) issue).getQualitygate(), interpreterDefaultContext,
-                            false, ((CrashProxyIssue) issue).getQualitygate()
-                                .getSeverity()));
-                    
-                    
-                } else {
-                    
-                    // triggering probe to measure Success-To-Failure-Rate case
-                    // successful
-                    probeRegistry.triggerProbe(
-                            new QualitygatePassedEvent(((CrashProxyIssue) issue).getQualitygate(),
-                                    interpreterDefaultContext, true, null));
-                    
-                }
-                
-                // Removing the Proxy
-                result.removeIssue(issue);
-
-                iter = result.getIssues()
-                    .iterator();
-                
-                
-            }
-            
-        
-        
-        }
-        
-        return result;
-        
-    }
+    
 
 }
