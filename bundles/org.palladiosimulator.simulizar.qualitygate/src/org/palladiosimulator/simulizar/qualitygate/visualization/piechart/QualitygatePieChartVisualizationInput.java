@@ -36,9 +36,11 @@ public class QualitygatePieChartVisualizationInput extends PieChartVisualization
             bins.put(state, current + 1);
 
         }
+        
+        
 
         for (final Comparable<?> o : bins.keySet()) {
-            dataset.setValue(o, bins.get(o)
+            dataset.setValue(o + " " + bins.get(o) + "x", bins.get(o)
                 .doubleValue());
         }
 

@@ -1,4 +1,4 @@
-package org.palladiosimulator.simulizar.interpreter.impl;
+package org.palladiosimulator.simulizar.interpreter.stereotype.impl;
 
 import java.util.Set;
 
@@ -11,13 +11,13 @@ import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.simulizar.di.modules.scoped.thread.StandardSwitch;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitch;
 import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchFactory;
-import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
-import org.palladiosimulator.simulizar.interpreter.StereotypeDispatchComposedStructureInnerSwitch;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandlerDispatchFactory;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
+import org.palladiosimulator.simulizar.interpreter.stereotype.ComposedStructureInnerSwitchStereotypeContributionFactory;
+import org.palladiosimulator.simulizar.interpreter.stereotype.StereotypeDispatchComposedStructureInnerSwitch;
 
 /**
  * Factory for the StereotypeDispatchComposedStructureInnerSwitch.
@@ -60,15 +60,11 @@ public class ExtensibleStereotypeComposedStructureInnerSwitchFactory implements 
     public Switch<InterpreterResult> create(InterpreterDefaultContext context, final Signature operationSignature,
             final RequiredRole requiredRole) {
 
-        // TODO Factory?
         StereotypeDispatchComposedStructureInnerSwitch interpreter = new StereotypeDispatchComposedStructureInnerSwitch(
                 merger, handler, (ComposedStructureInnerSwitch) composedStructureInnerSwitchFactory.create(context,
                         operationSignature, requiredRole));
 
         var elementFactories = elementFactoriesProvider.get();
-//        if (elementFactories.isEmpty()) {
-//            throw new IllegalStateException("No StereotypeSwitches for ComposedStructures are registered.");
-//        }
         elementFactories.stream()
             .forEach(s -> interpreter
                 .addSwitch(s.createStereotypeSwitch(context, operationSignature, requiredRole, interpreter)));

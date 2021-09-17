@@ -1,4 +1,4 @@
-package org.palladiosimulator.simulizar.interpreter;
+package org.palladiosimulator.simulizar.interpreter.stereotype;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
@@ -15,61 +14,51 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.util.Switch;
 import org.modelversioning.emfprofile.Stereotype;
 import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
-import org.palladiosimulator.pcm.seff.SeffPackage;
-import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchStereotypeContributionFactory.RDSeffSwitchElementDispatcher;
+import org.palladiosimulator.pcm.repository.RepositoryPackage;
+import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitch;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
+import org.palladiosimulator.simulizar.interpreter.stereotype.RepositoryComponentSwitchStereotypeContributionFactory.RepositoryComponentSwitchStereotypeElementDispatcher;
 
-public class StereotypeDispatchRDSeffSwitch extends Switch<InterpreterResult> implements RDSeffSwitchElementDispatcher {
+/**
+ * Dispatch-Switch, which is searching for a available matching StereotypeSwitch to process the
+ * attached Stereotypes of the RepositoryComponent element, if there is one.
+ * 
+ * @author Marco Kugler
+ *
+ */
+public class StereotypeDispatchRepositoryComponentSwitch extends Switch<InterpreterResult>
+        implements RepositoryComponentSwitchStereotypeElementDispatcher {
 
-    /**
-     * Default-Switch after handling the Stereotypes at the system-element
-     */
-    private Switch<InterpreterResult> rdseffDispatchSwitch;
-
-    /**
-     * Registry of registered StereotypeSwitches
-     */
+    // Regular Switch to process the element
+    private RepositoryComponentSwitch repositoryComponentSwitch;
+    // Registry of available StereotypeSwitches
     private final Map<Stereotype, StereotypeSwitch> registry = new HashMap<Stereotype, StereotypeSwitch>();
-
-    /**
-     * Set of StreotypeSwitches inheriting from ComposedStructureInnerSwitchContributionFactory
-     */
+    // Set of available StereotypeSwitches, before they are registered in registry
     private final List<StereotypeSwitch> switches = new ArrayList<StereotypeSwitch>();
 
-    protected static SeffPackage modelPackage;
-
     private final InterpreterResultHandler handler;
-
     private InterpreterResultMerger merger;
+    protected static RepositoryPackage modelPackage;
+    private static final Logger LOGGER = Logger.getLogger(StereotypeDispatchRepositoryComponentSwitch.class);
 
-
-
-    private static final Logger LOGGER = Logger.getLogger(StereotypeDispatchRDSeffSwitch.class);
-    
-    public StereotypeDispatchRDSeffSwitch(InterpreterResultMerger merger,
-            InterpreterResultHandler handler, Switch<InterpreterResult> rdseffDispatchSwitch) {
-    
-    
-
+    public StereotypeDispatchRepositoryComponentSwitch(InterpreterResultMerger merger, InterpreterResultHandler handler,
+            RepositoryComponentSwitch repositoryComponentSwitch) {
         if (modelPackage == null) {
-            modelPackage = SeffPackage.eINSTANCE;
+            modelPackage = RepositoryPackage.eINSTANCE;
         }
 
         this.merger = merger;
         this.handler = handler;
-
-        LOGGER.setLevel(Level.DEBUG);
-
-        this.rdseffDispatchSwitch = rdseffDispatchSwitch;
+        this.repositoryComponentSwitch = repositoryComponentSwitch;
 
     }
-    
+
     /**
-     * Processes attached stereotype before and after calling the ComposedStructureInnerSwitch
-     * (Request- and Response-Scope)
+     * Processes the attached stereotypes in Request and Response Scope.
+     *
      */
     @Override
     public InterpreterResult doSwitch(EClass theEClass, EObject theEObject) {
@@ -79,46 +68,30 @@ public class StereotypeDispatchRDSeffSwitch extends Switch<InterpreterResult> im
         // Stereotype-Handling in Request-Scope
         interpreterResult = this.handleAttachedStereotypes(theEObject, CallScope.REQUEST);
 
+        // Regular model traversion is continued
         if (handler.handleIssues(interpreterResult)
             .equals(InterpreterResumptionPolicy.CONTINUE)) {
-            // Default-Switch
-            interpreterResult = merger.merge(interpreterResult, rdseffDispatchSwitch.doSwitch(theEObject));
+
+            interpreterResult = merger.merge(interpreterResult, repositoryComponentSwitch.doSwitch(theEObject));
+
         }
 
-        if (handler.handleIssues(interpreterResult)
-            .equals(InterpreterResumptionPolicy.CONTINUE)) {
-            // Stereotype-Handling in Response-Scope
-            interpreterResult = merger.merge(interpreterResult,
-                    this.handleAttachedStereotypes(theEObject, CallScope.RESPONSE));
-        }
-        
+        // Stereotype-Handling in Response-Scope
+        interpreterResult = merger.merge(interpreterResult,
+                this.handleAttachedStereotypes(theEObject, CallScope.RESPONSE));
+
+        // called to get access on information about the issues present in the InterpreterResult
         handler.handleIssues(interpreterResult);
-
-//        if (LOGGER.isDebugEnabled()) {
-//            ArrayList<InterpretationIssue> list1 = Lists.newArrayList(interpreterResult.getIssues());
-//            for(InterpretationIssue e : list1) {
-//                if(e instanceof ParameterIssue) {
-//                    LOGGER.debug("(StereotypeDispatchComposedStructureInnerSwitch, doSwitch) StackContents der ParameterIssues: " + ((ParameterIssue) e).getStackContent());
-//                }
-//            }
-//        }
 
         return interpreterResult;
 
     }
-    
-    
+
     /**
      * Searches and calls the registered StereotypeSwitches for the attached Stereotypes
-     * 
-     * @param theEObject
-     *            The EObject to be analysed.
-     * @param callScope
-     *            Request-Scope or Response-Scope
-     * @return
+     *
      */
     public InterpreterResult handleAttachedStereotypes(EObject theEObject, CallScope callScope) {
-
         InterpreterResult interpreterResult = InterpreterResult.OK;
 
         if (StereotypeAPI.hasStereotypeApplications(theEObject)) {
@@ -151,35 +124,9 @@ public class StereotypeDispatchRDSeffSwitch extends Switch<InterpreterResult> im
 
         return interpreterResult;
     }
-    
-    /**
-     * Checks whether there's any StereotypeSwitch for this Stereotype registered.
-     * 
-     * @param stereotype
-     *            Stereotype, for which it needs to find a StereotypeSwitch
-     * @return Boolean, whether there's one StereotypeSwitch registered
-     */
-    public boolean isSwitchRegistered(Stereotype stereotype) {
 
-        return this.findDelegate(stereotype) != null;
-
-    }
-    
     /**
-     * Checks whether this is a switch for given package.
-     * 
-     * @param ePackage
-     *            The package in question.
-     * @return Boolean, whether this is a switch for the given package.
-     */
-    @Override
-    protected boolean isSwitchFor(EPackage ePackage) {
-        return ePackage == modelPackage;
-    }
-    
-    
-    /**
-     * Adds StereotypeSwitch to registered Switches.
+     * Adds StereotypeSwitch to available Switches.
      * 
      * @param sw
      *            To be added StereotypeSwitch
@@ -195,14 +142,12 @@ public class StereotypeDispatchRDSeffSwitch extends Switch<InterpreterResult> im
     }
 
     /**
-     * Finds the right registered Switch for this Stereotype.
+     * Searches for the appropriate StereotypeSwitch and registers the Switch in the registry.
      * 
      * @param stereotype
-     *            Stereotype, which needs to be handled
-     * @return StereotypeSwitch, which can handle the Stereotype
+     * @return the appropriate StereotypeSwitch
      */
-    protected StereotypeSwitch findDelegate(Stereotype stereotype) {
-
+    private StereotypeSwitch findDelegate(Stereotype stereotype) {
         synchronized (switches) {
 
             StereotypeSwitch delegate = registry.get(stereotype);
@@ -236,7 +181,20 @@ public class StereotypeDispatchRDSeffSwitch extends Switch<InterpreterResult> im
             return delegate;
         }
     }
-    
-    
+
+    /**
+     * Checks whether a Switch for this stereotype is registered.
+     * 
+     * @param stereo
+     * @return whether a switch is available
+     */
+    private boolean isSwitchRegistered(Stereotype stereo) {
+        return this.findDelegate(stereo) != null;
+    }
+
+    @Override
+    protected boolean isSwitchFor(EPackage ePackage) {
+        return ePackage == modelPackage;
+    }
 
 }

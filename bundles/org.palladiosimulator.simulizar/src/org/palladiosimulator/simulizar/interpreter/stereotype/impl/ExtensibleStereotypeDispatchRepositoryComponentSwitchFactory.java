@@ -1,4 +1,4 @@
-package org.palladiosimulator.simulizar.interpreter.impl;
+package org.palladiosimulator.simulizar.interpreter.stereotype.impl;
 
 import java.util.Set;
 
@@ -13,14 +13,20 @@ import org.palladiosimulator.simulizar.di.modules.scoped.thread.StandardSwitch;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
 import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitch;
 import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitchFactory;
-import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitchStereotypeContributionFactory;
-import org.palladiosimulator.simulizar.interpreter.StereotypeDispatchRepositoryComponentSwitch;
-import org.palladiosimulator.simulizar.interpreter.StereotypeDispatchRepositoryComponentSwitchFactory;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandlerDispatchFactory;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
+import org.palladiosimulator.simulizar.interpreter.stereotype.RepositoryComponentSwitchStereotypeContributionFactory;
+import org.palladiosimulator.simulizar.interpreter.stereotype.StereotypeDispatchRepositoryComponentSwitch;
 
+
+/**
+ * Factory for the StereotypeDispatchRepositoryComponentSwitch.
+ * 
+ * @author Marco Kugler
+ *
+ */
 public class ExtensibleStereotypeDispatchRepositoryComponentSwitchFactory implements RepositoryComponentSwitchFactory {
 
     private final Provider<Set<RepositoryComponentSwitchStereotypeContributionFactory>> elementFactoriesProvider;
@@ -45,22 +51,17 @@ public class ExtensibleStereotypeDispatchRepositoryComponentSwitchFactory implem
     }
 
     /**
-     * Creates the StereotypeDispatchComposedStructureInnerSwitch.
+     * Creates the StereotypeDispatchRepositoryComponentSwitch.
      */
     @Override
     public Switch<InterpreterResult> create(InterpreterDefaultContext context, AssemblyContext assemblyContext,
             Signature signature, ProvidedRole providedRole) {
 
-        // TODO Factory?
         StereotypeDispatchRepositoryComponentSwitch interpreter = new StereotypeDispatchRepositoryComponentSwitch(
                 merger, handler, (RepositoryComponentSwitch) repositoryComponentSwitchFactory.create(context,
                         assemblyContext, signature, providedRole));
 
         var elementFactories = elementFactoriesProvider.get();
-        // TODO brauche ich nicht, soll weiterlaufen, wenn es keine gibt?
-//        if (elementFactories.isEmpty()) {
-//            throw new IllegalStateException("No StereotypeSwitches for RepositoryComponents are registered.");
-//        }
         elementFactories.stream()
             .forEach(s -> interpreter
                 .addSwitch(s.create(context, assemblyContext, signature, providedRole, interpreter)));

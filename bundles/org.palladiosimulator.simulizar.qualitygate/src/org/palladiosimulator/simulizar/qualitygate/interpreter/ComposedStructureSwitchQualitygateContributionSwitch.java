@@ -14,14 +14,14 @@ import org.palladiosimulator.pcm.core.PCMRandomVariable;
 import org.palladiosimulator.pcm.core.entity.Entity;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
-import org.palladiosimulator.simulizar.interpreter.CallScope;
-import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
-import org.palladiosimulator.simulizar.interpreter.StereotypeSwitch;
-import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
+import org.palladiosimulator.simulizar.interpreter.stereotype.CallScope;
+import org.palladiosimulator.simulizar.interpreter.stereotype.ComposedStructureInnerSwitchStereotypeContributionFactory;
+import org.palladiosimulator.simulizar.interpreter.stereotype.StereotypeSwitch;
+import org.palladiosimulator.simulizar.interpreter.stereotype.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 
 import dagger.assisted.Assisted;
@@ -70,6 +70,7 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
 
         this.operationSignature = operationSignature;
         this.context = context;
+        
         // Injected
         this.merger = merger;
 
@@ -117,7 +118,7 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
         for (QualityGate e : taggedValues) {
 
             LOGGER.debug("Following StoEx was processed at " + this.stereotypedObject.getEntityName()
-                    + " with the StoEx: " + e.getPremise()
+                    + " with the StoEx: " + e.getPredicate()
                         .getSpecification());
 
             result = merger.merge(result, this.doSwitch(e));
@@ -142,7 +143,7 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
     @Override
     public InterpreterResult caseQualityGate(QualityGate qualitygate) {
         this.qualitygate = qualitygate;
-        this.premise = qualitygate.getPremise();
+        this.premise = qualitygate.getPredicate();
         return this.doSwitch(qualitygate.getScope());
 
     }

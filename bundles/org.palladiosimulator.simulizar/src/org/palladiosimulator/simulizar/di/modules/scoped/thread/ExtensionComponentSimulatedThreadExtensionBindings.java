@@ -3,11 +3,11 @@ package org.palladiosimulator.simulizar.di.modules.scoped.thread;
 import java.util.Set;
 
 import org.palladiosimulator.simulizar.di.extension.ExtensionLookup;
-import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchContributionFactory;
-import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchStereotypeContributionFactory;
-import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
+import org.palladiosimulator.simulizar.interpreter.stereotype.ComposedStructureInnerSwitchStereotypeContributionFactory;
+import org.palladiosimulator.simulizar.interpreter.stereotype.RDSeffSwitchStereotypeContributionFactory;
+import org.palladiosimulator.simulizar.interpreter.stereotype.RepositoryComponentSwitchStereotypeContributionFactory;
 import org.palladiosimulator.simulizar.scopes.SimulatedThreadScope;
 
 import dagger.Module;

@@ -1,4 +1,4 @@
-package org.palladiosimulator.simulizar.qualitygate.visualization.barchart;
+package org.palladiosimulator.simulizar.qualitygate.visualization.severity;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -30,15 +30,16 @@ import org.palladiosimulator.measurementframework.TupleMeasurement;
 import org.palladiosimulator.metricspec.BaseMetricDescription;
 import org.palladiosimulator.metricspec.Identifier;
 import org.palladiosimulator.metricspec.Scale;
+import org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygateBarchartVisualizationInputFactory;
 
-public class QualitygateBarchartVisualizationInput extends JFreeChartVisualizationInput {
+public class QualitygateSeverityVisualizationInput extends JFreeChartVisualizationInput {
 
-    public QualitygateBarchartVisualizationInput() {
+    public QualitygateSeverityVisualizationInput() {
         this(null);
     }
     
     
-    public QualitygateBarchartVisualizationInput(final AbstractDataSource source) {
+    public QualitygateSeverityVisualizationInput(final AbstractDataSource source) {
         super();
     }
     
@@ -57,7 +58,7 @@ public class QualitygateBarchartVisualizationInput extends JFreeChartVisualizati
         }
 
         if (!subMetricDescriptions[1].getName()
-                    .equals("InvolvedIssues")) {
+                    .equals("Severity")) {
             return false;
         }
 
@@ -84,9 +85,7 @@ public class QualitygateBarchartVisualizationInput extends JFreeChartVisualizati
         renderer.setShadowVisible(false);
         renderer.setBarPainter(new StandardBarPainter());
         
-        
-        
-        final CategoryAxis domainAxis = new CategoryAxis("Issues");
+        final CategoryAxis domainAxis = new CategoryAxis("Severity");
         
         final NumberAxis rangeAxis = new NumberAxis("Count");
         
@@ -131,17 +130,9 @@ public class QualitygateBarchartVisualizationInput extends JFreeChartVisualizati
             bins.put(entry.getKey(), entry.getValue());
         }
         
-        // First bar is always overall count of Qualitygate-violation
-        for (final String o : bins.keySet()) {
-            if(o.equals("Number of Occurrence")) {
-                dataset.setValue(bins.get(o), "Number of Occurence", o);
-            }
-        }
 
         for (final String o : bins.keySet()) {
-            if(!o.equals("Number of Occurrence")) {
-                dataset.setValue(bins.get(o), "Correlating Failures", o);
-            }
+            dataset.setValue(bins.get(o), o, o);
         }
         
         return dataset;
@@ -157,7 +148,7 @@ public class QualitygateBarchartVisualizationInput extends JFreeChartVisualizati
      */
     @Override
     public String getName() {
-        return "Propagation Results";
+        return "Severity of Simulation";
     }
 
 
@@ -165,6 +156,5 @@ public class QualitygateBarchartVisualizationInput extends JFreeChartVisualizati
     protected Set<String> getPropertyKeysTriggeringUpdate() {
         return Collections.emptySet();
     }
-    
-    
+
 }

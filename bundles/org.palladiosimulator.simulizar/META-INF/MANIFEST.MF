@@ -74,6 +74,7 @@ Export-Package: org.palladiosimulator.simulizar;uses:="org.eclipse.ui.plugin,org
  org.palladiosimulator.simulizar.interpreter.preinterpretation,
  org.palladiosimulator.simulizar.interpreter.result,
  org.palladiosimulator.simulizar.interpreter.result.impl,
+ org.palladiosimulator.simulizar.interpreter.stereotype,
  org.palladiosimulator.simulizar.launcher;
   uses:="org.eclipse.debug.core,
    org.apache.log4j,

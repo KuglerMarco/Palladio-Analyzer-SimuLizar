@@ -121,7 +121,7 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
         // Identifier to count how many times the Qualitygate was broken in general
         Identifier defaultBrokenIdentifier = MetricSpecFactory.eINSTANCE.createIdentifier();
         this.createdIdentifier.put("default", defaultBrokenIdentifier);
-        defaultBrokenIdentifier.setLiteral("Overall count of violation");
+        defaultBrokenIdentifier.setLiteral("Number of Occurrence");
         result.getIdentifiers()
             .add(defaultBrokenIdentifier);
 

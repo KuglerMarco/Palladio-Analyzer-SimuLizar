@@ -43,15 +43,15 @@ import org.palladiosimulator.probeframework.calculator.Calculator;
 import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.CorruptContentBehavior;
 import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.CrashBehavior;
 import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.DelayBehavior;
-import org.palladiosimulator.simulizar.interpreter.CallScope;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
-import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchStereotypeContributionFactory;
-import org.palladiosimulator.simulizar.interpreter.StereotypeSwitch;
-import org.palladiosimulator.simulizar.interpreter.RDSeffSwitchStereotypeContributionFactory.RDSeffSwitchElementDispatcher;
 import org.palladiosimulator.simulizar.interpreter.preinterpretation.PreInterpretationBehavior;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
+import org.palladiosimulator.simulizar.interpreter.stereotype.CallScope;
+import org.palladiosimulator.simulizar.interpreter.stereotype.RDSeffSwitchStereotypeContributionFactory;
+import org.palladiosimulator.simulizar.interpreter.stereotype.StereotypeSwitch;
+import org.palladiosimulator.simulizar.interpreter.stereotype.RDSeffSwitchStereotypeContributionFactory.RDSeffSwitchElementDispatcher;
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ResponseTimeProxyIssue;
@@ -170,7 +170,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         // Processing all the attached Qualitygates
         for (QualityGate qualitygate : qualitygates) {
 
-            LOGGER.debug("RepositoryCompoonent: " + qualitygate.getPremise()
+            LOGGER.debug("RepositoryCompoonent: " + qualitygate.getPredicate()
                 .getSpecification());
 
             if (theEObject instanceof ExternalCallAction) {
@@ -213,7 +213,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
     public InterpreterResult caseQualityGate(QualityGate qualitygate) {
 
         this.qualitygate = qualitygate;
-        this.premise = qualitygate.getPremise();
+        this.premise = qualitygate.getPredicate();
         return this.doSwitch(qualitygate.getScope());
 
     }
@@ -350,7 +350,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                     
                     if(qualitygate.getImpact() != null) {
                         
-                        result = merger.merge(result, this.handleImpact(qualitygate.getImpact().getFailure(), context));
+                        result = merger.merge(result, this.handleImpact(qualitygate.getImpact(), context));
                         
                     }
 
@@ -410,7 +410,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 
                 if(qualitygate.getImpact() != null) {
                     
-                    result = merger.merge(result, this.handleImpact(qualitygate.getImpact().getFailure(), context));
+                    result = merger.merge(result, this.handleImpact(qualitygate.getImpact(), context));
                     
                 }
 

@@ -146,7 +146,7 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                             
                             if(((ResponseTimeProxyIssue) issue).getQualitygate().getImpact() != null) {
                                 
-                                failureImpactList.addAll(((ResponseTimeProxyIssue) issue).getQualitygate().getImpact().getFailure());
+                                failureImpactList.addAll(((ResponseTimeProxyIssue) issue).getQualitygate().getImpact());
                                 
                             }                            
 

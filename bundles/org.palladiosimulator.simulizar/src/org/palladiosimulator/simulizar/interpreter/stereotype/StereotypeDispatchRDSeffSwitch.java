@@ -1,4 +1,4 @@
-package org.palladiosimulator.simulizar.interpreter;
+package org.palladiosimulator.simulizar.interpreter.stereotype;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
@@ -15,29 +14,26 @@ import org.eclipse.emf.ecore.EPackage;
 import org.eclipse.emf.ecore.util.Switch;
 import org.modelversioning.emfprofile.Stereotype;
 import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
-import org.palladiosimulator.pcm.core.composition.CompositionPackage;
-import org.palladiosimulator.simulizar.interpreter.ComposedStructureInnerSwitchStereotypeContributionFactory.ComposedStructureInnerSwitchStereotypeElementDispatcher;
+import org.palladiosimulator.pcm.seff.SeffPackage;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandler;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultMerger;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
+import org.palladiosimulator.simulizar.interpreter.stereotype.RDSeffSwitchStereotypeContributionFactory.RDSeffSwitchElementDispatcher;
 
 /**
- * Dispatch searching for the right StereotypeSwitch to handle attached Stereotypes at
- * ComposedStructure-elements. Classes implementing the
- * ComposedStrucutreInnerSwitchStereotypeContributionFactory are registered here and called, if the
- * relevant Stereotype is attached to the element of a ComposedStructure.
+ * Dispatch-Switch, which is searching for a available matching StereotypeSwitch to process the
+ * attached Stereotypes of the RDSeff element, if there is one.
  * 
  * @author Marco Kugler
  *
  */
-public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<InterpreterResult>
-        implements ComposedStructureInnerSwitchStereotypeElementDispatcher {
+public class StereotypeDispatchRDSeffSwitch extends Switch<InterpreterResult> implements RDSeffSwitchElementDispatcher {
 
     /**
      * Default-Switch after handling the Stereotypes at the system-element
      */
-    private ComposedStructureInnerSwitch composedStructureInnerSwitch;
+    private Switch<InterpreterResult> rdseffDispatchSwitch;
 
     /**
      * Registry of registered StereotypeSwitches
@@ -45,31 +41,25 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
     private final Map<Stereotype, StereotypeSwitch> registry = new HashMap<Stereotype, StereotypeSwitch>();
 
     /**
-     * Set of StreotypeSwitches inheriting from ComposedStructureInnerSwitchContributionFactory
+     * Set of the available StreotypeSwitches
      */
     private final List<StereotypeSwitch> switches = new ArrayList<StereotypeSwitch>();
-
-    protected static CompositionPackage modelPackage;
-
+    
+    protected static SeffPackage modelPackage;
     private final InterpreterResultHandler handler;
-
     private InterpreterResultMerger merger;
+    private static final Logger LOGGER = Logger.getLogger(StereotypeDispatchRDSeffSwitch.class);
 
-    private static final Logger LOGGER = Logger.getLogger(StereotypeDispatchComposedStructureInnerSwitch.class);
-
-    public StereotypeDispatchComposedStructureInnerSwitch(InterpreterResultMerger merger,
-            InterpreterResultHandler handler, ComposedStructureInnerSwitch composedStructureInnerSwitch) {
+    public StereotypeDispatchRDSeffSwitch(InterpreterResultMerger merger, InterpreterResultHandler handler,
+            Switch<InterpreterResult> rdseffDispatchSwitch) {
 
         if (modelPackage == null) {
-            modelPackage = CompositionPackage.eINSTANCE;
+            modelPackage = SeffPackage.eINSTANCE;
         }
 
         this.merger = merger;
         this.handler = handler;
-
-        LOGGER.setLevel(Level.DEBUG);
-
-        this.composedStructureInnerSwitch = composedStructureInnerSwitch;
+        this.rdseffDispatchSwitch = rdseffDispatchSwitch;
 
     }
 
@@ -88,24 +78,15 @@ public class StereotypeDispatchComposedStructureInnerSwitch extends Switch<Inter
         if (handler.handleIssues(interpreterResult)
             .equals(InterpreterResumptionPolicy.CONTINUE)) {
             // Default-Switch
-            interpreterResult = merger.merge(interpreterResult, composedStructureInnerSwitch.doSwitch(theEObject));
+            interpreterResult = merger.merge(interpreterResult, rdseffDispatchSwitch.doSwitch(theEObject));
         }
 
-        if (handler.handleIssues(interpreterResult)
-            .equals(InterpreterResumptionPolicy.CONTINUE)) {
-            // Stereotype-Handling in Response-Scope
-            interpreterResult = merger.merge(interpreterResult,
-                    this.handleAttachedStereotypes(theEObject, CallScope.RESPONSE));
-        }
+        // Stereotype-Handling in Response-Scope
+        interpreterResult = merger.merge(interpreterResult,
+                this.handleAttachedStereotypes(theEObject, CallScope.RESPONSE));
 
-//        if (LOGGER.isDebugEnabled()) {
-//            ArrayList<InterpretationIssue> list1 = Lists.newArrayList(interpreterResult.getIssues());
-//            for(InterpretationIssue e : list1) {
-//                if(e instanceof ParameterIssue) {
-//                    LOGGER.debug("(StereotypeDispatchComposedStructureInnerSwitch, doSwitch) StackContents der ParameterIssues: " + ((ParameterIssue) e).getStackContent());
-//                }
-//            }
-//        }
+        // called to get access on information about the issues present in the InterpreterResult
+        handler.handleIssues(interpreterResult);
 
         return interpreterResult;
 

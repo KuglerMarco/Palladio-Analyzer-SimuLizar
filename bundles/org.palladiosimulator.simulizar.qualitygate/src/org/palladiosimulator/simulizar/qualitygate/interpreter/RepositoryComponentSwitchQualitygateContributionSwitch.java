@@ -42,15 +42,15 @@ import org.palladiosimulator.probeframework.calculator.Calculator;
 import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.CorruptContentBehavior;
 import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.CrashBehavior;
 import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.DelayBehavior;
-import org.palladiosimulator.simulizar.interpreter.CallScope;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
-import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitchStereotypeContributionFactory;
-import org.palladiosimulator.simulizar.interpreter.RepositoryComponentSwitchStereotypeContributionFactory.RepositoryComponentSwitchStereotypeElementDispatcher;
-import org.palladiosimulator.simulizar.interpreter.StereotypeSwitch;
 import org.palladiosimulator.simulizar.interpreter.preinterpretation.PreInterpretationBehavior;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
+import org.palladiosimulator.simulizar.interpreter.stereotype.CallScope;
+import org.palladiosimulator.simulizar.interpreter.stereotype.RepositoryComponentSwitchStereotypeContributionFactory;
+import org.palladiosimulator.simulizar.interpreter.stereotype.StereotypeSwitch;
+import org.palladiosimulator.simulizar.interpreter.stereotype.RepositoryComponentSwitchStereotypeContributionFactory.RepositoryComponentSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ResponseTimeIssue;
@@ -205,7 +205,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     public InterpreterResult caseQualityGate(QualityGate qualitygate) {
 
         this.qualitygate = qualitygate;
-        premise = qualitygate.getPremise();
+        premise = qualitygate.getPredicate();
         if (qualitygate.getAssemblyContext() == null || qualitygate.getAssemblyContext()
             .equals(this.assembly)) {
             return this.doSwitch(qualitygate.getScope());
@@ -251,7 +251,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
                 
                 if(qualitygate.getImpact() != null) {
-                    result = merger.merge(result, this.handleImpact(qualitygate.getImpact().getFailure(), interpreterDefaultContext));
+                    result = merger.merge(result, this.handleImpact(qualitygate.getImpact(), interpreterDefaultContext));
                 }
 
             } else {
@@ -301,7 +301,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 
                 if(qualitygate.getImpact() != null) {
                     
-                    result = merger.merge(result, this.handleImpact(qualitygate.getImpact().getFailure(), interpreterDefaultContext));
+                    result = merger.merge(result, this.handleImpact(qualitygate.getImpact(), interpreterDefaultContext));
                     
                 }
 
@@ -418,7 +418,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                     
                     if(qualitygate.getImpact() != null) {
                         
-                        failureImpactList.addAll(qualitygate.getImpact().getFailure());
+                        failureImpactList.addAll(qualitygate.getImpact());
                         
                     }
 
