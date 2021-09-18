@@ -64,7 +64,7 @@ import dagger.assisted.AssistedInject;
 import de.uka.ipd.sdq.simucomframework.variables.stackframe.SimulatedStackframe;
 
 /**
- * Switch to process the qualitygates attached at elements of ExternalCalls.
+ * Switch to process the qualitygates attached at elements of ProvidedRoles.
  * 
  * @author Marco Kugler
  *
@@ -133,24 +133,24 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     }
 
     /**
-     * Returns whether this Switch is responsible for processing this stereotype.
-     *
+     * Returns whether this Switch is appropriate for processing this stereotype. *
      */
     @Override
     public boolean isSwitchForStereotype(Stereotype stereotype) {
 
-        boolean result = stereotype.getProfile()
+        if (stereotype.getProfile()
             .getName()
-            .equals(profileName);
-        if (result) {
-            return stereotype.getName()
-                .equals(stereotypeName);
+            .equals(profileName)
+                && stereotype.getName()
+                    .equals(stereotypeName)) {
+
+            return true;
         }
-        return result;
+        return false;
     }
 
     /**
-     * Entry-Point to process the attached stereotypes.
+     * Entry-Point to process the attached qualitygate.
      *
      */
     @Override
@@ -194,8 +194,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
     @Override
     public void preUnregister() {
-        // TODO Auto-generated method stub
-
+        // Nothing to do here
     }
 
     /**
@@ -238,25 +237,29 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
                         this.interpreterDefaultContext.getStack()
                             .currentStackFrame()
-                            .getContents(), true);
+                            .getContents(),
+                        true);
 
                 result = BasicInterpreterResult.of(issue);
-                
 
                 // triggering probe to measure Success-To-Failure-Rate case violated
-                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
+                probeRegistry
+                    .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
 
-                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, qualitygate.getSeverity()));
+                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext,
+                        false, qualitygate.getSeverity()));
 
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
-                
-                if(qualitygate.getImpact() != null) {
-                    result = merger.merge(result, this.handleImpact(qualitygate.getImpact(), interpreterDefaultContext));
+
+                if (qualitygate.getImpact() != null) {
+                    result = merger.merge(result,
+                            this.handleImpact(qualitygate.getImpact(), interpreterDefaultContext));
                 }
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null));
+                probeRegistry
+                    .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null));
             }
 
         }
@@ -286,28 +289,31 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                 ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
                         this.interpreterDefaultContext.getCurrentResultFrame()
-                            .getContents(), false);
+                            .getContents(),
+                        false);
 
                 result = BasicInterpreterResult.of(issue);
-                
 
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
+                probeRegistry
+                    .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
 
-                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, qualitygate.getSeverity()));
+                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext,
+                        false, qualitygate.getSeverity()));
 
-                
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
-                
-                if(qualitygate.getImpact() != null) {
-                    
-                    result = merger.merge(result, this.handleImpact(qualitygate.getImpact(), interpreterDefaultContext));
-                    
+
+                if (qualitygate.getImpact() != null) {
+
+                    result = merger.merge(result,
+                            this.handleImpact(qualitygate.getImpact(), interpreterDefaultContext));
+
                 }
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null));
+                probeRegistry
+                    .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null));
             }
         }
         return result;
@@ -318,7 +324,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
         InterpreterResult result = InterpreterResult.OK;
         List<Failure> failureImpactList = new ArrayList<Failure>();
-
 
         // Checking whether this qualitygate is evaluated at the right point in model
         if (this.operationSignature.equals(object.getSignature()) && this.providedRole.equals(stereotypedObject)
@@ -337,6 +342,13 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                     .getResource(uri, false)
                     .getContents()
                     .get(0);
+
+                MetricDescription respTimeMetricDesc = res.getMetricDescriptions()
+                    .stream()
+                    .filter(e -> e.getName()
+                        .equals("Response Time Tuple"))
+                    .findFirst()
+                    .orElse(null);
 
                 // Searching for the Measuring-Point
                 MeasuringPointRepository measuringPointRepo = (MeasuringPointRepository) partManager
@@ -362,26 +374,18 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                             "No MeasuringPoint found in MeasuringPointRepository for this Qualitygate.");
                 }
 
-                MetricDescription respTimeMetricDesc = res.getMetricDescriptions()
-                    .stream()
-                    .filter(e -> e.getName()
-                        .equals("Response Time Tuple"))
-                    .findFirst()
-                    .orElse(null);
-
                 // Calculator for this Qualitygate
                 Calculator calc = frameworkContext.getCalculatorRegistry()
                     .getCalculatorByMeasuringPointAndMetricDescription(measPoint, respTimeMetricDesc);
 
-                LOGGER.debug("MeasuringPoint is: " + measPoint.getStringRepresentation());
-
+                // Adding this class as observer
                 if (!this.atRequestMetricCalcAdded) {
                     calc.addObserver(this);
-                    LOGGER.debug("Observer added");
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Observer added at: " + measPoint.getStringRepresentation());
+                    }
                     this.atRequestMetricCalcAdded = true;
                 }
-
-                LOGGER.debug(calc.toString());
 
                 result = InterpreterResult.OK;
 
@@ -389,21 +393,20 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 
 
                 // set temporary stack for evaluation
-                final SimulatedStackframe<Object> frame = this.interpreterDefaultContext.getStack().createAndPushNewStackFrame();
+                final SimulatedStackframe<Object> frame = this.interpreterDefaultContext.getStack()
+                    .createAndPushNewStackFrame();
                 Measure<Object, Quantity> measuringValue = responseTime
                     .getMeasureForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
-                
-                // TODO Premise noch zuerst auf den originalen Stack auswerten, falls Parameter drauf sind (?)
-                
+
                 frame.addValue("ResponseTime.VALUE", (Double) measuringValue.getValue());
 
-                if (!((boolean) interpreterDefaultContext.evaluate(premise.getSpecification(), this.interpreterDefaultContext.getStack()
+                if (!((boolean) interpreterDefaultContext.evaluate(premise.getSpecification(),
+                        this.interpreterDefaultContext.getStack()
                         .currentStackFrame()))) {
                     LOGGER.debug("Reponsetime Qualitygate broken: " + responseTime);
-                    
-                    
 
-                    ResponseTimeIssue issue = new ResponseTimeIssue((Entity) this.stereotypedObject, qualitygate, false);
+                    ResponseTimeIssue issue = new ResponseTimeIssue((Entity) this.stereotypedObject, qualitygate,
+                            false);
 
                     result = BasicInterpreterResult.of(issue);
 
@@ -415,11 +418,9 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                             interpreterDefaultContext, false, qualitygate.getSeverity()));
 
                     recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
-                    
-                    if(qualitygate.getImpact() != null) {
-                        
+
+                    if (qualitygate.getImpact() != null) {
                         failureImpactList.addAll(qualitygate.getImpact());
-                        
                     }
 
                 } else {
@@ -427,10 +428,11 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                     probeRegistry
                         .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null));
                 }
-                
+
                 // pop temporary stack
-                this.interpreterDefaultContext.getStack().removeStackFrame();
-                
+                this.interpreterDefaultContext.getStack()
+                    .removeStackFrame();
+
                 result = merger.merge(result, this.handleImpact(failureImpactList, interpreterDefaultContext));
             }
 
@@ -438,14 +440,12 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
         return result;
     }
-    
 
-    private InterpreterResult handleImpact(List<Failure> failureList, InterpreterDefaultContext interpreterDefaultContext) {
-        
-        
+    private InterpreterResult handleImpact(List<Failure> failureList,
+            InterpreterDefaultContext interpreterDefaultContext) {
+
         InterpreterResult result = InterpreterResult.OK;
-        
-            
+
         for (Failure failure : failureList) {
 
             if (failure instanceof SWTimingFailure) {
@@ -471,11 +471,9 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
             }
 
         }
-            
-        
+
         return result;
-        
+
     }
-    
 
 }

@@ -1,5 +1,6 @@
 package org.palladiosimulator.simulizar.qualitygate.jobs;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -37,8 +38,13 @@ import org.palladiosimulator.pcm.seff.ExternalCallAction;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.seff.ServiceEffectSpecification;
 import org.palladiosimulator.pcm.repository.ProvidedRole;
+import org.palladiosimulator.pcm.repository.RequiredRole;
+import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringpointPackage;
+import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
+import org.palladiosimulator.failuremodel.qualitygate.SignatureScope;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 
 /**
@@ -114,6 +120,7 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
             .getElement(SystemPackage.Literals.SYSTEM)
             .get(0);
 
+        this.attachQualitygateAtExternalCall();
         this.attachMonitorsAtProvidedRole();
         this.attachMonitorsAtExternalCall();
 
@@ -129,10 +136,68 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
         }
     }
 
+    private void attachQualitygateAtExternalCall() {
+
+        for (AssemblyContext assembly : systemRepo.getAssemblyContexts__ComposedStructure()) {
+
+            for (RequiredRole role : assembly.getEncapsulatedComponent__AssemblyContext()
+                .getRequiredRoles_InterfaceRequiringEntity()) {
+
+                if (this.hasQualityGate(role)) {
+
+                    LOGGER.debug("The RequiredRole " + ((RequiredRole) role).getEntityName()
+                            + " has a qualitygate-application");
+
+                    EList<Stereotype> stereotypes = StereotypeAPI.getAppliedStereotypes(role);
+
+                    Stereotype qualitygateElement = stereotypes.stream()
+                        .filter(stereotype -> stereotype.getName()
+                            .equals("QualitygateElement"))
+                        .findAny()
+                        .orElseThrow(() -> new IllegalStateException("No Qualitygate stereotype found."));
+
+                    EList<QualityGate> qualitygates = StereotypeAPI.getTaggedValue(role, "qualitygate",
+                            "QualitygateElement");
+
+                    for (QualityGate qualitygate : qualitygates) {
+
+                        Signature signature = ((SignatureScope) qualitygate.getScope()).getSignature();
+
+                        for (ServiceEffectSpecification seff : ((BasicComponent) assembly
+                            .getEncapsulatedComponent__AssemblyContext())
+                                .getServiceEffectSpecifications__BasicComponent()) {
+
+                            for (AbstractAction abstractAction : ((ResourceDemandingSEFF) seff).getSteps_Behaviour()) {
+
+                                if (abstractAction instanceof ExternalCallAction) {
+
+                                    if (((ExternalCallAction) abstractAction).getCalledService_ExternalService()
+                                        .equals(signature)
+                                            && ((ExternalCallAction) abstractAction).getRole_ExternalService()
+                                                .equals(role)) {
+                                        
+                                        
+
+                                        StereotypeAPI.applyStereotype(abstractAction, qualitygateElement);
+                                        EList<QualityGate> qualitygatesTest = StereotypeAPI.getTaggedValue(role, "qualitygate", qualitygateElement.getName());
+                                        
+                                        System.out.println(qualitygatesTest.get(0).getEntityName());
+                                        
+                                        
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     /**
      * Creating and adding the Monitors at ProvidedRole.
      */
-    public void attachMonitorsAtProvidedRole() {
+    private void attachMonitorsAtProvidedRole() {
 
         for (AssemblyContext assembly : systemRepo.getAssemblyContexts__ComposedStructure()) {
 
@@ -172,7 +237,7 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
     /**
      * Creating and adding the Monitors at ExternalCall.
      */
-    public void attachMonitorsAtExternalCall() {
+    private void attachMonitorsAtExternalCall() {
 
         for (AssemblyContext assembly : systemRepo.getAssemblyContexts__ComposedStructure()) {
 

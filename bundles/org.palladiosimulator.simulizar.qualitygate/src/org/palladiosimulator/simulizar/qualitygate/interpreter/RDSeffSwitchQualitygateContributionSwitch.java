@@ -27,10 +27,6 @@ import org.palladiosimulator.measurementframework.listener.IMeasurementSourceLis
 import org.palladiosimulator.metricspec.MetricDescription;
 import org.palladiosimulator.metricspec.MetricDescriptionRepository;
 import org.palladiosimulator.metricspec.constants.MetricDescriptionConstants;
-import org.palladiosimulator.monitorrepository.MeasurementSpecification;
-import org.palladiosimulator.monitorrepository.Monitor;
-import org.palladiosimulator.monitorrepository.MonitorRepository;
-import org.palladiosimulator.monitorrepository.MonitorRepositoryPackage;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.core.entity.Entity;
@@ -82,7 +78,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
     }
 
-    // Information about the stereotype it is processing
+    // Information about the stereotype
     private final String stereotypeName = "QualitygateElement";
     private final String profileName = "QualitygateProfile";
 
@@ -130,24 +126,24 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
     }
 
     /**
-     * Returns whether this Switch is responsible for processing this stereotype.
-     *
+     * Returns whether this Switch is appropriate for processing this stereotype.
      */
     @Override
     public boolean isSwitchForStereotype(Stereotype stereotype) {
 
-        boolean result = stereotype.getProfile()
+        if (stereotype.getProfile()
             .getName()
-            .equals(profileName);
-        if (result) {
-            return stereotype.getName()
-                .equals(stereotypeName);
+            .equals(profileName)
+                && stereotype.getName()
+                    .equals(stereotypeName)) {
+
+            return true;
         }
-        return result;
+        return false;
     }
 
     /**
-     * Entry-Point to process the attached stereotypes.
+     * Entry-Point to process the attached qualitygates at the model element.
      *
      */
     @Override
@@ -158,20 +154,24 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         this.operationSignature = ((ExternalCallAction) theEObject).getCalledService_ExternalService();
         this.stereotypedObject = (Entity) theEObject;
         this.callScope = callScope;
-
+        
         EList<QualityGate> qualitygates = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
 
         // Model validation
         if (qualitygates.isEmpty()) {
-            throw new IllegalArgumentException(
+            
+            
+            qualitygates = StereotypeAPI.getTaggedValue(((ExternalCallAction)theEObject).getRole_ExternalService(), "qualitygate", stereotype.getName());
+            
+            if(qualitygates.isEmpty()) {
+                throw new IllegalArgumentException(
                     "Qualitygate-Model not valid: Qualitygate-Stereotype needs to have at least one Qualitygate element.");
+            }
+            
         }
 
         // Processing all the attached Qualitygates
         for (QualityGate qualitygate : qualitygates) {
-
-            LOGGER.debug("RepositoryCompoonent: " + qualitygate.getPredicate()
-                .getSpecification());
 
             if (theEObject instanceof ExternalCallAction) {
                 result = merger.merge(result, this.doSwitch(qualitygate));
@@ -194,27 +194,33 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         return this.profileName;
     }
 
+    /**
+     * Captures the ResponseTime measurements at the stereotyped entity
+     *
+     */
     @Override
     public void newMeasurementAvailable(MeasuringValue newMeasurement) {
         responseTime = newMeasurement.getMeasuringValueForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
-        LOGGER.debug("Added a new Measurement: " + responseTime);
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("Added a new Measurement: " + responseTime);
+        }
     }
 
     @Override
     public void preUnregister() {
-        // TODO Auto-generated method stub
-
+        // Nothing to do here
     }
 
-    /**
-     * Saving the qualitygate's premise and the qualitygate-element itself.
-     */
     @Override
     public InterpreterResult caseQualityGate(QualityGate qualitygate) {
 
         this.qualitygate = qualitygate;
         this.premise = qualitygate.getPredicate();
-        return this.doSwitch(qualitygate.getScope());
+        if (qualitygate.getAssemblyContext() == null || qualitygate.getAssemblyContext()
+            .equals(this.assembly)) {
+            return this.doSwitch(qualitygate.getScope());
+        }
+        return InterpreterResult.OK;
 
     }
 
@@ -227,83 +233,75 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
         InterpreterResult result = InterpreterResult.OK;
 
-        if (qualitygate.getAssemblyContext() == null || qualitygate.getAssemblyContext()
-            .equals(this.assembly)) {
+        // Registering at the Calculator in Request-Scope
+        if (callScope.equals(CallScope.REQUEST)) {
 
-            // Registering at the Calculator in Request-Scope
-            if (callScope.equals(CallScope.REQUEST)) {
+            // Loading CommonMetrics-model
+            URI uri = URI.createURI(MetricDescriptionConstants.PATHMAP_METRIC_SPEC_MODELS_COMMON_METRICS_METRICSPEC);
+            MetricDescriptionRepository res = (MetricDescriptionRepository) partManager.getBlackboard()
+                .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
+                .getResourceSet()
+                .getResource(uri, false)
+                .getContents()
+                .get(0);
 
-                // Loading CommonMetrics-model
-                URI uri = URI
-                    .createURI(MetricDescriptionConstants.PATHMAP_METRIC_SPEC_MODELS_COMMON_METRICS_METRICSPEC);
-                MetricDescriptionRepository res = (MetricDescriptionRepository) partManager.getBlackboard()
-                    .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
-                    .getResourceSet()
-                    .getResource(uri, false)
-                    .getContents()
-                    .get(0);
+            // Loading the ResponseTime MetricDescription
+            MetricDescription respTimeMetricDesc = res.getMetricDescriptions()
+                .stream()
+                .filter(e -> e.getName()
+                    .equals("Response Time Tuple"))
+                .findFirst()
+                .orElse(null);
 
-                // Searching for the Measuring-Point
-                MeasuringPointRepository measuringPointRepo = (MeasuringPointRepository) partManager
-                    .findModel(MeasuringpointPackage.Literals.MEASURING_POINT_REPOSITORY);
+            // Searching for the Measuring-Point
+            MeasuringPointRepository measuringPointRepo = (MeasuringPointRepository) partManager
+                .findModel(MeasuringpointPackage.Literals.MEASURING_POINT_REPOSITORY);
 
-                MeasuringPoint measPoint = null;
+            MeasuringPoint measPoint = null;
 
-                for (MeasuringPoint e : measuringPointRepo.getMeasuringPoints()) {
-                    if (e instanceof ExternalCallActionMeasuringPoint) {
-                        if (((ExternalCallActionMeasuringPoint) e).getExternalCall()
-                            .equals(stereotypedObject)) {
+            for (MeasuringPoint e : measuringPointRepo.getMeasuringPoints()) {
+                if (e instanceof ExternalCallActionMeasuringPoint) {
+                    if (((ExternalCallActionMeasuringPoint) e).getExternalCall()
+                        .equals(stereotypedObject)) {
 
-                            measPoint = (ExternalCallActionMeasuringPoint) e;
-
-                        }
+                        measPoint = (ExternalCallActionMeasuringPoint) e;
                     }
                 }
-
-                // TODO wenn kein measuringPoint vorliegt, dann eventuell einfach kein Monitor gesetzt?
-                if (measPoint == null) {
-                    throw new IllegalStateException(
-                            "No MeasuringPoint found in MeasuringPointRepository for this Qualitygate.");
-                }
-
-                // Loading the ResponseTime MetricDescription
-                MetricDescription respTimeMetricDesc = res.getMetricDescriptions()
-                    .stream()
-                    .filter(e -> e.getName()
-                        .equals("Response Time Tuple"))
-                    .findFirst()
-                    .orElse(null);
-
-                // Calculator for this Qualitygate TODO Noch MetricDescription raussuchen
-                Calculator calc = frameworkContext.getCalculatorRegistry()
-                    .getCalculatorByMeasuringPointAndMetricDescription(measPoint, respTimeMetricDesc);
-
-                LOGGER.debug("MeasuringPoint is: " + measPoint.getStringRepresentation());
-
-                if (!this.atRequestMetricCalcAdded) {
-                    calc.addObserver(this);
-                    LOGGER.debug("Observer added");
-                    this.atRequestMetricCalcAdded = true;
-                }
-
-            } else {
-                /*
-                 * Response-Time is checked, when the measurements are available - Processing-Proxy
-                 * is added as Issue
-                 */
-                LOGGER.debug("New ResponseTimeProxyIssue.");
-                result = InterpreterResult
-                    .of(new ResponseTimeProxyIssue(premise, this, qualitygate, stereotypedObject, this.context, true));
-
             }
+
+            if (measPoint == null) {
+                throw new IllegalStateException(
+                        "No MeasuringPoint found in MeasuringPointRepository for this Qualitygate.");
+            }
+
+            // Calculator for this Qualitygate
+            Calculator calc = frameworkContext.getCalculatorRegistry()
+                .getCalculatorByMeasuringPointAndMetricDescription(measPoint, respTimeMetricDesc);
+
+            // Adding this class as observer
+            if (!this.atRequestMetricCalcAdded) {
+                calc.addObserver(this);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Observer added at: " + measPoint.getStringRepresentation());
+                }
+                this.atRequestMetricCalcAdded = true;
+            }
+
+        } else {
+            /*
+             * Response-Time is checked, when the measurements are available - Processing-Proxy is
+             * added as Issue, which is evaluated at the IssueHandler
+             */
+            if (LOGGER.isDebugEnabled()) {
+                LOGGER.debug("New ResponseTimeProxyIssue.");
+            }
+            result = InterpreterResult
+                .of(new ResponseTimeProxyIssue(premise, this, qualitygate, stereotypedObject, this.context, true));
         }
 
         return result;
 
     }
-    
-    
-    
 
     /**
      * Processing the RequestParameterScope
@@ -315,55 +313,52 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         Signature signatureOfQualitygate = object.getSignature();
         InterpreterResult result = InterpreterResult.OK;
 
-        if (stereotypedObject instanceof ExternalCallAction) {
+        if (callScope.equals(CallScope.REQUEST) && (signatureOfQualitygate == (this.operationSignature))) {
 
-            if (callScope.equals(CallScope.REQUEST) && (signatureOfQualitygate == (this.operationSignature))) {
+            // Push the new frame to evaluate, because in RDSeffSwitch, stack is pushed after this
+            // stereotype processing
+            SimulatedStackHelper.createAndPushNewStackFrame(this.context.getStack(),
+                    ((CallAction) stereotypedObject).getInputVariableUsages__CallAction());
 
-                // Push the new frame to evaluate
-                SimulatedStackHelper.createAndPushNewStackFrame(this.context.getStack(),
-                        ((CallAction) stereotypedObject).getInputVariableUsages__CallAction());
+            if (!((boolean) context.evaluate(premise.getSpecification(), this.context.getStack()
+                .currentStackFrame()))) {
 
-                if (!((boolean) context.evaluate(premise.getSpecification(), this.context.getStack()
-                    .currentStackFrame()))) {
-
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Following StoEx is broken at ExternalCall: " + premise.getSpecification()
-                                + " because stackframe is: " + this.context.getStack()
-                                    .currentStackFrame()
-                                    .toString());
-                    }
-                    ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
-                            this.context.getStack()
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Following StoEx is broken at ExternalCall: " + premise.getSpecification()
+                            + " because stackframe is: " + this.context.getStack()
                                 .currentStackFrame()
-                                .getContents(),
-                            true);
+                                .toString());
+                }
+                ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
+                        this.context.getStack()
+                            .currentStackFrame()
+                            .getContents(),
+                        true);
 
-                    result = BasicInterpreterResult.of(issue);
+                result = BasicInterpreterResult.of(issue);
 
-                    // triggering probe to measure Success-To-Failure-Rate case violated
-                    probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, false, null));
+                // triggering probe to measure Success-To-Failure-Rate case violated
+                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, false, null));
 
-                    probeRegistry.triggerSeverityProbe(
-                            new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getSeverity()));
+                probeRegistry.triggerSeverityProbe(
+                        new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getSeverity()));
 
-                    recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
-                    
-                    if(qualitygate.getImpact() != null) {
-                        
-                        result = merger.merge(result, this.handleImpact(qualitygate.getImpact(), context));
-                        
-                    }
+                recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
-                } else {
-                    // triggering probe to measure Success-To-Failure-Rate case successful
-                    probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, true, null));
+                if (qualitygate.getImpact() != null) {
+
+                    result = merger.merge(result, this.handleImpact(qualitygate.getImpact(), context));
+
                 }
 
-                // Removing Stack again
-                this.context.getStack()
-                    .removeStackFrame();
-
+            } else {
+                // triggering probe to measure Success-To-Failure-Rate case successful
+                probeRegistry.triggerProbe(new QualitygatePassedEvent(qualitygate, context, true, null));
             }
+
+            // Removing Stack again
+            this.context.getStack()
+                .removeStackFrame();
 
             return result;
 
@@ -407,11 +402,9 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                         new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getSeverity()));
 
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
-                
-                if(qualitygate.getImpact() != null) {
-                    
+
+                if (qualitygate.getImpact() != null) {
                     result = merger.merge(result, this.handleImpact(qualitygate.getImpact(), context));
-                    
                 }
 
             } else {
@@ -421,54 +414,20 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         }
         return result;
     }
-    
 
     /**
-     * Last measurement of the ResponseTime-calculators
+     * Last measurement of the ResponseTime-calculator
      *
      */
     public MeasuringValue getLastResponseTimeMeasure() {
-
         return RDSeffSwitchQualitygateContributionSwitch.responseTime;
-
     }
 
-    public boolean isMonitorPresent() {
+    private InterpreterResult handleImpact(List<Failure> failureList,
+            InterpreterDefaultContext interpreterDefaultContext) {
 
-        // TODO Monitor Überprüfung
-        MonitorRepository monitorRepo = (MonitorRepository) partManager.getBlackboard()
-            .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
-            .getElement(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY)
-            .get(0);
-
-        for (Monitor monitor : monitorRepo.getMonitors()) {
-
-            if (monitor.getMeasuringPoint() instanceof ExternalCallActionMeasuringPoint) {
-
-                if (((ExternalCallActionMeasuringPoint) monitor.getMeasuringPoint()).getExternalCall()
-                    .equals(stereotypedObject)) {
-
-                    for (MeasurementSpecification specification : monitor.getMeasurementSpecifications()) {
-                        if (specification.getMetricDescription()
-                            .equals(MetricDescriptionConstants.RESPONSE_TIME_METRIC)) {
-                            return true;
-                        }
-                    }
-
-                }
-
-            }
-
-        }
-        return false;
-    }
-    
-    private InterpreterResult handleImpact(List<Failure> failureList, InterpreterDefaultContext interpreterDefaultContext) {
-        
-        
         InterpreterResult result = InterpreterResult.OK;
-        
-            
+
         for (Failure failure : failureList) {
 
             if (failure instanceof SWTimingFailure) {
@@ -494,10 +453,9 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
             }
 
         }
-            
-        
+
         return result;
-        
+
     }
 
 }

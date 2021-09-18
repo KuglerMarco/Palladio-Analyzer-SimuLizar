@@ -125,6 +125,19 @@ public class StereotypeQualitygateExternalCallPreprocessingSwitch extends Qualit
 
         EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(object, "qualitygate", "QualitygateElement");
 
+     // Model validation
+        if (taggedValues.isEmpty()) {
+            
+            
+            taggedValues = StereotypeAPI.getTaggedValue(((ExternalCallAction)object).getRole_ExternalService(), "qualitygate", "QualitygateElement");
+            
+            if(taggedValues.isEmpty()) {
+                throw new IllegalArgumentException(
+                    "Qualitygate-Model not valid: Qualitygate-Stereotype needs to have at least one Qualitygate element.");
+            }
+            
+        }
+        
         stereotypedObject = object;
 
         List<Monitor> monitor = new ArrayList<Monitor>();
