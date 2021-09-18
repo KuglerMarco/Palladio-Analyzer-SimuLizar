@@ -71,8 +71,6 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
         // Entity-Name
         monitor.setEntityName("QualitygateMonitor at ProvidedRole " + ((ProvidedRole) stereotypedRole).getEntityName());
 
-        // Measuring-Point //TODO Optional Reference on Assembly, then
-        // AssemblyOperationMeasuringPoint
         AssemblyOperationMeasuringPoint measuringPoint = PcmmeasuringpointFactory.eINSTANCE
             .createAssemblyOperationMeasuringPoint();
 
@@ -87,11 +85,13 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
 
         // Measurement-Specification
         MeasurementSpecification measurementSpec = MonitorRepositoryFactory.eINSTANCE.createMeasurementSpecification();
-
+        
+        String metricName = object.getMetric().getName().replace(" Tuple", "");
+        
         MetricDescription metricDesc = metricRepo.getMetricDescriptions()
             .stream()
             .filter(e -> e.getName()
-                .equals("Response Time"))
+                .equals(metricName))
             .findFirst()
             .orElse(null);
 

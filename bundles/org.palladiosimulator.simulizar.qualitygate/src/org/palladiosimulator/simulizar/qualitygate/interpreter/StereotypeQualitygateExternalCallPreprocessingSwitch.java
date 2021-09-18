@@ -81,12 +81,15 @@ public class StereotypeQualitygateExternalCallPreprocessingSwitch extends Qualit
         // Measurement-Specification
         MeasurementSpecification measurementSpec = MonitorRepositoryFactory.eINSTANCE.createMeasurementSpecification();
 
+        String metricName = object.getMetric().getName().replace(" Tuple", "");
+        
         MetricDescription metricDesc = metricRepo.getMetricDescriptions()
             .stream()
             .filter(e -> e.getName()
-                .equals("Response Time"))
+                .equals(metricName))
             .findFirst()
             .orElse(null);
+        
 
         // Metric-Description
         measurementSpec.setMetricDescription(metricDesc);
@@ -125,10 +128,13 @@ public class StereotypeQualitygateExternalCallPreprocessingSwitch extends Qualit
 
         EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(object, "qualitygate", "QualitygateElement");
 
-     // Model validation
         if (taggedValues.isEmpty()) {
             
-            
+            /*
+             * The containment reference on the Qualitygate cannot be transferred to the
+             * ExternalCall during Preprocessing; thus, if ExternalCall has no Qualitygate, the
+             * RequiredRole needs to be checked
+             */
             taggedValues = StereotypeAPI.getTaggedValue(((ExternalCallAction)object).getRole_ExternalService(), "qualitygate", "QualitygateElement");
             
             if(taggedValues.isEmpty()) {

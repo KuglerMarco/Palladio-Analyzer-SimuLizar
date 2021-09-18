@@ -5,10 +5,8 @@ import java.util.List;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.modelversioning.emfprofile.Stereotype;
-import org.palladiosimulator.analyzer.workflow.ConstantsContainer;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPoint;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringpointPackage;
@@ -25,7 +23,6 @@ import org.palladiosimulator.mdsdprofiles.api.StereotypeAPI;
 import org.palladiosimulator.measurementframework.MeasuringValue;
 import org.palladiosimulator.measurementframework.listener.IMeasurementSourceListener;
 import org.palladiosimulator.metricspec.MetricDescription;
-import org.palladiosimulator.metricspec.MetricDescriptionRepository;
 import org.palladiosimulator.metricspec.constants.MetricDescriptionConstants;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
@@ -154,20 +151,24 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         this.operationSignature = ((ExternalCallAction) theEObject).getCalledService_ExternalService();
         this.stereotypedObject = (Entity) theEObject;
         this.callScope = callScope;
-        
+
         EList<QualityGate> qualitygates = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
 
-        // Model validation
         if (qualitygates.isEmpty()) {
-            
-            
-            qualitygates = StereotypeAPI.getTaggedValue(((ExternalCallAction)theEObject).getRole_ExternalService(), "qualitygate", stereotype.getName());
-            
-            if(qualitygates.isEmpty()) {
+
+            /*
+             * The containment reference on the Qualitygate cannot be transferred to the
+             * ExternalCall during Preprocessing; thus, if ExternalCall has no Qualitygate, the
+             * RequiredRole needs to be checked
+             */
+            qualitygates = StereotypeAPI.getTaggedValue(((ExternalCallAction) theEObject).getRole_ExternalService(),
+                    "qualitygate", stereotype.getName());
+
+            if (qualitygates.isEmpty()) {
                 throw new IllegalArgumentException(
-                    "Qualitygate-Model not valid: Qualitygate-Stereotype needs to have at least one Qualitygate element.");
+                        "Qualitygate-Model not valid: Qualitygate-Stereotype needs to have at least one Qualitygate element.");
             }
-            
+
         }
 
         // Processing all the attached Qualitygates
@@ -236,23 +237,8 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         // Registering at the Calculator in Request-Scope
         if (callScope.equals(CallScope.REQUEST)) {
 
-            // Loading CommonMetrics-model
-            URI uri = URI.createURI(MetricDescriptionConstants.PATHMAP_METRIC_SPEC_MODELS_COMMON_METRICS_METRICSPEC);
-            MetricDescriptionRepository res = (MetricDescriptionRepository) partManager.getBlackboard()
-                .getPartition(ConstantsContainer.DEFAULT_PCM_INSTANCE_PARTITION_ID)
-                .getResourceSet()
-                .getResource(uri, false)
-                .getContents()
-                .get(0);
-
-            // Loading the ResponseTime MetricDescription
-            MetricDescription respTimeMetricDesc = res.getMetricDescriptions()
-                .stream()
-                .filter(e -> e.getName()
-                    .equals("Response Time Tuple"))
-                .findFirst()
-                .orElse(null);
-
+            MetricDescription respTimeMetricDesc = object.getMetric();
+                    
             // Searching for the Measuring-Point
             MeasuringPointRepository measuringPointRepo = (MeasuringPointRepository) partManager
                 .findModel(MeasuringpointPackage.Literals.MEASURING_POINT_REPOSITORY);

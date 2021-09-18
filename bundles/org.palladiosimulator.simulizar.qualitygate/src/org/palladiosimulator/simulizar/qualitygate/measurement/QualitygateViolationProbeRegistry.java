@@ -1,5 +1,6 @@
 package org.palladiosimulator.simulizar.qualitygate.measurement;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -9,16 +10,12 @@ import javax.inject.Inject;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.emf.ecore.util.EcoreUtil;
-
-import java.util.Arrays;
-
 import org.palladiosimulator.analyzer.workflow.blackboard.PCMResourceSetPartition;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringpointPackage;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.failuremodel.qualitygatemeasuringpoint.QualitygateMeasuringPoint;
 import org.palladiosimulator.failuremodel.qualitygatemeasuringpoint.SeverityMeasuringPoint;
-import org.palladiosimulator.failuremodel.severityhierarchy.Severity;
 import org.palladiosimulator.metricspec.CaptureType;
 import org.palladiosimulator.metricspec.DataType;
 import org.palladiosimulator.metricspec.Identifier;
@@ -39,13 +36,12 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.QualitygateIssue;
 import org.palladiosimulator.simulizar.qualitygate.metric.QualitygateMetricDescriptionConstants;
+import org.palladiosimulator.simulizar.runtimestate.RuntimeStateEntityManager;
+import org.palladiosimulator.simulizar.scopes.RuntimeExtensionScope;
 import org.palladiosimulator.simulizar.utils.PCMPartitionManager.Global;
 
 import de.uka.ipd.sdq.simucomframework.probes.TakeCurrentSimulationTimeProbe;
 import de.uka.ipd.sdq.simulation.abstractsimengine.ISimulationControl;
-
-import org.palladiosimulator.simulizar.runtimestate.RuntimeStateEntityManager;
-import org.palladiosimulator.simulizar.scopes.RuntimeExtensionScope;
 
 /**
  * Registry for the probes used to evaluate the qualitygates during simulation.

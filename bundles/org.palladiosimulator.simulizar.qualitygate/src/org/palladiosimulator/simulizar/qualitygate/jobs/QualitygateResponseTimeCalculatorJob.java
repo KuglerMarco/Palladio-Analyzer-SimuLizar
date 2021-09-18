@@ -1,6 +1,5 @@
 package org.palladiosimulator.simulizar.qualitygate.jobs;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -176,13 +175,7 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
                                             && ((ExternalCallAction) abstractAction).getRole_ExternalService()
                                                 .equals(role)) {
                                         
-                                        
-
                                         StereotypeAPI.applyStereotype(abstractAction, qualitygateElement);
-                                        EList<QualityGate> qualitygatesTest = StereotypeAPI.getTaggedValue(role, "qualitygate", qualitygateElement.getName());
-                                        
-                                        System.out.println(qualitygatesTest.get(0).getEntityName());
-                                        
                                         
                                     }
                                 }
