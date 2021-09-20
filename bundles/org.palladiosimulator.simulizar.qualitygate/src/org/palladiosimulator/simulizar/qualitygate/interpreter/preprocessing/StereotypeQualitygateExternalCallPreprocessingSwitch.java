@@ -1,4 +1,4 @@
-package org.palladiosimulator.simulizar.qualitygate.interpreter;
+package org.palladiosimulator.simulizar.qualitygate.interpreter.preprocessing;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,8 +28,8 @@ import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
 /**
- * Switch to create the necessary Monitors for the Qualitygate-Elements in order to use the
- * calculators within the simulation.
+ * Switch to create the necessary Monitors for the Qualitygate-Elements at ExternalCalls in order to
+ * use the calculators within the simulation.
  * 
  * @author Marco Kugler
  *
@@ -38,7 +38,8 @@ public class StereotypeQualitygateExternalCallPreprocessingSwitch extends Qualit
 
     @AssistedFactory
     public static interface Factory {
-        StereotypeQualitygateExternalCallPreprocessingSwitch create(MetricDescriptionRepository metricRepo, AssemblyContext assembly);
+        StereotypeQualitygateExternalCallPreprocessingSwitch create(MetricDescriptionRepository metricRepo,
+                AssemblyContext assembly);
     }
 
     Logger LOGGER = Logger.getLogger(StereotypeQualitygateExternalCallPreprocessingSwitch.class);
@@ -47,7 +48,8 @@ public class StereotypeQualitygateExternalCallPreprocessingSwitch extends Qualit
     private final AssemblyContext assembly;
 
     @AssistedInject
-    public StereotypeQualitygateExternalCallPreprocessingSwitch(@Assisted MetricDescriptionRepository metricRepo, @Assisted AssemblyContext assembly) {
+    public StereotypeQualitygateExternalCallPreprocessingSwitch(@Assisted MetricDescriptionRepository metricRepo,
+            @Assisted AssemblyContext assembly) {
         LOGGER.setLevel(Level.DEBUG);
         this.metricRepo = metricRepo;
         this.assembly = assembly;
@@ -64,32 +66,29 @@ public class StereotypeQualitygateExternalCallPreprocessingSwitch extends Qualit
         // Activated
         monitor.setActivated(true);
 
-        if (stereotypedObject instanceof ExternalCallAction) {
+        monitor.setEntityName(
+                "QualitygateMonitor at ExternalCallAction " + ((ExternalCallAction) stereotypedObject).getEntityName());
 
-            monitor.setEntityName("QualitygateMonitor at ExternalCallAction "
-                    + ((ExternalCallAction) stereotypedObject).getEntityName());
+        ExternalCallActionMeasuringPoint measuringPoint = PcmmeasuringpointFactory.eINSTANCE
+            .createExternalCallActionMeasuringPoint();
 
-            ExternalCallActionMeasuringPoint measuringPoint = PcmmeasuringpointFactory.eINSTANCE
-                .createExternalCallActionMeasuringPoint();
+        measuringPoint.setExternalCall((ExternalCallAction) stereotypedObject);
 
-            measuringPoint.setExternalCall((ExternalCallAction) stereotypedObject);
-
-            monitor.setMeasuringPoint(measuringPoint);
-
-        }
+        monitor.setMeasuringPoint(measuringPoint);
 
         // Measurement-Specification
         MeasurementSpecification measurementSpec = MonitorRepositoryFactory.eINSTANCE.createMeasurementSpecification();
 
-        String metricName = object.getMetric().getName().replace(" Tuple", "");
-        
+        String metricName = object.getMetric()
+            .getName()
+            .replace(" Tuple", "");
+
         MetricDescription metricDesc = metricRepo.getMetricDescriptions()
             .stream()
             .filter(e -> e.getName()
                 .equals(metricName))
             .findFirst()
             .orElse(null);
-        
 
         // Metric-Description
         measurementSpec.setMetricDescription(metricDesc);
@@ -108,10 +107,12 @@ public class StereotypeQualitygateExternalCallPreprocessingSwitch extends Qualit
 
         measurementSpec.setMonitor(monitor);
 
-        LOGGER.debug("A monitor was created for: " + monitor.getMeasurementSpecifications()
-            .get(0)
-            .getMetricDescription()
-            .getTextualDescription());
+        if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("A monitor was created for: " + monitor.getMeasurementSpecifications()
+                .get(0)
+                .getMetricDescription()
+                .getTextualDescription());
+        }
 
         return monitor;
 
@@ -124,39 +125,44 @@ public class StereotypeQualitygateExternalCallPreprocessingSwitch extends Qualit
 
     }
 
-    public List<Monitor> handleQualitygate(EObject object) {
+    public List<Monitor> createMonitors(EObject object) {
 
         EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(object, "qualitygate", "QualitygateElement");
 
         if (taggedValues.isEmpty()) {
-            
+
             /*
              * The containment reference on the Qualitygate cannot be transferred to the
              * ExternalCall during Preprocessing; thus, if ExternalCall has no Qualitygate, the
              * RequiredRole needs to be checked
              */
-            taggedValues = StereotypeAPI.getTaggedValue(((ExternalCallAction)object).getRole_ExternalService(), "qualitygate", "QualitygateElement");
-            
-            if(taggedValues.isEmpty()) {
+            taggedValues = StereotypeAPI.getTaggedValue(((ExternalCallAction) object).getRole_ExternalService(),
+                    "qualitygate", "QualitygateElement");
+
+            // if still empty -> invalid model
+            if (taggedValues.isEmpty()) {
                 throw new IllegalArgumentException(
-                    "Qualitygate-Model not valid: Qualitygate-Stereotype needs to have at least one Qualitygate element.");
+                        "Qualitygate-Model not valid: Qualitygate-Stereotype needs to have at least one Qualitygate element.");
             }
-            
+
         }
-        
+
         stereotypedObject = object;
 
         List<Monitor> monitor = new ArrayList<Monitor>();
 
-        for (QualityGate e : taggedValues) {
-            
-            // Only monitors added to the assembly, which is optionally referred to
-            if (e.getAssemblyContext() == null || e.getAssemblyContext()
+        for (QualityGate qualitygate : taggedValues) {
+
+            // Only monitors for the assembly, which is optionally referred to
+            if (qualitygate.getAssemblyContext() == null || qualitygate.getAssemblyContext()
                 .equals(this.assembly)) {
-                monitor.add(this.doSwitch(e));
+
+                monitor.add(this.doSwitch(qualitygate));
+
             }
 
         }
+        // remove null elements
         monitor.removeAll(Collections.singleton(null));
 
         return monitor;

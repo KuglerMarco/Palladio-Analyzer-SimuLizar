@@ -13,7 +13,6 @@ import org.eclipse.emf.ecore.EObject;
 import org.modelversioning.emfprofile.Stereotype;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPoint;
 import org.palladiosimulator.edp2.models.measuringpoint.MeasuringPointRepository;
-import org.palladiosimulator.edp2.models.measuringpoint.MeasuringpointPackage;
 import org.palladiosimulator.failuremodel.failuretype.Failure;
 import org.palladiosimulator.failuremodel.failuretype.SWContentFailure;
 import org.palladiosimulator.failuremodel.failuretype.SWCrashFailure;
@@ -28,6 +27,8 @@ import org.palladiosimulator.measurementframework.MeasuringValue;
 import org.palladiosimulator.measurementframework.listener.IMeasurementSourceListener;
 import org.palladiosimulator.metricspec.MetricDescription;
 import org.palladiosimulator.metricspec.constants.MetricDescriptionConstants;
+import org.palladiosimulator.monitorrepository.MonitorRepository;
+import org.palladiosimulator.monitorrepository.MonitorRepositoryPackage;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.core.entity.Entity;
@@ -240,8 +241,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 result = BasicInterpreterResult.of(issue);
 
                 // triggering probe to measure Success-To-Failure-Rate case violated
-                probeRegistry
-                    .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
+                probeRegistry.triggerViolationProbe(
+                        new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
 
                 probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext,
                         false, qualitygate.getSeverity()));
@@ -255,8 +256,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry
-                    .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null));
+                probeRegistry.triggerViolationProbe(
+                        new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null));
             }
 
         }
@@ -292,8 +293,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 result = BasicInterpreterResult.of(issue);
 
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry
-                    .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
+                probeRegistry.triggerViolationProbe(
+                        new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
 
                 probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext,
                         false, qualitygate.getSeverity()));
@@ -309,8 +310,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry
-                    .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null));
+                probeRegistry.triggerViolationProbe(
+                        new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null));
             }
         }
         return result;
@@ -322,49 +323,55 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
         InterpreterResult result = InterpreterResult.OK;
         List<Failure> failureImpactList = new ArrayList<Failure>();
 
-        // Checking whether this qualitygate is evaluated at the right point in model
-        if (this.operationSignature.equals(object.getSignature()) && this.providedRole.equals(stereotypedObject)
-                && (qualitygate.getAssemblyContext() == null || qualitygate.getAssemblyContext()
-                    .equals(this.assembly))) {
+        if (this.operationSignature.equals(object.getSignature()) && this.providedRole.equals(stereotypedObject)) {
 
             // Registering at the Calculator in Request-Scope
             if (this.callScope.equals(CallScope.REQUEST)) {
 
-                MetricDescription respTimeMetricDesc = object.getMetric();
+                MetricDescription metricDesc = object.getMetric();
 
-                // Searching for the Measuring-Point
-                MeasuringPointRepository measuringPointRepo = (MeasuringPointRepository) partManager
-                    .findModel(MeasuringpointPackage.Literals.MEASURING_POINT_REPOSITORY);
+                /*
+                 * MeasuringPointRepository needs to be loaded trough the MonitorRepository,
+                 * otherwise the MeasuringPointRepository isn't be found at first run
+                 */
+                MonitorRepository monitorRepo = (MonitorRepository) partManager
+                    .findModel(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY);
+                
+                MeasuringPointRepository measuringPointRepo = monitorRepo.getMonitors()
+                    .get(0)
+                    .getMeasuringPoint()
+                    .getMeasuringPointRepository();
+                
+                // Searching for the Measuring-Point created in preprocessing
+                MeasuringPoint measuringPointForQualitygate = null;
 
-                MeasuringPoint measPoint = null;
-
-                for (MeasuringPoint e : measuringPointRepo.getMeasuringPoints()) {
-                    if (e instanceof AssemblyOperationMeasuringPoint) {
-                        if (((AssemblyOperationMeasuringPoint) e).getOperationSignature()
+                for (MeasuringPoint measuringPoint : measuringPointRepo.getMeasuringPoints()) {
+                    if (measuringPoint instanceof AssemblyOperationMeasuringPoint) {
+                        if (((AssemblyOperationMeasuringPoint) measuringPoint).getOperationSignature()
                             .equals(object.getSignature())
-                                && ((AssemblyOperationMeasuringPoint) e).getRole()
+                                && ((AssemblyOperationMeasuringPoint) measuringPoint).getRole()
                                     .equals(stereotypedObject)) {
 
-                            measPoint = (AssemblyOperationMeasuringPoint) e;
+                            measuringPointForQualitygate = (AssemblyOperationMeasuringPoint) measuringPoint;
 
                         }
                     }
                 }
 
-                if (measPoint == null) {
+                if (measuringPointForQualitygate == null) {
                     throw new IllegalStateException(
                             "No MeasuringPoint found in MeasuringPointRepository for this Qualitygate.");
                 }
 
                 // Calculator for this Qualitygate
                 Calculator calc = frameworkContext.getCalculatorRegistry()
-                    .getCalculatorByMeasuringPointAndMetricDescription(measPoint, respTimeMetricDesc);
+                    .getCalculatorByMeasuringPointAndMetricDescription(measuringPointForQualitygate, metricDesc);
 
                 // Adding this class as observer
                 if (!this.atRequestMetricCalcAdded) {
                     calc.addObserver(this);
                     if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Observer added at: " + measPoint.getStringRepresentation());
+                        LOGGER.debug("Observer added at: " + measuringPointForQualitygate.getStringRepresentation());
                     }
                     this.atRequestMetricCalcAdded = true;
                 }
@@ -372,7 +379,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 result = InterpreterResult.OK;
 
             } else {
-                
+
+                // evaluation of the measurements in response scope
 
                 // set temporary stack for evaluation
                 final SimulatedStackframe<Object> frame = this.interpreterDefaultContext.getStack()
@@ -380,12 +388,20 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 Measure<Object, Quantity> measuringValue = responseTime
                     .getMeasureForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
 
-                frame.addValue("ResponseTime.VALUE", (Double) measuringValue.getValue());
+                String metricName = object.getMetric()
+                    .getName()
+                    .replace(" ", "")
+                    .concat(".VALUE");
+
+                frame.addValue(metricName, (Double) measuringValue.getValue());
 
                 if (!((boolean) interpreterDefaultContext.evaluate(premise.getSpecification(),
                         this.interpreterDefaultContext.getStack()
-                        .currentStackFrame()))) {
-                    LOGGER.debug("Reponsetime Qualitygate broken: " + responseTime);
+                            .currentStackFrame()))) {
+
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Reponsetime Qualitygate broken: " + responseTime);
+                    }
 
                     ResponseTimeIssue issue = new ResponseTimeIssue((Entity) this.stereotypedObject, qualitygate,
                             false);
@@ -393,8 +409,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                     result = BasicInterpreterResult.of(issue);
 
                     // triggering probe to measure Success-To-Failure-Rate case violation
-                    probeRegistry
-                        .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
+                    probeRegistry.triggerViolationProbe(
+                            new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null));
 
                     probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate,
                             interpreterDefaultContext, false, qualitygate.getSeverity()));
@@ -407,8 +423,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                 } else {
                     // triggering probe to measure Success-To-Failure-Rate case successful
-                    probeRegistry
-                        .triggerProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null));
+                    probeRegistry.triggerViolationProbe(
+                            new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null));
                 }
 
                 // pop temporary stack

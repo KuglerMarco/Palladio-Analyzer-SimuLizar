@@ -1,4 +1,4 @@
-package org.palladiosimulator.simulizar.qualitygate.interpreter;
+package org.palladiosimulator.simulizar.qualitygate.interpreter.preprocessing;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -29,8 +29,8 @@ import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
 /**
- * Switch to create the necessary Monitors for the Qualitygate-Elements in order to use the
- * calculators within the simulation.
+ * Switch to create the necessary Monitors for the Qualitygate-Elements at ProvidedRoles in order to
+ * use the calculators within the simulation.
  * 
  * @author Marco Kugler
  *
@@ -47,7 +47,6 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
     private ProvidedRole stereotypedRole;
     private final MetricDescriptionRepository metricRepo;
     private AssemblyContext assembly;
-    private QualityGate qualitygate;
 
     @AssistedInject
     public StereotypeQualitygateProvidedRolePreprocessingSwitch(@Assisted MetricDescriptionRepository metricRepo,
@@ -58,7 +57,7 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
     }
 
     /**
-     * Creates the Monitor to observe the Response-Time at the stereotyped element.
+     * Creates the Monitor at AssemblyOperationMeasuringPoint
      */
     @Override
     public Monitor caseRequestMetricScope(RequestMetricScope object) {
@@ -85,9 +84,11 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
 
         // Measurement-Specification
         MeasurementSpecification measurementSpec = MonitorRepositoryFactory.eINSTANCE.createMeasurementSpecification();
-        
-        String metricName = object.getMetric().getName().replace(" Tuple", "");
-        
+
+        String metricName = object.getMetric()
+            .getName()
+            .replace(" Tuple", "");
+
         MetricDescription metricDesc = metricRepo.getMetricDescriptions()
             .stream()
             .filter(e -> e.getName()
@@ -112,10 +113,12 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
 
         measurementSpec.setMonitor(monitor);
 
-        LOGGER.debug("A monitor was created for: " + monitor.getMeasurementSpecifications()
-            .get(0)
-            .getMetricDescription()
-            .getTextualDescription());
+        if(LOGGER.isDebugEnabled()) {
+            LOGGER.debug("A monitor was created for: " + monitor.getMeasurementSpecifications()
+                .get(0)
+                .getMetricDescription()
+                .getTextualDescription());
+        }
 
         return monitor;
 
@@ -124,12 +127,11 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
     @Override
     public Monitor caseQualityGate(QualityGate object) {
 
-        this.qualitygate = object;
         return doSwitch(object.getScope());
 
     }
 
-    public List<Monitor> handleQualitygate(EObject object) {
+    public List<Monitor> createMonitors(EObject object) {
 
         EList<QualityGate> taggedValues = StereotypeAPI.getTaggedValue(object, "qualitygate", "QualitygateElement");
 
@@ -144,6 +146,8 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
                 monitor.add(this.doSwitch(e));
             }
         }
+        
+        // Remove null-elements
         monitor.removeAll(Collections.singleton(null));
 
         return monitor;

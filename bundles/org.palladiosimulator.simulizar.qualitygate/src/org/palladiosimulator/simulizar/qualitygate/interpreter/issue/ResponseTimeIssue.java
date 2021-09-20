@@ -68,7 +68,6 @@ public class ResponseTimeIssue implements QualitygateIssue {
     @Override
     public void setHandled(boolean handled) {
         this.isHandled = handled;
-        
     }
 
 }

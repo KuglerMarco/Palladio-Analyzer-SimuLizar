@@ -30,13 +30,14 @@ import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterR
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
 import org.palladiosimulator.simulizar.qualitygate.propagation.QualitygatePropagationRecorder;
+import org.palladiosimulator.failuremodel.qualitygate.RequestMetricScope;
 
 import com.google.common.collect.Streams;
 
 import de.uka.ipd.sdq.simucomframework.variables.stackframe.SimulatedStackframe;
 
 /**
- * Handler to process the impact of QualitygateIssues in the InterpreterResult.
+ * Handler to process QualitygateIssues in the InterpreterResult.
  * 
  * @author Marco Kugler
  *
@@ -61,7 +62,6 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
     public InterpreterResumptionPolicy handleIssues(InterpreterResult result) {
 
         result = this.handleResponseTimeProxy(result);
-        
         result = this.recordIssues(result);
 
         if (!Streams.stream(result.getIssues())
@@ -90,7 +90,7 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
          */
         Iterator<InterpretationIssue> iter = result.getIssues()
             .iterator();
-        
+
         List<Failure> failureImpactList = new ArrayList<Failure>();
 
         while (iter.hasNext()) {
@@ -99,29 +99,38 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
 
             if (issue instanceof ResponseTimeProxyIssue) {
 
+                // one time passing the handler, then response time is available
                 if (((ResponseTimeProxyIssue) issue).isHandledOnce()) {
                     // Checking the Qualitygate-Premise
                     try {
-                        
-                     // set temporary stack for evaluation
-                        final SimulatedStackframe<Object> frame = ((ResponseTimeProxyIssue) issue).getContext().getStack().createAndPushNewStackFrame();
+
+                        // set temporary stack for evaluation
+                        final SimulatedStackframe<Object> frame = ((ResponseTimeProxyIssue) issue).getContext()
+                            .getStack()
+                            .createAndPushNewStackFrame();
 
                         Measure<Object, Quantity> measuringValue = ((ResponseTimeProxyIssue) issue)
                             .getResponseTimeQualitygateSwitch()
                             .getLastResponseTimeMeasure()
                             .getMeasureForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
-                        
-                        frame.addValue("ResponseTime.VALUE", (Double) measuringValue.getValue());
-                        
+
+                        String metricName = ((RequestMetricScope) ((ResponseTimeProxyIssue) issue).getQualitygate()
+                            .getScope()).getMetric()
+                                .getName()
+                                .replace(" ", "")
+                                .concat(".VALUE");
+
+                        frame.addValue(metricName, (Double) measuringValue.getValue());
+
                         PCMRandomVariable premise = ((ResponseTimeProxyIssue) issue).getPremise();
-                        
+
                         InterpreterDefaultContext interpreterDefaultContext = ((ResponseTimeProxyIssue) issue)
-                                .getContext();
-                        
-                        if (!((boolean) interpreterDefaultContext.evaluate(premise.getSpecification(), interpreterDefaultContext.getStack()
-                                .currentStackFrame()))) {
-                            
-                            
+                            .getContext();
+
+                        if (!((boolean) interpreterDefaultContext.evaluate(premise.getSpecification(),
+                                interpreterDefaultContext.getStack()
+                                    .currentStackFrame()))) {
+
                             ResponseTimeIssue respIssue = new ResponseTimeIssue(
                                     ((ResponseTimeProxyIssue) issue).getStereotypedObject(),
                                     ((ResponseTimeProxyIssue) issue).getQualitygate(), false);
@@ -133,33 +142,33 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
 
                             // triggering probe to measure Success-To-Failure-Rate case
                             // violation
-                            probeRegistry.triggerProbe(
+                            probeRegistry.triggerViolationProbe(
                                     new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
                                             interpreterDefaultContext, false, null));
 
                             probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(
-                                    ((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext,
-                                    false, ((ResponseTimeProxyIssue) issue).getQualitygate()
+                                    ((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext, false,
+                                    ((ResponseTimeProxyIssue) issue).getQualitygate()
                                         .getSeverity()));
-                            
-                            if(((ResponseTimeProxyIssue) issue).getQualitygate().getImpact() != null) {
-                                
-                                failureImpactList.addAll(((ResponseTimeProxyIssue) issue).getQualitygate().getImpact());
-                                
-                            }                            
 
-                            
+                            if (((ResponseTimeProxyIssue) issue).getQualitygate()
+                                .getImpact() != null) {
+
+                                failureImpactList.addAll(((ResponseTimeProxyIssue) issue).getQualitygate()
+                                    .getImpact());
+
+                            }
+
                         } else {
-                            probeRegistry.triggerProbe(
+                            probeRegistry.triggerViolationProbe(
                                     new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
                                             interpreterDefaultContext, true, null));
                         }
-                        
-                        
-                        interpreterDefaultContext.getStack().removeStackFrame();
-                        
-                        result = merger.merge(result, this.handleImpact(failureImpactList, interpreterDefaultContext));
 
+                        interpreterDefaultContext.getStack()
+                            .removeStackFrame();
+
+                        result = merger.merge(result, this.handleImpact(failureImpactList, interpreterDefaultContext));
 
                     } catch (NoSuchElementException e) {
                         // FIXME SimuLizar-Bug: No Measurements after simulation had stopped but
@@ -171,11 +180,12 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
 
                     // Removing the Proxy
                     result.removeIssue(issue);
-
+                    
                     iter = result.getIssues()
                         .iterator();
                 } else {
 
+                    // Skipping one handler in StereotypeDispatch
                     ((ResponseTimeProxyIssue) issue).setHandledOnce(true);
 
                 }
@@ -187,15 +197,12 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
         return result;
 
     }
-    
-    
-    
-    private InterpreterResult handleImpact(List<Failure> failureList, InterpreterDefaultContext interpreterDefaultContext) {
-        
-        
+
+    private InterpreterResult handleImpact(List<Failure> failureList,
+            InterpreterDefaultContext interpreterDefaultContext) {
+
         InterpreterResult result = InterpreterResult.OK;
-        
-        
+
         for (Failure failure : failureList) {
 
             if (failure instanceof SWTimingFailure) {
@@ -221,12 +228,10 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
             }
 
         }
-            
-        
+
         return result;
-        
+
     }
-    
 
     public InterpreterResult recordIssues(InterpreterResult interpreterResult) {
 
@@ -270,7 +275,5 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
         return result;
 
     }
-    
-    
 
 }

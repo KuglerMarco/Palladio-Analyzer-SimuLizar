@@ -12,22 +12,28 @@ import org.palladiosimulator.probeframework.measurement.ProbeMeasurement;
 import org.palladiosimulator.probeframework.measurement.RequestContext;
 import org.palladiosimulator.probeframework.probes.TriggeredProbe;
 
+/**
+ * This Probe allows to take measurements of the Qualitygate evaluation using a
+ * TextualMetricDescription.
+ * 
+ * @author Marco Kugler
+ *
+ */
 public class QualitygateCheckingProbe extends TriggeredProbe {
 
     private Identifier identifier;
-    
+
     protected QualitygateCheckingProbe(MetricDescription metricDescription) {
         super(metricDescription);
     }
-    
-    
+
     public ProbeMeasurement takeMeasurement(RequestContext measurementContext, Identifier identifier) {
         this.setIdentifier(identifier);
         final ProbeMeasurement newMeasurement = doMeasure(measurementContext);
         notifyMeasurementSourceListener(newMeasurement);
         return newMeasurement;
     }
-    
+
     public ProbeMeasurement takeMeasurement(Identifier identifier) {
         this.setIdentifier(identifier);
         final ProbeMeasurement newMeasurement = doMeasure(RequestContext.EMPTY_REQUEST_CONTEXT);
@@ -35,28 +41,17 @@ public class QualitygateCheckingProbe extends TriggeredProbe {
         return newMeasurement;
     }
 
-    
     @Override
     protected ProbeMeasurement doMeasure(RequestContext measurementContext) {
         final BasicMeasurement<Identifier, Dimensionless> resultMeasurement = new BasicMeasurement<Identifier, Dimensionless>(
                 IdentifierMeasure.valueOf(identifier, Unit.ONE), (BaseMetricDescription) this.getMetricDesciption());
-        
+
         return new ProbeMeasurement(resultMeasurement, this, measurementContext);
     }
-    
-    public void setIdentifier(Identifier identifier) {
+
+    private void setIdentifier(Identifier identifier) {
         this.identifier = identifier;
     }
-    
-    ProbeMeasurement doMeasure(Identifier qualitygateResult, RequestContext measurementContext) {
-        
-        
-        final BasicMeasurement<Identifier, Dimensionless> resultMeasurement = new BasicMeasurement<Identifier, Dimensionless>(
-                IdentifierMeasure.valueOf(qualitygateResult, Unit.ONE), (BaseMetricDescription) this.getMetricDesciption());
-        
-        return new ProbeMeasurement(resultMeasurement, this, measurementContext);
-        
-        
-    }
+
 
 }

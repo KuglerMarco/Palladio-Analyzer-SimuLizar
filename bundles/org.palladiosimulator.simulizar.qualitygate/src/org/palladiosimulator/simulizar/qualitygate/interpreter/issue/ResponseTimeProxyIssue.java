@@ -9,26 +9,24 @@ import org.palladiosimulator.simulizar.qualitygate.interpreter.RDSeffSwitchQuali
 
 public class ResponseTimeProxyIssue implements InterpretationIssue {
 
-    private PCMRandomVariable premise;
+    private PCMRandomVariable predicate;
     private RDSeffSwitchQualitygateContributionSwitch responseTimeQualitygateSwitch;
     private QualityGate qualitygate;
     private Entity stereotypedObject;
     private InterpreterDefaultContext context;
-    private boolean isLateTimingScope;
 
-    // because of handler in Dispatch (one time pass for ProxyIssue)
+    // because of handler in Dispatch after response scope evaluation (one time pass for ProxyIssue)
     private boolean isHandledOnce = false;
 
-    public ResponseTimeProxyIssue(PCMRandomVariable premise,
+    public ResponseTimeProxyIssue(PCMRandomVariable predicate,
             RDSeffSwitchQualitygateContributionSwitch responseTimeQualitygateSwitch, QualityGate qualitygate,
-            Entity stereotypedObject, InterpreterDefaultContext context, boolean isLateTimingScope) {
+            Entity stereotypedObject, InterpreterDefaultContext context) {
 
-        this.premise = premise;
+        this.predicate = predicate;
         this.responseTimeQualitygateSwitch = responseTimeQualitygateSwitch;
         this.qualitygate = qualitygate;
         this.stereotypedObject = stereotypedObject;
         this.context = context;
-        this.isLateTimingScope = isLateTimingScope;
 
     }
 
@@ -37,7 +35,7 @@ public class ResponseTimeProxyIssue implements InterpretationIssue {
     }
 
     public PCMRandomVariable getPremise() {
-        return premise;
+        return predicate;
     }
 
     public RDSeffSwitchQualitygateContributionSwitch getResponseTimeQualitygateSwitch() {
@@ -46,6 +44,10 @@ public class ResponseTimeProxyIssue implements InterpretationIssue {
 
     @Override
     public boolean isHandled() {
+        /*
+         * is not intended to be handled, but just removed from the InterpreterResult after
+         * evaluation
+         */
         return false;
     }
 
@@ -53,8 +55,8 @@ public class ResponseTimeProxyIssue implements InterpretationIssue {
         return isHandledOnce;
     }
 
-    public void setHandledOnce(boolean bool) {
-        this.isHandledOnce = bool;
+    public void setHandledOnce(boolean handledOnce) {
+        this.isHandledOnce = handledOnce;
     }
 
     public QualityGate getQualitygate() {
@@ -63,10 +65,6 @@ public class ResponseTimeProxyIssue implements InterpretationIssue {
 
     public Entity getStereotypedObject() {
         return stereotypedObject;
-    }
-
-    public boolean isLateTimingScope() {
-        return isLateTimingScope;
     }
 
 }
