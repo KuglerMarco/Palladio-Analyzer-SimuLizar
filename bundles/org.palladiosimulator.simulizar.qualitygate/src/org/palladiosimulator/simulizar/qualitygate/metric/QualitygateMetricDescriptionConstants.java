@@ -19,9 +19,14 @@ import org.palladiosimulator.metricspec.TextualBaseMetricDescription;
 import org.palladiosimulator.metricspec.Identifier;
 
 
+/**
+ * MetricDescription for Qualitygate violations.
+ * 
+ * @author Marco Kugler
+ *
+ */
 public final class QualitygateMetricDescriptionConstants {
     
-    // TODO Namen ändern
     public static final String PATHMAP_METRIC_SPEC_QUALITYGATE_METRICS_METRICSPEC = "platform:/plugin/org.palladiosimulator.simulizar.qualitygate/model/qualitygate.metricspec";
     public static final String CLASSPATH_RELATIVE_QUALITYGATE_METRICSPEC = "qualitygate.metricspec";
     
@@ -35,9 +40,6 @@ public final class QualitygateMetricDescriptionConstants {
     
     public final static Identifier VIOLATION;
     
-    public final static TextualBaseMetricDescription SEVERITY_METRIC;
-    
-    public final static MetricSetDescription SEVERITY_METRIC_OVER_TIME;
     
     static {
         
@@ -80,10 +82,6 @@ public final class QualitygateMetricDescriptionConstants {
         SUCCESS = (Identifier) resource.getEObject("_inOiQAJhEeyupI8CZJs1wg");
         
         VIOLATION = (Identifier) resource.getEObject("_k0dO0AJhEeyupI8CZJs1wg");
-        
-        SEVERITY_METRIC = (TextualBaseMetricDescription) resource.getEObject("_bnYmwAf9Eey9TNWaDr7jMQ");
-        
-        SEVERITY_METRIC_OVER_TIME = (MetricSetDescription) resource.getEObject("_rU4aYQf9Eey9TNWaDr7jMQ");
         
     }
     

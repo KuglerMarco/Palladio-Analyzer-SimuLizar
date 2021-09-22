@@ -263,7 +263,7 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
 
                 recorder.recordIssues(issuesWhenBroken, ((QualitygateIssue) issue).getQualitygateRef());
 
-                probeRegistry.triggerIssueProbes(issuesWhenBroken, ((QualitygateIssue) issue).getQualitygateRef());
+                probeRegistry.triggerInvolvedIssuesProbe(issuesWhenBroken, ((QualitygateIssue) issue).getQualitygateRef());
 
                 if (issue instanceof QualitygateIssue) {
                     ((QualitygateIssue) issue).setHandled(true);
