@@ -142,14 +142,16 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
 
                             // triggering probe to measure Success-To-Failure-Rate case
                             // violation
-                            probeRegistry.triggerViolationProbe(
-                                    new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
-                                            interpreterDefaultContext, false, null));
-
-                            probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(
+                            probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(
                                     ((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext, false,
-                                    ((ResponseTimeProxyIssue) issue).getQualitygate()
-                                        .getSeverity()));
+                                    null, ((ResponseTimeProxyIssue) issue).getStereotypedObject()));
+
+                            probeRegistry.triggerSeverityProbe(
+                                    new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
+                                            interpreterDefaultContext, false,
+                                            ((ResponseTimeProxyIssue) issue).getQualitygate()
+                                                .getSeverity(),
+                                            ((ResponseTimeProxyIssue) issue).getStereotypedObject()));
 
                             if (((ResponseTimeProxyIssue) issue).getQualitygate()
                                 .getImpact() != null) {
@@ -160,9 +162,9 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                             }
 
                         } else {
-                            probeRegistry.triggerViolationProbe(
-                                    new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
-                                            interpreterDefaultContext, true, null));
+                            probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(
+                                    ((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext, true,
+                                    null, ((ResponseTimeProxyIssue) issue).getStereotypedObject()));
                         }
 
                         interpreterDefaultContext.getStack()
@@ -180,7 +182,7 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
 
                     // Removing the Proxy
                     result.removeIssue(issue);
-                    
+
                     iter = result.getIssues()
                         .iterator();
                 } else {
@@ -263,7 +265,8 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
 
                 recorder.recordIssues(issuesWhenBroken, ((QualitygateIssue) issue).getQualitygateRef());
 
-                probeRegistry.triggerInvolvedIssuesProbe(issuesWhenBroken, ((QualitygateIssue) issue).getQualitygateRef());
+                probeRegistry.triggerInvolvedIssuesProbe(issuesWhenBroken,
+                        ((QualitygateIssue) issue).getQualitygateRef());
 
                 if (issue instanceof QualitygateIssue) {
                     ((QualitygateIssue) issue).setHandled(true);

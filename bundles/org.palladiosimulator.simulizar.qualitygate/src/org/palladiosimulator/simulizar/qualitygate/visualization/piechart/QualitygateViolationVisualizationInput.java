@@ -15,7 +15,7 @@ import org.palladiosimulator.metricspec.Identifier;
 import org.palladiosimulator.metricspec.Scale;
 import org.palladiosimulator.metricspec.constants.MetricDescriptionConstants;
 
-public class QualitygatePieChartVisualizationInput extends PieChartVisualizationInput {
+public class QualitygateViolationVisualizationInput extends PieChartVisualizationInput {
 
     @Override
     protected AbstractDataset generateDataset() {
@@ -36,8 +36,6 @@ public class QualitygatePieChartVisualizationInput extends PieChartVisualization
             bins.put(state, current + 1);
 
         }
-        
-        
 
         for (final Comparable<?> o : bins.keySet()) {
             dataset.setValue(o + " " + bins.get(o) + "x", bins.get(o)

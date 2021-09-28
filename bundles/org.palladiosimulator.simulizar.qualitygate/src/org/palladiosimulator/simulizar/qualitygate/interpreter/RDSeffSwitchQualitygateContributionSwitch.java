@@ -28,6 +28,7 @@ import org.palladiosimulator.monitorrepository.MonitorRepositoryPackage;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
 import org.palladiosimulator.pcm.core.composition.AssemblyContext;
 import org.palladiosimulator.pcm.core.entity.Entity;
+import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.pcm.seff.CallAction;
 import org.palladiosimulator.pcm.seff.ExternalCallAction;
@@ -91,6 +92,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
     private QualityGate qualitygate;
     private PCMRandomVariable predicate;
     private Entity stereotypedObject;
+    private RequiredRole requiredRole;
     private CallScope callScope = CallScope.REQUEST;
     private boolean atRequestMetricCalcAdded = false;
 
@@ -152,6 +154,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         this.operationSignature = ((ExternalCallAction) theEObject).getCalledService_ExternalService();
         this.stereotypedObject = (Entity) theEObject;
         this.callScope = callScope;
+        this.requiredRole = ((ExternalCallAction) theEObject).getRole_ExternalService();
 
         EList<QualityGate> qualitygates = StereotypeAPI.getTaggedValue(theEObject, "qualitygate", stereotype.getName());
 
@@ -287,7 +290,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 LOGGER.debug("New ResponseTimeProxyIssue at " + this.stereotypedObject.getEntityName());
             }
             result = InterpreterResult
-                .of(new ResponseTimeProxyIssue(predicate, this, qualitygate, stereotypedObject, this.context));
+                .of(new ResponseTimeProxyIssue(predicate, this, qualitygate, stereotypedObject, this.context, this.requiredRole));
         }
 
         return result;
@@ -332,10 +335,10 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 result = BasicInterpreterResult.of(issue);
 
                 // triggering probe to measure Success-To-Failure-Rate case violated
-                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, false, null));
+                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, false, null, this.requiredRole));
 
                 probeRegistry.triggerSeverityProbe(
-                        new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getSeverity()));
+                        new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getSeverity(), this.requiredRole));
 
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
@@ -347,7 +350,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, true, null));
+                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, true, null, this.stereotypedObject));
             }
 
             // Removing Stack again
@@ -390,10 +393,10 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 result = BasicInterpreterResult.of(issue);
 
                 // triggering probe to measure Success-To-Failure-Rate case violation
-                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, false, null));
+                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, false, null, this.requiredRole));
 
                 probeRegistry.triggerSeverityProbe(
-                        new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getSeverity()));
+                        new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getSeverity(), this.requiredRole));
 
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
@@ -403,7 +406,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, true, null));
+                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, true, null, this.stereotypedObject));
             }
         }
         return result;

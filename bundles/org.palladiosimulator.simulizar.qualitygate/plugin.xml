@@ -16,11 +16,11 @@
    <extension
          point="org.eclipse.ui.elementFactories">
       <factory
-            class="org.palladiosimulator.simulizar.qualitygate.visualization.piechart.QualitygatePieChartVisualizationInputFactory"
+            class="org.palladiosimulator.simulizar.qualitygate.visualization.piechart.QualitygateViolationVisualizationInputFactory"
             id="org.palladiosimulator.simulizar.qualitygate.visualization.piechart.QualitygatePieChartVisualizationInputFactory">
       </factory>
       <factory
-            class="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygateBarchartVisualizationInputFactory"
+            class="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygatePropagationVisualizationInputFactory"
             id="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygateBarchartVisualizationInputFactory">
       </factory>
       <factory
@@ -31,15 +31,15 @@
    <extension
          point="org.palladiosimulator.edp2.visualization.datasink">
       <datasink
-            class="org.palladiosimulator.simulizar.qualitygate.visualization.piechart.QualitygatePieChartVisualizationInput"
+            class="org.palladiosimulator.simulizar.qualitygate.visualization.piechart.QualitygateViolationVisualizationInput"
             editor="org.palladiosimulator.edp2.visualization.editors.JFreeChartEditor"
-            factory="org.palladiosimulator.simulizar.qualitygate.visualization.piechart.QualitygatePieChartVisualizationInputFactory"
+            factory="org.palladiosimulator.simulizar.qualitygate.visualization.piechart.QualitygateViolationVisualizationInputFactory"
             id="org.palladiosimulator.simulizar.qualitygate.visualization.piechart.QualitygatePieChartVisualizationInput">
       </datasink>
       <datasink
-            class="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygateBarchartVisualizationInput"
+            class="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygatePropagationVisualizationInput"
             editor="org.palladiosimulator.edp2.visualization.editors.JFreeChartEditor"
-            factory="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygateBarchartVisualizationInputFactory"
+            factory="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygatePropagationVisualizationInputFactory"
             id="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygateBarchartVisualizationInput">
       </datasink>
       <datasink

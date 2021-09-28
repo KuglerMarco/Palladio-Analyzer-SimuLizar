@@ -30,7 +30,7 @@ public class QualitygateIssueRecorder {
 
     public QualitygateIssueRecorder(QualityGate qualitygate) {
         
-      //Factories for EntityReferences
+        //Factories for EntityReferences
         EntityReference.AbstractEntityReferenceFactory<org.palladiosimulator.pcm.core.entity.Entity> stereotypedObjectFac = new SimuLizarEntityReferenceFactories.Entity();
         EntityReference.AbstractEntityReferenceFactory<org.palladiosimulator.failuremodel.qualitygate.QualityGate> qualitygateFac = new SimuLizarEntityReferenceFactories.Qualitygate();
         

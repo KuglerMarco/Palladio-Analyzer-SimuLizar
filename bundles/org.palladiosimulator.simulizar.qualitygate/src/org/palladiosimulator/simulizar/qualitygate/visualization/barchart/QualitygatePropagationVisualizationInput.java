@@ -14,7 +14,6 @@ import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.Plot;
-import org.jfree.chart.renderer.category.BarRenderer;
 import org.jfree.chart.renderer.category.StackedBarRenderer;
 import org.jfree.chart.renderer.category.StandardBarPainter;
 import org.jfree.data.category.CategoryDataset;
@@ -31,25 +30,24 @@ import org.palladiosimulator.metricspec.BaseMetricDescription;
 import org.palladiosimulator.metricspec.Identifier;
 import org.palladiosimulator.metricspec.Scale;
 
-public class QualitygateBarchartVisualizationInput extends JFreeChartVisualizationInput {
+public class QualitygatePropagationVisualizationInput extends JFreeChartVisualizationInput {
 
-    public QualitygateBarchartVisualizationInput() {
+    public QualitygatePropagationVisualizationInput() {
         this(null);
     }
-    
-    
-    public QualitygateBarchartVisualizationInput(final AbstractDataSource source) {
+
+    public QualitygatePropagationVisualizationInput(final AbstractDataSource source) {
         super();
     }
-    
+
     @Override
     public void saveState(final IMemento memento) {
-        QualitygateBarchartVisualizationInputFactory.saveState(memento, this);
+        QualitygatePropagationVisualizationInputFactory.saveState(memento, this);
     }
-    
-    
+
     @Override
     public boolean canAccept(final IDataSource source) {
+
         final BaseMetricDescription[] subMetricDescriptions = MetricDescriptionUtility
             .toBaseMetricDescriptions(source.getMetricDesciption());
         if (subMetricDescriptions.length != 2) {
@@ -57,98 +55,88 @@ public class QualitygateBarchartVisualizationInput extends JFreeChartVisualizati
         }
 
         if (!subMetricDescriptions[1].getName()
-                    .equals("InvolvedIssues")) {
+            .equals("InvolvedFailures")) {
             return false;
         }
 
         return subMetricDescriptions[1].getScale()
             .compareTo(Scale.ORDINAL) <= 0;
-        
-        
-    }
 
+    }
 
     @Override
     public String getFactoryId() {
-        return QualitygateBarchartVisualizationInputFactory.FACTORY_ID; 
+        return QualitygatePropagationVisualizationInputFactory.FACTORY_ID;
     }
 
-
-
-    
     @Override
     protected Plot generatePlot(final PropertyConfigurable config, final AbstractDataset dataset) {
-        
+
         final CategoryPlot plotResult = new CategoryPlot();
         final StackedBarRenderer renderer = new StackedBarRenderer();
         renderer.setShadowVisible(false);
         renderer.setBarPainter(new StandardBarPainter());
-        
-        
-        
+
         final CategoryAxis domainAxis = new CategoryAxis("Issues");
-        
+
         final NumberAxis rangeAxis = new NumberAxis("Count");
-        
+
         plotResult.setDataset((CategoryDataset) dataset);
-        
+
         plotResult.setRenderer(renderer);
         plotResult.setRangeAxis(rangeAxis);
         plotResult.setDomainAxis(domainAxis);
-        
+
         return plotResult;
-        
-        
+
     }
-    
+
     @Override
     protected AbstractDataset generateDataset() {
-        
-        
+
         final DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         final Map<String, Integer> bins = new LinkedHashMap<String, Integer>();
-        final IDataSource datasource = getInputs().get(0).getDataSource();
+        final IDataSource datasource = getInputs().get(0)
+            .getDataSource();
         final IDataStream<TupleMeasurement> datastream = datasource.getDataStream();
-        
-        
-        for(final TupleMeasurement tuple : datastream) {
-            
-            final String state =  (String) ((Identifier) tuple.asArray()[1].getValue()).getLiteral();
-            
+
+        for (final TupleMeasurement tuple : datastream) {
+
+            final String state = (String) ((Identifier) tuple.asArray()[1].getValue()).getLiteral();
+
             if (!bins.containsKey(state)) {
                 bins.put(state, 1);
             } else {
                 bins.put(state, bins.get(state) + 1);
             }
         }
-        
+
         // Sort the bars after frequency
         List<Entry<String, Integer>> list = new ArrayList<>(bins.entrySet());
         list.sort(Entry.comparingByValue(Comparator.reverseOrder()));
         bins.clear();
-        
-        for(Entry<String, Integer> entry : list) {
+
+        for (Entry<String, Integer> entry : list) {
             bins.put(entry.getKey(), entry.getValue());
         }
-        
+
         // First bar is always overall count of Qualitygate-violation
         for (final String o : bins.keySet()) {
-            if(o.equals("Number of Occurrence")) {
+            if (o.equals("Number of Occurrence")) {
                 dataset.setValue(bins.get(o), "Number of Occurence", o);
             }
         }
 
         for (final String o : bins.keySet()) {
-            if(!o.equals("Number of Occurrence")) {
+            if (!o.equals("Number of Occurrence")) {
                 dataset.setValue(bins.get(o), "Correlating Failures", o);
             }
         }
-        
+
         return dataset;
-        
-        
+
     }
-    
+
     /*
      * (non-Javadoc)
      * 
@@ -160,11 +148,9 @@ public class QualitygateBarchartVisualizationInput extends JFreeChartVisualizati
         return "Propagation Results";
     }
 
-
     @Override
     protected Set<String> getPropertyKeysTriggeringUpdate() {
         return Collections.emptySet();
     }
-    
-    
+
 }

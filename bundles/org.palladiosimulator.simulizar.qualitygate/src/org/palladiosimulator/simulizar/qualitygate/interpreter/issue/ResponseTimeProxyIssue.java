@@ -3,6 +3,7 @@ package org.palladiosimulator.simulizar.qualitygate.interpreter.issue;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
 import org.palladiosimulator.pcm.core.entity.Entity;
+import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
 import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.RDSeffSwitchQualitygateContributionSwitch;
@@ -17,16 +18,18 @@ public class ResponseTimeProxyIssue implements InterpretationIssue {
 
     // because of handler in Dispatch after response scope evaluation (one time pass for ProxyIssue)
     private boolean isHandledOnce = false;
+    private RequiredRole requiredRole;
 
     public ResponseTimeProxyIssue(PCMRandomVariable predicate,
             RDSeffSwitchQualitygateContributionSwitch responseTimeQualitygateSwitch, QualityGate qualitygate,
-            Entity stereotypedObject, InterpreterDefaultContext context) {
+            Entity stereotypedObject, InterpreterDefaultContext context, RequiredRole role) {
 
         this.predicate = predicate;
         this.responseTimeQualitygateSwitch = responseTimeQualitygateSwitch;
         this.qualitygate = qualitygate;
         this.stereotypedObject = stereotypedObject;
         this.context = context;
+        this.requiredRole = role;
 
     }
 
@@ -65,6 +68,10 @@ public class ResponseTimeProxyIssue implements InterpretationIssue {
 
     public Entity getStereotypedObject() {
         return stereotypedObject;
+    }
+
+    public RequiredRole getRequiredRole() {
+        return requiredRole;
     }
 
 }
