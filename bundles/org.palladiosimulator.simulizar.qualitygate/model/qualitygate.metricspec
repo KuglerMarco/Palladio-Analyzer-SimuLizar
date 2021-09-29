@@ -7,6 +7,7 @@
   <metricDescriptions xsi:type="metricspec:TextualBaseMetricDescription" id="_biPckAJhEeyupI8CZJs1wg" name="QualitygateViolation" textualDescription="Represents the result of the Qualitygate evaluation during run time.">
     <identifiers id="_inOiQAJhEeyupI8CZJs1wg" literal="SUCCESS"/>
     <identifiers id="_k0dO0AJhEeyupI8CZJs1wg" literal="VIOLATION"/>
+    <identifiers id="_yXCp8CE1EeyB6fGWm4pqeA" literal="CRASH"/>
   </metricDescriptions>
   <metricDescriptions xsi:type="metricspec:TextualBaseMetricDescription" id="_bnYmwAf9Eey9TNWaDr7jMQ" name="Severity" textualDescription="This Metric represents the sverity of failures within the simulation" dataType="Qualitative"/>
   <metricDescriptions xsi:type="metricspec:MetricSetDescription" id="_rU4aYQf9Eey9TNWaDr7jMQ" name="SeverityOverTime" textualDescription="This metric represents the severity of failures over time.">

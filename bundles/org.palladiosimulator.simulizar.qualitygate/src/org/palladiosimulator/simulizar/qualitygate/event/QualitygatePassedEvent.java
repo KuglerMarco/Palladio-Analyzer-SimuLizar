@@ -2,6 +2,7 @@ package org.palladiosimulator.simulizar.qualitygate.event;
 
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.failuremodel.severityhierarchy.Severity;
+import org.palladiosimulator.metricspec.Identifier;
 import org.palladiosimulator.pcm.core.entity.Entity;
 
 import de.uka.ipd.sdq.simucomframework.Context;
@@ -20,15 +21,17 @@ public class QualitygatePassedEvent {
     private final boolean success;
     private final Severity severity;
     private final Entity stereotypedObject;
+    private final boolean isCrash;
 
     public QualitygatePassedEvent(final QualityGate modelElement, final Context context, final boolean success,
-            final Severity severity, final Entity stereotypedObject) {
+            final Severity severity, final Entity stereotypedObject, boolean isCrash) {
 
         this.modelElement = modelElement;
         this.context = context;
         this.success = success;
         this.severity = severity;
         this.stereotypedObject = stereotypedObject;
+        this.isCrash = isCrash;
 
     }
 
@@ -66,6 +69,11 @@ public class QualitygatePassedEvent {
 
     public Entity getStereotypedObject() {
         return stereotypedObject;
+    }
+
+
+    public boolean isCrash() {
+        return isCrash;
     }
 
 }

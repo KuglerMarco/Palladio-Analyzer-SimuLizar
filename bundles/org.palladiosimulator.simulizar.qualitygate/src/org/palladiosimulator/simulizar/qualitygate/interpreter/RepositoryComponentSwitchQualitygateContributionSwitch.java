@@ -50,6 +50,7 @@ import org.palladiosimulator.simulizar.interpreter.stereotype.RepositoryComponen
 import org.palladiosimulator.simulizar.interpreter.stereotype.StereotypeSwitch;
 import org.palladiosimulator.simulizar.interpreter.stereotype.RepositoryComponentSwitchStereotypeContributionFactory.RepositoryComponentSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.CrashProxyIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ResponseTimeIssue;
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
@@ -242,10 +243,10 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                 // triggering probe to measure Success-To-Failure-Rate case violated
                 probeRegistry.triggerViolationProbe(
-                        new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null, this.stereotypedObject));
+                        new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null, this.stereotypedObject, false));
 
                 probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext,
-                        false, qualitygate.getSeverity(), this.stereotypedObject));
+                        false, qualitygate.getSeverity(), this.stereotypedObject, false));
 
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
@@ -257,7 +258,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
                 probeRegistry.triggerViolationProbe(
-                        new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null, this.stereotypedObject));
+                        new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null, this.stereotypedObject, false));
             }
 
         }
@@ -285,21 +286,10 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                                 .toString());
                 }
 
-                ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
-                        this.interpreterDefaultContext.getCurrentResultFrame()
-                            .getContents(),
-                        false);
 
-                result = BasicInterpreterResult.of(issue);
-
-                // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry.triggerViolationProbe(
-                        new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null, this.stereotypedObject));
-
-                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext,
-                        false, qualitygate.getSeverity(), this.stereotypedObject));
-
-                recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
+             // for potential Crash failures
+                result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, interpreterDefaultContext, false, qualitygate.getSeverity(), this.stereotypedObject, interpreterDefaultContext.getCurrentResultFrame()
+                        .getContents()));
 
                 if (qualitygate.getImpact() != null) {
 
@@ -310,8 +300,9 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry.triggerViolationProbe(
-                        new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null, this.stereotypedObject));
+                result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, interpreterDefaultContext, true, null, this.stereotypedObject, interpreterDefaultContext.getCurrentResultFrame()
+                        .getContents()));
+
             }
         }
         return result;
@@ -408,13 +399,9 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                     result = BasicInterpreterResult.of(issue);
 
-                    // triggering probe to measure Success-To-Failure-Rate case violation
-                    probeRegistry.triggerViolationProbe(
-                            new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null, this.stereotypedObject));
-
-                    probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate,
-                            interpreterDefaultContext, false, qualitygate.getSeverity(), this.stereotypedObject));
-
+                 // for potential Crash failures
+                    result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, interpreterDefaultContext, false, qualitygate.getSeverity(), this.stereotypedObject, null));
+                    
                     recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
                     if (qualitygate.getImpact() != null) {
@@ -423,8 +410,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                 } else {
                     // triggering probe to measure Success-To-Failure-Rate case successful
-                    probeRegistry.triggerViolationProbe(
-                            new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null, this.stereotypedObject));
+                    result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, interpreterDefaultContext, true, null, this.stereotypedObject, null));
                 }
 
                 // pop temporary stack

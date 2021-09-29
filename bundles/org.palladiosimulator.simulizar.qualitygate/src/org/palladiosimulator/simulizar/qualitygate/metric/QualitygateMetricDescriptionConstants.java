@@ -40,6 +40,8 @@ public final class QualitygateMetricDescriptionConstants {
     
     public final static Identifier VIOLATION;
     
+    public final static Identifier CRASH;
+    
     
     static {
         
@@ -82,6 +84,8 @@ public final class QualitygateMetricDescriptionConstants {
         SUCCESS = (Identifier) resource.getEObject("_inOiQAJhEeyupI8CZJs1wg");
         
         VIOLATION = (Identifier) resource.getEObject("_k0dO0AJhEeyupI8CZJs1wg");
+        
+        CRASH = (Identifier) resource.getEObject("_yXCp8CE1EeyB6fGWm4pqeA");
         
     }
     

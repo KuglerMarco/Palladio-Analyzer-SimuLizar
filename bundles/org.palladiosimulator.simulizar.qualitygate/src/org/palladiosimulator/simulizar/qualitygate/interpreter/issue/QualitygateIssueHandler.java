@@ -17,9 +17,11 @@ import org.palladiosimulator.failuremodel.failuretype.SWCrashFailure;
 import org.palladiosimulator.failuremodel.failuretype.SWTimingFailure;
 import org.palladiosimulator.metricspec.constants.MetricDescriptionConstants;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
+import org.palladiosimulator.pcm.core.entity.Entity;
 import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.CorruptContentBehavior;
 import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.CrashBehavior;
 import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.DelayBehavior;
+import org.palladiosimulator.simulizar.failurescenario.interpreter.issue.FailureOccurredIssue;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
 import org.palladiosimulator.simulizar.interpreter.preinterpretation.PreInterpretationBehavior;
 import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
@@ -29,8 +31,12 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionP
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
+import org.palladiosimulator.simulizar.qualitygate.metric.QualitygateMetricDescriptionConstants;
 import org.palladiosimulator.simulizar.qualitygate.propagation.QualitygatePropagationRecorder;
 import org.palladiosimulator.failuremodel.qualitygate.RequestMetricScope;
+import org.palladiosimulator.failuremodel.qualitygate.RequestParameterScope;
+import org.palladiosimulator.failuremodel.qualitygate.ResultParameterScope;
+import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
 
 import com.google.common.collect.Streams;
 
@@ -62,6 +68,7 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
     public InterpreterResumptionPolicy handleIssues(InterpreterResult result) {
 
         result = this.handleResponseTimeProxy(result);
+        result = this.handleCrashProxy(result);
         result = this.recordIssues(result);
 
         if (!Streams.stream(result.getIssues())
@@ -81,6 +88,102 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
 
         return false;
 
+    }
+
+    public InterpreterResult handleCrashProxy(InterpreterResult resultPrevious) {
+
+        InterpreterResult resultNew = resultPrevious;
+
+        if (Streams.stream(resultPrevious.getIssues())
+            .anyMatch(FailureOccurredIssue.class::isInstance)) {
+
+            // Crash occurred
+            for (InterpretationIssue issue : resultPrevious.getIssues()) {
+
+                if (issue instanceof CrashProxyIssue) {
+
+                    probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(
+                            ((CrashProxyIssue) issue).getModelElement(), ((CrashProxyIssue) issue).getContext(),
+                            ((CrashProxyIssue) issue).isSuccess(), ((CrashProxyIssue) issue).getSeverity(),
+                            ((CrashProxyIssue) issue).getStereotypedObject(), true));
+                    probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(
+                            ((CrashProxyIssue) issue).getModelElement(), ((CrashProxyIssue) issue).getContext(),
+                            ((CrashProxyIssue) issue).isSuccess(), ((CrashProxyIssue) issue).getSeverity(),
+                            ((CrashProxyIssue) issue).getStereotypedObject(), true));
+
+                    ParameterIssue issueNew = new ParameterIssue(
+                            (Entity) ((CrashProxyIssue) issue).getStereotypedObject(),
+                            ((CrashProxyIssue) issue).getModelElement(), ((CrashProxyIssue) issue).getStackContent(),
+                            false);
+
+                    resultNew = merger.merge(resultNew, BasicInterpreterResult.of(issueNew));
+                    
+                    if(((CrashProxyIssue) issue).getModelElement().getImpact() != null) {
+                        resultNew = merger.merge(resultNew, this.handleImpact(((CrashProxyIssue) issue).getModelElement().getImpact(), ((CrashProxyIssue) issue).getContext()));
+                    }
+                    
+                    resultNew.removeIssue(issue); 
+                }
+                
+            }
+            
+            
+
+        } else {
+            // no Crash occurred
+            for (InterpretationIssue issue : resultPrevious.getIssues()) {
+
+                if (issue instanceof CrashProxyIssue) {
+                    
+                    if (!((CrashProxyIssue) issue).isSuccess()) {
+                        
+                        probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(
+                                ((CrashProxyIssue) issue).getModelElement(), ((CrashProxyIssue) issue).getContext(),
+                                ((CrashProxyIssue) issue).isSuccess(), ((CrashProxyIssue) issue).getSeverity(),
+                                ((CrashProxyIssue) issue).getStereotypedObject(), false));
+                        probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(
+                                ((CrashProxyIssue) issue).getModelElement(), ((CrashProxyIssue) issue).getContext(),
+                                ((CrashProxyIssue) issue).isSuccess(), ((CrashProxyIssue) issue).getSeverity(),
+                                ((CrashProxyIssue) issue).getStereotypedObject(), false));
+                        
+                        if(((CrashProxyIssue) issue).getModelElement().getScope() instanceof RequestParameterScope) {
+                            
+                            ParameterIssue issueNew = new ParameterIssue(
+                                (Entity) ((CrashProxyIssue) issue).getStereotypedObject(),
+                                ((CrashProxyIssue) issue).getModelElement(), ((CrashProxyIssue) issue).getStackContent(),
+                                false);
+
+                            resultNew = merger.merge(resultNew, BasicInterpreterResult.of(issueNew));
+                            
+                        } else {
+                            
+                            ResponseTimeIssue issueNew = new ResponseTimeIssue((Entity) ((CrashProxyIssue) issue).getStereotypedObject(),
+                                ((CrashProxyIssue) issue).getModelElement(), false);
+                            resultNew = merger.merge(resultNew, BasicInterpreterResult.of(issueNew));
+                        }
+                        
+                        
+                        
+                    } else {
+                        
+                        probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(
+                                ((CrashProxyIssue) issue).getModelElement(), ((CrashProxyIssue) issue).getContext(),
+                                ((CrashProxyIssue) issue).isSuccess(), ((CrashProxyIssue) issue).getSeverity(),
+                                ((CrashProxyIssue) issue).getStereotypedObject(), false));
+                        
+                    }
+                    
+                    
+                   resultNew.removeIssue(issue); 
+
+                }
+                
+            }
+        }
+        
+        
+        
+        return resultNew;
     }
 
     public InterpreterResult handleResponseTimeProxy(InterpreterResult result) {
@@ -131,27 +234,14 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                                 interpreterDefaultContext.getStack()
                                     .currentStackFrame()))) {
 
-                            ResponseTimeIssue respIssue = new ResponseTimeIssue(
-                                    ((ResponseTimeProxyIssue) issue).getStereotypedObject(),
-                                    ((ResponseTimeProxyIssue) issue).getQualitygate(), false);
-
-                            result.addIssue(respIssue);
-
-                            recorder.recordQualitygateIssue(((ResponseTimeProxyIssue) issue).getQualitygate(),
-                                    ((ResponseTimeProxyIssue) issue).getStereotypedObject(), respIssue);
 
                             // triggering probe to measure Success-To-Failure-Rate case
                             // violation
-                            probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(
-                                    ((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext, false,
-                                    null, ((ResponseTimeProxyIssue) issue).getStereotypedObject()));
+                            
+                            result = merger.merge(result, BasicInterpreterResult.of(new CrashProxyIssue(((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext, false, ((ResponseTimeProxyIssue) issue).getQualitygate()
+                                    .getSeverity(), ((ResponseTimeProxyIssue) issue).getStereotypedObject(), null)));
 
-                            probeRegistry.triggerSeverityProbe(
-                                    new QualitygatePassedEvent(((ResponseTimeProxyIssue) issue).getQualitygate(),
-                                            interpreterDefaultContext, false,
-                                            ((ResponseTimeProxyIssue) issue).getQualitygate()
-                                                .getSeverity(),
-                                            ((ResponseTimeProxyIssue) issue).getStereotypedObject()));
+                            
 
                             if (((ResponseTimeProxyIssue) issue).getQualitygate()
                                 .getImpact() != null) {
@@ -162,9 +252,8 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                             }
 
                         } else {
-                            probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(
-                                    ((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext, true,
-                                    null, ((ResponseTimeProxyIssue) issue).getStereotypedObject()));
+                            result = merger.merge(result, BasicInterpreterResult.of(new CrashProxyIssue(((ResponseTimeProxyIssue) issue).getQualitygate(), interpreterDefaultContext, true, ((ResponseTimeProxyIssue) issue).getQualitygate()
+                                    .getSeverity(), ((ResponseTimeProxyIssue) issue).getStereotypedObject(), null)));
                         }
 
                         interpreterDefaultContext.getStack()

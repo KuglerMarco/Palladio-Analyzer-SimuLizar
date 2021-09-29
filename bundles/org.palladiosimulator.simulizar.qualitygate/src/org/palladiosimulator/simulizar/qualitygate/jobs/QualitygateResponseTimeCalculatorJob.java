@@ -1,6 +1,8 @@
 package org.palladiosimulator.simulizar.qualitygate.jobs;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.inject.Inject;
 
@@ -178,10 +180,13 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
                             .equals("QualitygateElement"))
                         .findAny()
                         .orElseThrow(() -> new IllegalStateException("No Qualitygate stereotype found."));
+                    
+                    
 
                     EList<QualityGate> qualitygates = StereotypeAPI.getTaggedValue(role, "qualitygate",
                             "QualitygateElement");
-
+                    
+                    Set<ExternalCallAction> actionSet = new HashSet<ExternalCallAction>();
                     for (QualityGate qualitygate : qualitygates) {
 
                         Signature signature = ((SignatureScope) qualitygate.getScope()).getSignature();
@@ -189,7 +194,9 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
                         for (ServiceEffectSpecification seff : ((BasicComponent) assembly
                             .getEncapsulatedComponent__AssemblyContext())
                                 .getServiceEffectSpecifications__BasicComponent()) {
-
+                            
+                            
+                            
                             for (AbstractAction abstractAction : ((ResourceDemandingSEFF) seff).getSteps_Behaviour()) {
 
                                 if (abstractAction instanceof ExternalCallAction) {
@@ -198,14 +205,32 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
                                         .equals(signature)
                                             && ((ExternalCallAction) abstractAction).getRole_ExternalService()
                                                 .equals(role)) {
-
+                                        
                                         StereotypeAPI.applyStereotype(abstractAction, qualitygateElement);
+                                        
+                                        actionSet.add((ExternalCallAction) abstractAction);
 
+                                            
+                                            
+                                            
+                                        
+                                        // TODO falls bereits welche gesetzt, mergen
+                                        
+                                        
                                     }
                                 }
                             }
+                            
+                            
+                            
                         }
+                        
+                        
                     }
+                    
+//                    for(ExternalCallAction externalCall : actionSet) {
+//                                StereotypeAPI.
+//                            }
                 }
             }
         }

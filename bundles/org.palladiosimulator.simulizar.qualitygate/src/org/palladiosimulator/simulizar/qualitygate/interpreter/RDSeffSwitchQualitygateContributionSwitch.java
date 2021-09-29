@@ -48,6 +48,7 @@ import org.palladiosimulator.simulizar.interpreter.stereotype.RDSeffSwitchStereo
 import org.palladiosimulator.simulizar.interpreter.stereotype.StereotypeSwitch;
 import org.palladiosimulator.simulizar.interpreter.stereotype.RDSeffSwitchStereotypeContributionFactory.RDSeffSwitchElementDispatcher;
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.CrashProxyIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ResponseTimeProxyIssue;
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
@@ -238,7 +239,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
             MetricDescription respTimeMetricDesc = requestMetricScope.getMetric();
 
-            /*
+            /* TODO ändern
              * MeasuringPointRepository needs to be loaded trough the MonitorRepository, otherwise
              * the MeasuringPointRepository isn't be found at first run
              */
@@ -335,10 +336,10 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 result = BasicInterpreterResult.of(issue);
 
                 // triggering probe to measure Success-To-Failure-Rate case violated
-                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, false, null, this.requiredRole));
+                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, false, null, this.requiredRole, false));
 
                 probeRegistry.triggerSeverityProbe(
-                        new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getSeverity(), this.requiredRole));
+                        new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getSeverity(), this.requiredRole, false));
 
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
@@ -350,7 +351,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, true, null, this.stereotypedObject));
+                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, true, null, this.stereotypedObject, false));
             }
 
             // Removing Stack again
@@ -384,29 +385,15 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                                 .currentStackFrame()
                                 .toString());
                 }
-
-                ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
-                        this.context.getCurrentResultFrame()
-                            .getContents(),
-                        false);
-
-                result = BasicInterpreterResult.of(issue);
-
-                // triggering probe to measure Success-To-Failure-Rate case violation
-                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, false, null, this.requiredRole));
-
-                probeRegistry.triggerSeverityProbe(
-                        new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getSeverity(), this.requiredRole));
-
-                recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
-
-                if (qualitygate.getImpact() != null) {
-                    result = merger.merge(result, this.handleImpact(qualitygate.getImpact(), context));
-                }
-
+                
+                // for potential Crash failures
+                result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, context, false, qualitygate.getSeverity(), this.requiredRole, context.getCurrentResultFrame()
+                        .getContents()));
+                        
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, true, null, this.stereotypedObject));
+                result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, context, true, null, this.requiredRole, context.getCurrentResultFrame()
+                        .getContents()));
             }
         }
         return result;
