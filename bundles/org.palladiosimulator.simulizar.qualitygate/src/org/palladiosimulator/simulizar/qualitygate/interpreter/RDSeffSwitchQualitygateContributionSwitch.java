@@ -31,6 +31,7 @@ import org.palladiosimulator.pcm.core.entity.Entity;
 import org.palladiosimulator.pcm.repository.RequiredRole;
 import org.palladiosimulator.pcm.repository.Signature;
 import org.palladiosimulator.pcm.seff.CallAction;
+import org.palladiosimulator.pcm.seff.CallReturnAction;
 import org.palladiosimulator.pcm.seff.ExternalCallAction;
 import org.palladiosimulator.pcmmeasuringpoint.ExternalCallActionMeasuringPoint;
 import org.palladiosimulator.probeframework.ProbeFrameworkContext;
@@ -61,7 +62,7 @@ import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
 /**
- * Switch to process the qualitygates attached at ExternalCalls.
+ * Switch to process the Qualitygates attached at ExternalCalls.
  * 
  * @author Marco Kugler
  *
@@ -87,6 +88,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
     private final ProbeFrameworkContext frameworkContext;
     private Signature operationSignature;
     private final PCMPartitionManager partManager;
+    private AssemblyContext assembly;
 
     // Information about the qualitygate-processing
     private static MeasuringValue responseTime;
@@ -101,9 +103,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
     private static final Logger LOGGER = Logger.getLogger(RDSeffSwitchQualitygateContributionSwitch.class);
 
-    // Probe-Registry
     private QualitygateViolationProbeRegistry probeRegistry;
-    private AssemblyContext assembly;
     private QualitygatePropagationRecorder recorder;
 
     @AssistedInject
@@ -375,9 +375,11 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         InterpreterResult result = InterpreterResult.OK;
 
         if (callScope.equals(CallScope.RESPONSE) && (signatureOfQualitygate == (this.operationSignature))) {
-
+            
+            SimulatedStackHelper.createAndPushNewStackFrame(context.getStack(), ((CallReturnAction) stereotypedObject).getReturnVariableUsage__CallReturnAction());
+            
             if (!((boolean) context.evaluate(predicate.getSpecification(), this.context.getStack()
-                .currentStackFrame()))) {
+                    .currentStackFrame()))) {
 
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Following StoEx is broken at ExternalCall: " + predicate.getSpecification()
@@ -386,15 +388,18 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                                 .toString());
                 }
                 
-                // for potential Crash failures
                 result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, context, false, qualitygate.getSeverity(), this.requiredRole, context.getCurrentResultFrame()
                         .getContents()));
                         
             } else {
-                // triggering probe to measure Success-To-Failure-Rate case successful
+                
                 result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, context, true, null, this.requiredRole, context.getCurrentResultFrame()
                         .getContents()));
             }
+            
+            this.context.getStack()
+            .removeStackFrame();
+            
         }
         return result;
     }
@@ -441,5 +446,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         return result;
 
     }
+    
+    
 
 }

@@ -2,7 +2,6 @@ package org.palladiosimulator.simulizar.qualitygate.event;
 
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.failuremodel.severityhierarchy.Severity;
-import org.palladiosimulator.metricspec.Identifier;
 import org.palladiosimulator.pcm.core.entity.Entity;
 
 import de.uka.ipd.sdq.simucomframework.Context;
@@ -16,42 +15,33 @@ import de.uka.ipd.sdq.simucomframework.SimuComSimProcess;
  */
 public class QualitygatePassedEvent {
 
-    private final QualityGate modelElement;
+    private final QualityGate qualitygate;
     private final Context context;
-    private final boolean success;
+    private final boolean isSuccess;
     private final Severity severity;
     private final Entity stereotypedObject;
     private final boolean isCrash;
 
-    public QualitygatePassedEvent(final QualityGate modelElement, final Context context, final boolean success,
+    public QualitygatePassedEvent(final QualityGate modelElement, final Context context, final boolean isSuccess,
             final Severity severity, final Entity stereotypedObject, boolean isCrash) {
 
-        this.modelElement = modelElement;
+        this.qualitygate = modelElement;
         this.context = context;
-        this.success = success;
+        this.isSuccess = isSuccess;
         this.severity = severity;
         this.stereotypedObject = stereotypedObject;
         this.isCrash = isCrash;
 
     }
 
-    /**
-     * @return the modelElement
-     */
     public QualityGate getModelElement() {
-        return this.modelElement;
+        return this.qualitygate;
     }
 
-    /**
-     * @return the context
-     */
     public Context getContext() {
         return this.context;
     }
 
-    /**
-     * @return the thread
-     */
     public SimuComSimProcess getThread() {
         return this.context.getThread();
     }
@@ -60,7 +50,7 @@ public class QualitygatePassedEvent {
      * @return whether the qualitygate-evaluation was successful
      */
     public boolean isSuccess() {
-        return success;
+        return isSuccess;
     }
 
     public Severity getSeverity() {
@@ -72,6 +62,9 @@ public class QualitygatePassedEvent {
     }
 
 
+    /**
+     * @return whether the execution crashed at the time of evaluation
+     */
     public boolean isCrash() {
         return isCrash;
     }

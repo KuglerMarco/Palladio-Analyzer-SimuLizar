@@ -88,7 +88,7 @@ public class StereotypeQualitygateExternalCallPreprocessingSwitch extends Qualit
             .filter(e -> e.getName()
                 .equals(metricName))
             .findFirst()
-            .orElse(null);
+            .orElseThrow(() -> new IllegalStateException("No Metric Description found."));
 
         // Metric-Description
         measurementSpec.setMetricDescription(metricDesc);

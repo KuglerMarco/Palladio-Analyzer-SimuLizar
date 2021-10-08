@@ -38,7 +38,7 @@ public class QualitygateViolationVisualizationInput extends PieChartVisualizatio
         }
 
         for (final Comparable<?> o : bins.keySet()) {
-            dataset.setValue(o + " " + bins.get(o) + "x", bins.get(o)
+            dataset.setValue(o, bins.get(o)
                 .doubleValue());
         }
 
@@ -60,9 +60,8 @@ public class QualitygateViolationVisualizationInput extends PieChartVisualizatio
             return false;
         }
         if (!subMetricDescriptions[1].getName()
-            .equals("Severity")
-                && !subMetricDescriptions[1].getName()
-                    .equals("QualitygateViolation")) {
+                    .equals("QualitygateViolation") && !subMetricDescriptions[1].getName()
+                    .equals("Severity")) {
             return false;
         }
 

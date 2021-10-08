@@ -29,7 +29,7 @@ import dagger.assisted.AssistedFactory;
 import dagger.assisted.AssistedInject;
 
 /**
- * Switch to process the qualitygates attached at AssemblyConnectors.
+ * Switch to process the Qualitygates attached at AssemblyConnectors.
  * 
  * @author Marco Kugler
  *
@@ -55,7 +55,7 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
 
     // Information about the qualitygate-processing
     private QualityGate qualitygate;
-    private PCMRandomVariable premise;
+    private PCMRandomVariable predicate;
     private CallScope callScope = CallScope.REQUEST;
     private Entity stereotypedObject;
 
@@ -70,7 +70,7 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
 
         this.operationSignature = operationSignature;
         this.context = context;
-        
+
         // Injected
         this.merger = merger;
 
@@ -79,20 +79,21 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
     }
 
     /**
-     * Returns whether this Switch is responsible for processing this stereotype.
+     * Returns whether this Switch is appropriate for processing this stereotype.
      *
      */
     @Override
     public boolean isSwitchForStereotype(Stereotype stereotype) {
 
-        boolean result = stereotype.getProfile()
+        if (stereotype.getProfile()
             .getName()
-            .equals(profileName);
-        if (result) {
-            return stereotype.getName()
-                .equals(stereotypeName);
+            .equals(profileName)
+                && stereotype.getName()
+                    .equals(stereotypeName)) {
+
+            return true;
         }
-        return result;
+        return false;
     }
 
     /**
@@ -138,12 +139,12 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
     }
 
     /**
-     * Saving the qualitygate's premise and the qualitygate-element itself.
+     * Saving the Qualitygate's predicate and the Qualitygate-element itself.
      */
     @Override
     public InterpreterResult caseQualityGate(QualityGate qualitygate) {
         this.qualitygate = qualitygate;
-        this.premise = qualitygate.getPredicate();
+        this.predicate = qualitygate.getPredicate();
         return this.doSwitch(qualitygate.getScope());
 
     }
@@ -159,11 +160,11 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
 
         if (callScope.equals(CallScope.REQUEST) && (signatureOfQualitygate == (this.operationSignature))) {
 
-            if (!((boolean) context.evaluate(premise.getSpecification(), this.context.getStack()
+            if (!((boolean) context.evaluate(predicate.getSpecification(), this.context.getStack()
                 .currentStackFrame()))) {
 
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Following StoEx is broken: " + premise.getSpecification() + " because stackframe is: "
+                    LOGGER.debug("Following StoEx is broken: " + predicate.getSpecification() + " because stackframe is: "
                             + this.context.getStack()
                                 .currentStackFrame()
                                 .toString());
@@ -191,10 +192,10 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
         Signature signatureOfQualitygate = object.getSignature();
 
         if (callScope.equals(CallScope.RESPONSE) && (signatureOfQualitygate == (this.operationSignature))) {
-            if (!((boolean) context.evaluate(premise.getSpecification(), this.context.getCurrentResultFrame()))) {
+            if (!((boolean) context.evaluate(predicate.getSpecification(), this.context.getCurrentResultFrame()))) {
 
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Following StoEx is broken: " + premise.getSpecification()
+                    LOGGER.debug("Following StoEx is broken: " + predicate.getSpecification()
                             + " because resultframe is: " + this.context.getCurrentResultFrame()
                                 .toString());
                 }

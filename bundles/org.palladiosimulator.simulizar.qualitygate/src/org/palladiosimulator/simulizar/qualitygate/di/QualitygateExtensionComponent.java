@@ -25,10 +25,15 @@ import dagger.Component;
 public interface QualitygateExtensionComponent extends ExtensionComponent {
 
     ComposedStructureSwitchQualitygateContributionSwitch.Factory composedStructureQualitygateContribution();
+
     RepositoryComponentSwitchQualitygateContributionSwitch.Factory repositoryQualityGateContribution();
+
     RDSeffSwitchQualitygateContributionSwitch.Factory seffQualitygateContribution();
+
     QualitygateIssueHandler issueHandler();
+
     QualitygateViolationProbeRegistry probeRegistry();
+
     QualitygatePropagationRecorder propagationRecorder();
 
     @Component.Factory

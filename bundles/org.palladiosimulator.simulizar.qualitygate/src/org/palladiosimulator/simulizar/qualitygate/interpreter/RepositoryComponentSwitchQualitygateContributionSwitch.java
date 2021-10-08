@@ -95,7 +95,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     private QualityGate qualitygate;
     private CallScope callScope = CallScope.REQUEST;
     private Entity stereotypedObject;
-    private PCMRandomVariable premise;
+    private PCMRandomVariable predicate;
     private AssemblyContext assembly;
     private ProvidedRole providedRole;
 
@@ -203,7 +203,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     public InterpreterResult caseQualityGate(QualityGate qualitygate) {
 
         this.qualitygate = qualitygate;
-        premise = qualitygate.getPredicate();
+        predicate = qualitygate.getPredicate();
         if (qualitygate.getAssemblyContext() == null || qualitygate.getAssemblyContext()
             .equals(this.assembly)) {
             return this.doSwitch(qualitygate.getScope());
@@ -222,13 +222,13 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
         if (callScope.equals(CallScope.REQUEST) && (signatureOfQualitygate == (this.operationSignature))) {
 
-            if (!((boolean) interpreterDefaultContext.evaluate(premise.getSpecification(),
+            if (!((boolean) interpreterDefaultContext.evaluate(predicate.getSpecification(),
                     this.interpreterDefaultContext.getStack()
                         .currentStackFrame()))) {
 
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Following StoEx is broken: " + premise.getSpecification() + " because stackframe is: "
-                            + this.interpreterDefaultContext.getStack()
+                    LOGGER.debug("Following StoEx is broken: " + predicate.getSpecification()
+                            + " because stackframe is: " + this.interpreterDefaultContext.getStack()
                                 .currentStackFrame()
                                 .toString());
                 }
@@ -242,8 +242,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 result = BasicInterpreterResult.of(issue);
 
                 // triggering probe to measure Success-To-Failure-Rate case violated
-                probeRegistry.triggerViolationProbe(
-                        new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false, null, this.stereotypedObject, false));
+                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext,
+                        false, null, this.stereotypedObject, false));
 
                 probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext,
                         false, qualitygate.getSeverity(), this.stereotypedObject, false));
@@ -257,8 +257,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry.triggerViolationProbe(
-                        new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, true, null, this.stereotypedObject, false));
+                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext,
+                        true, null, this.stereotypedObject, false));
             }
 
         }
@@ -275,21 +275,22 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
         Signature signatureOfQualitygate = object.getSignature();
         InterpreterResult result = InterpreterResult.OK;
 
-        if (callScope.equals(CallScope.RESPONSE) && (signatureOfQualitygate == (this.operationSignature))) {
+        if (callScope.equals(CallScope.RESPONSE) && signatureOfQualitygate == this.operationSignature) {
 
-            if (!((boolean) interpreterDefaultContext.evaluate(premise.getSpecification(),
+            if (!((boolean) interpreterDefaultContext.evaluate(predicate.getSpecification(),
                     this.interpreterDefaultContext.getCurrentResultFrame()))) {
 
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Following StoEx is broken: " + premise.getSpecification()
+                    LOGGER.debug("Following StoEx is broken: " + predicate.getSpecification()
                             + " because resultframe is: " + this.interpreterDefaultContext.getCurrentResultFrame()
                                 .toString());
                 }
 
-
-             // for potential Crash failures
-                result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, interpreterDefaultContext, false, qualitygate.getSeverity(), this.stereotypedObject, interpreterDefaultContext.getCurrentResultFrame()
-                        .getContents()));
+                // for potential Crash failures
+                result = BasicInterpreterResult
+                    .of(new CrashProxyIssue(qualitygate, interpreterDefaultContext, false, qualitygate.getSeverity(),
+                            this.stereotypedObject, interpreterDefaultContext.getCurrentResultFrame()
+                                .getContents()));
 
                 if (qualitygate.getImpact() != null) {
 
@@ -299,9 +300,10 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 }
 
             } else {
-                // triggering probe to measure Success-To-Failure-Rate case successful
-                result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, interpreterDefaultContext, true, null, this.stereotypedObject, interpreterDefaultContext.getCurrentResultFrame()
-                        .getContents()));
+                
+                result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, interpreterDefaultContext, true,
+                        null, this.stereotypedObject, interpreterDefaultContext.getCurrentResultFrame()
+                            .getContents()));
 
             }
         }
@@ -327,12 +329,12 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                  */
                 MonitorRepository monitorRepo = (MonitorRepository) partManager
                     .findModel(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY);
-                
+
                 MeasuringPointRepository measuringPointRepo = monitorRepo.getMonitors()
                     .get(0)
                     .getMeasuringPoint()
                     .getMeasuringPointRepository();
-                
+
                 // Searching for the Measuring-Point created in preprocessing
                 MeasuringPoint measuringPointForQualitygate = null;
 
@@ -369,7 +371,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                 result = InterpreterResult.OK;
 
-            } else {
+            } else if (responseTime != null) {
 
                 // evaluation of the measurements in response scope
 
@@ -386,7 +388,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                 frame.addValue(metricName, (Double) measuringValue.getValue());
 
-                if (!((boolean) interpreterDefaultContext.evaluate(premise.getSpecification(),
+                if (!((boolean) interpreterDefaultContext.evaluate(predicate.getSpecification(),
                         this.interpreterDefaultContext.getStack()
                             .currentStackFrame()))) {
 
@@ -399,9 +401,10 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                     result = BasicInterpreterResult.of(issue);
 
-                 // for potential Crash failures
-                    result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, interpreterDefaultContext, false, qualitygate.getSeverity(), this.stereotypedObject, null));
-                    
+                    // for potential Crash failures
+                    result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, interpreterDefaultContext,
+                            false, qualitygate.getSeverity(), this.stereotypedObject, null));
+
                     recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
                     if (qualitygate.getImpact() != null) {
@@ -410,7 +413,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                 } else {
                     // triggering probe to measure Success-To-Failure-Rate case successful
-                    result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, interpreterDefaultContext, true, null, this.stereotypedObject, null));
+                    result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, interpreterDefaultContext, true,
+                            null, this.stereotypedObject, null));
                 }
 
                 // pop temporary stack

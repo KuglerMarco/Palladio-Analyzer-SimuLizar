@@ -23,10 +23,6 @@
             class="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygatePropagationVisualizationInputFactory"
             id="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygateBarchartVisualizationInputFactory">
       </factory>
-      <factory
-            class="org.palladiosimulator.simulizar.qualitygate.visualization.severity.QualitygateSeverityVisualizationInputFactory"
-            id="org.palladiosimulator.simulizar.qualitygate.visualization.severity.QualitygateSeverityVisualizationInputFactory">
-      </factory>
    </extension>
    <extension
          point="org.palladiosimulator.edp2.visualization.datasink">
@@ -41,12 +37,6 @@
             editor="org.palladiosimulator.edp2.visualization.editors.JFreeChartEditor"
             factory="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygatePropagationVisualizationInputFactory"
             id="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygateBarchartVisualizationInput">
-      </datasink>
-      <datasink
-            class="org.palladiosimulator.simulizar.qualitygate.visualization.severity.QualitygateSeverityVisualizationInput"
-            editor="org.palladiosimulator.edp2.visualization.editors.JFreeChartEditor"
-            factory="org.palladiosimulator.simulizar.qualitygate.visualization.severity.QualitygateSeverityVisualizationInputFactory"
-            id="org.palladiosimulator.simulizar.qualitygate.visualization.severity.QualitygateSeverityVisualizationInput">
       </datasink>
    </extension>
    <extension
@@ -66,16 +56,6 @@
             name="Failure Propagation Evaluation">
          <datasink
                sinkID="org.palladiosimulator.simulizar.qualitygate.visualization.barchart.QualitygateBarchartVisualizationInput">
-         </datasink>
-      </chainDescription>
-   </extension>
-   <extension
-         point="org.palladiosimulator.edp2.datastream.chainDescription">
-      <chainDescription
-            id="org.palladiosimulator.simulizar.qualitygate.visualization.severity"
-            name="Failure Severity Analysis">
-         <datasink
-               sinkID="org.palladiosimulator.simulizar.qualitygate.visualization.severity.QualitygateSeverityVisualizationInput">
          </datasink>
       </chainDescription>
    </extension>

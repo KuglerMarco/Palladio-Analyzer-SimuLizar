@@ -82,7 +82,6 @@ public class QualitygatePropagationVisualizationInput extends JFreeChartVisualiz
         final NumberAxis rangeAxis = new NumberAxis("Count");
 
         plotResult.setDataset((CategoryDataset) dataset);
-
         plotResult.setRenderer(renderer);
         plotResult.setRangeAxis(rangeAxis);
         plotResult.setDomainAxis(domainAxis);

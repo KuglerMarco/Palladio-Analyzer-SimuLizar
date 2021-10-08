@@ -248,14 +248,14 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
                 .getId())
                 .takeMeasurement(event.getThread()
                     .getRequestContext(), QualitygateMetricDescriptionConstants.VIOLATION);
-        } else if(this.isViolationProbeCreated.get(event.getModelElement()
+        } else if (this.isViolationProbeCreated.get(event.getModelElement()
             .getId()) && this.simulationIsRunning()) {
-            
+
             this.violationProbes.get(event.getModelElement()
-                    .getId())
-                    .takeMeasurement(event.getThread()
-                        .getRequestContext(), QualitygateMetricDescriptionConstants.CRASH);
-            
+                .getId())
+                .takeMeasurement(event.getThread()
+                    .getRequestContext(), QualitygateMetricDescriptionConstants.CRASH);
+
         }
 
     }
@@ -318,14 +318,14 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
                 .getId())
                 .takeMeasurement(event.getThread()
                     .getRequestContext(), QualitygateMetricDescriptionConstants.VIOLATION);
-        } else if(this.isViolationProbeCreatedAtInterface.get(event.getStereotypedObject()
+        } else if (this.isViolationProbeCreatedAtInterface.get(event.getStereotypedObject()
             .getId()) && this.simulationIsRunning()) {
-            
+
             this.violationProbesAtInterface.get(event.getStereotypedObject()
-                    .getId())
-                    .takeMeasurement(event.getThread()
-                        .getRequestContext(), QualitygateMetricDescriptionConstants.CRASH);
-            
+                .getId())
+                .takeMeasurement(event.getThread()
+                    .getRequestContext(), QualitygateMetricDescriptionConstants.CRASH);
+
         }
 
     }
@@ -389,7 +389,7 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
      * 
      * @param event
      */
-    public void triggerSeverityProbeAtInterface(final QualitygatePassedEvent event) {
+    private void triggerSeverityProbeAtInterface(final QualitygatePassedEvent event) {
 
         // Create probe and calculator for this qualitygate
         if (!isSeverityProbeCreatedAtInterface.containsKey(event.getStereotypedObject()
@@ -426,7 +426,7 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
 
         // trigger probe according to the evaluation
         if (!event.isSuccess() && this.isSeverityProbeCreatedAtInterface.get(event.getStereotypedObject()
-            .getId()) && this.simulationIsRunning()) {
+            .getId()) && this.simulationIsRunning() && event.getSeverity() != null) {
             if (!this.createdIdentifierForSeverity.containsKey(event.getSeverity()
                 .getEntityName())) {
 
@@ -522,8 +522,15 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
 
     @Override
     public void cleanup() {
-        violationProbes.clear();
-        propagationProbes.clear();
+        this.violationProbes.clear();
+        this.propagationProbes.clear();
+        this.createdIdentifierForInvolvedIssues.clear();
+        this.createdIdentifierForSeverity.clear();
+        this.isIssueProbeCreated.clear();
+        this.isSeverityProbeCreatedAtInterface.clear();
+        this.isViolationProbeCreated.clear();
+        this.severityProbesAtInterface.clear();
+        this.violationProbesAtInterface.clear();
     }
 
     /**

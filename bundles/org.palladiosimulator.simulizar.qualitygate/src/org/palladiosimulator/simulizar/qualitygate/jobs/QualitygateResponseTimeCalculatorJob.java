@@ -168,7 +168,7 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
 
                 if (this.hasQualityGate(role)) {
 
-                    if(LOGGER.isDebugEnabled()) {
+                    if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("The RequiredRole " + ((RequiredRole) role).getEntityName()
                                 + " has a qualitygate-application");
                     }
@@ -180,12 +180,10 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
                             .equals("QualitygateElement"))
                         .findAny()
                         .orElseThrow(() -> new IllegalStateException("No Qualitygate stereotype found."));
-                    
-                    
 
                     EList<QualityGate> qualitygates = StereotypeAPI.getTaggedValue(role, "qualitygate",
                             "QualitygateElement");
-                    
+
                     Set<ExternalCallAction> actionSet = new HashSet<ExternalCallAction>();
                     for (QualityGate qualitygate : qualitygates) {
 
@@ -194,9 +192,7 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
                         for (ServiceEffectSpecification seff : ((BasicComponent) assembly
                             .getEncapsulatedComponent__AssemblyContext())
                                 .getServiceEffectSpecifications__BasicComponent()) {
-                            
-                            
-                            
+
                             for (AbstractAction abstractAction : ((ResourceDemandingSEFF) seff).getSteps_Behaviour()) {
 
                                 if (abstractAction instanceof ExternalCallAction) {
@@ -205,32 +201,20 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
                                         .equals(signature)
                                             && ((ExternalCallAction) abstractAction).getRole_ExternalService()
                                                 .equals(role)) {
-                                        
+
                                         StereotypeAPI.applyStereotype(abstractAction, qualitygateElement);
-                                        
+
                                         actionSet.add((ExternalCallAction) abstractAction);
 
-                                            
-                                            
-                                            
-                                        
                                         // TODO falls bereits welche gesetzt, mergen
-                                        
-                                        
+
                                     }
                                 }
                             }
-                            
-                            
-                            
+
                         }
-                        
-                        
+
                     }
-                    
-//                    for(ExternalCallAction externalCall : actionSet) {
-//                                StereotypeAPI.
-//                            }
                 }
             }
         }
@@ -248,7 +232,7 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
 
                 if (this.hasQualityGate(role)) {
 
-                    if(LOGGER.isDebugEnabled()) {
+                    if (LOGGER.isDebugEnabled()) {
                         LOGGER.debug("The ProvidedRole " + ((ProvidedRole) role).getEntityName()
                                 + " has a qualitygate-application");
                     }
@@ -258,19 +242,19 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
                         .createMonitors(role);
 
                     // Adding the generated Monitors to the repositories
-                    for (Monitor j : qualitygateMonitors) {
+                    for (Monitor monitor : qualitygateMonitors) {
 
-                        if (!this.isMonitorPresent(j)) {
+                        if (!this.isMonitorPresent(monitor)) {
                             measuringPointRepo.getMeasuringPoints()
-                                .add(j.getMeasuringPoint());
+                                .add(monitor.getMeasuringPoint());
 
                             monitorRepo.getMonitors()
-                                .add(j);
+                                .add(monitor);
 
-                            j.getMeasuringPoint()
+                            monitor.getMeasuringPoint()
                                 .setMeasuringPointRepository(measuringPointRepo);
 
-                            j.setMonitorRepository(monitorRepo);
+                            monitor.setMonitorRepository(monitorRepo);
                         }
                     }
                 }
@@ -294,7 +278,7 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
 
                         if (abstractAction instanceof ExternalCallAction) {
 
-                            if(LOGGER.isDebugEnabled()) {
+                            if (LOGGER.isDebugEnabled()) {
                                 LOGGER.debug("The ExternalCall " + ((ExternalCallAction) abstractAction).getEntityName()
                                         + " has a qualitygate-application");
                             }
