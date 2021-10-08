@@ -239,9 +239,9 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
             MetricDescription respTimeMetricDesc = requestMetricScope.getMetric();
 
-            /* TODO ändern
-             * MeasuringPointRepository needs to be loaded trough the MonitorRepository, otherwise
-             * the MeasuringPointRepository isn't be found at first run
+            /*
+             * TODO ändern MeasuringPointRepository needs to be loaded trough the MonitorRepository,
+             * otherwise the MeasuringPointRepository isn't be found at first run
              */
             MonitorRepository monitorRepo = (MonitorRepository) partManager
                 .findModel(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY);
@@ -250,7 +250,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 .get(0)
                 .getMeasuringPoint()
                 .getMeasuringPointRepository();
-            
+
             // Searching for the Measuring-Point created in preprocessing
             MeasuringPoint measPoint = null;
 
@@ -290,8 +290,8 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("New ResponseTimeProxyIssue at " + this.stereotypedObject.getEntityName());
             }
-            result = InterpreterResult
-                .of(new ResponseTimeProxyIssue(predicate, this, qualitygate, stereotypedObject, this.context, this.requiredRole));
+            result = InterpreterResult.of(new ResponseTimeProxyIssue(predicate, this, qualitygate, stereotypedObject,
+                    this.context, this.requiredRole));
         }
 
         return result;
@@ -336,10 +336,11 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 result = BasicInterpreterResult.of(issue);
 
                 // triggering probe to measure Success-To-Failure-Rate case violated
-                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, false, null, this.requiredRole, false));
+                probeRegistry.triggerViolationProbe(
+                        new QualitygatePassedEvent(qualitygate, context, false, null, this.requiredRole, false));
 
-                probeRegistry.triggerSeverityProbe(
-                        new QualitygatePassedEvent(qualitygate, context, false, qualitygate.getSeverity(), this.requiredRole, false));
+                probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, context, false,
+                        qualitygate.getSeverity(), this.requiredRole, false));
 
                 recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
 
@@ -351,7 +352,8 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
-                probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, true, null, this.stereotypedObject, false));
+                probeRegistry.triggerViolationProbe(
+                        new QualitygatePassedEvent(qualitygate, context, true, null, this.stereotypedObject, false));
             }
 
             // Removing Stack again
@@ -375,11 +377,12 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         InterpreterResult result = InterpreterResult.OK;
 
         if (callScope.equals(CallScope.RESPONSE) && (signatureOfQualitygate == (this.operationSignature))) {
-            
-            SimulatedStackHelper.createAndPushNewStackFrame(context.getStack(), ((CallReturnAction) stereotypedObject).getReturnVariableUsage__CallReturnAction());
-            
+
+            SimulatedStackHelper.createAndPushNewStackFrame(context.getStack(),
+                    ((CallReturnAction) stereotypedObject).getReturnVariableUsage__CallReturnAction());
+
             if (!((boolean) context.evaluate(predicate.getSpecification(), this.context.getStack()
-                    .currentStackFrame()))) {
+                .currentStackFrame()))) {
 
                 if (LOGGER.isDebugEnabled()) {
                     LOGGER.debug("Following StoEx is broken at ExternalCall: " + predicate.getSpecification()
@@ -387,19 +390,21 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                                 .currentStackFrame()
                                 .toString());
                 }
-                
-                result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, context, false, qualitygate.getSeverity(), this.requiredRole, context.getCurrentResultFrame()
-                        .getContents()));
-                        
+
+                result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, context, false,
+                        qualitygate.getSeverity(), this.requiredRole, context.getCurrentResultFrame()
+                            .getContents()));
+
             } else {
-                
-                result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, context, true, null, this.requiredRole, context.getCurrentResultFrame()
-                        .getContents()));
+
+                result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, context, true, null,
+                        this.requiredRole, context.getCurrentResultFrame()
+                            .getContents()));
             }
-            
+
             this.context.getStack()
-            .removeStackFrame();
-            
+                .removeStackFrame();
+
         }
         return result;
     }
@@ -446,7 +451,5 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         return result;
 
     }
-    
-    
 
 }

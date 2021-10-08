@@ -64,15 +64,16 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
     @Override
     public InterpreterResumptionPolicy handleIssues(InterpreterResult result) {
 
-        result = this.handleResponseTimeProxy(result);
-        result = this.handleCrashProxy(result);
-        result = this.triggerInvolvedIssueProbes(result);
+        if (result != null) {
+            result = this.handleResponseTimeProxy(result);
+            result = this.handleCrashProxy(result);
+            result = this.triggerInvolvedIssueProbes(result);
 
-        if (!Streams.stream(result.getIssues())
-            .allMatch(QualitygateIssue.class::isInstance)) {
-            return InterpreterResumptionPolicy.ABORT;
+            if (!Streams.stream(result.getIssues())
+                .allMatch(QualitygateIssue.class::isInstance)) {
+                return InterpreterResumptionPolicy.ABORT;
+            }
         }
-
         return InterpreterResumptionPolicy.CONTINUE;
     }
 

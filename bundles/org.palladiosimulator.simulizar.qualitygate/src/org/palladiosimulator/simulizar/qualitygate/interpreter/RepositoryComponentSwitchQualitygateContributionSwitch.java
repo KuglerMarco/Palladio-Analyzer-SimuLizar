@@ -17,6 +17,7 @@ import org.palladiosimulator.failuremodel.failuretype.Failure;
 import org.palladiosimulator.failuremodel.failuretype.SWContentFailure;
 import org.palladiosimulator.failuremodel.failuretype.SWCrashFailure;
 import org.palladiosimulator.failuremodel.failuretype.SWTimingFailure;
+import org.palladiosimulator.failuremodel.qualitygate.EventBasedCommunicationScope;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.failuremodel.qualitygate.RequestMetricScope;
 import org.palladiosimulator.failuremodel.qualitygate.RequestParameterScope;
@@ -41,6 +42,8 @@ import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.prei
 import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.CrashBehavior;
 import org.palladiosimulator.simulizar.failurescenario.interpreter.behavior.preinterpretation.DelayBehavior;
 import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
+import org.palladiosimulator.simulizar.interpreter.listener.EventType;
+import org.palladiosimulator.simulizar.interpreter.listener.ModelElementPassedEvent;
 import org.palladiosimulator.simulizar.interpreter.preinterpretation.PreInterpretationBehavior;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
@@ -50,6 +53,7 @@ import org.palladiosimulator.simulizar.interpreter.stereotype.RepositoryComponen
 import org.palladiosimulator.simulizar.interpreter.stereotype.StereotypeSwitch;
 import org.palladiosimulator.simulizar.interpreter.stereotype.RepositoryComponentSwitchStereotypeContributionFactory.RepositoryComponentSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
+import org.palladiosimulator.simulizar.qualitygate.eventbasedcommunication.EventBasedCommunicationProbeRegistry;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.CrashProxyIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ResponseTimeIssue;
@@ -104,6 +108,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     private final BasicInterpreterResultMerger merger;
     private boolean atRequestMetricCalcAdded = false;
     private QualitygateViolationProbeRegistry probeRegistry;
+    private EventBasedCommunicationProbeRegistry eventBasedRegistry;
     private QualitygatePropagationRecorder recorder;
     private static final Logger LOGGER = Logger.getLogger(RepositoryComponentSwitchQualitygateContributionSwitch.class);
 
@@ -114,7 +119,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
             @Assisted RepositoryComponentSwitchStereotypeElementDispatcher parentSwitch,
             BasicInterpreterResultMerger merger, ProbeFrameworkContext frameworkContext,
             PCMPartitionManager partManager, QualitygateViolationProbeRegistry probeRegistry,
-            QualitygatePropagationRecorder recorder) {
+            QualitygatePropagationRecorder recorder, EventBasedCommunicationProbeRegistry eventBasedRegistry) {
 
         this.interpreterDefaultContext = context;
         this.operationSignature = signature;
@@ -127,6 +132,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
         this.assembly = assemblyContext;
         this.probeRegistry = probeRegistry;
         this.recorder = recorder;
+        this.eventBasedRegistry = eventBasedRegistry;
 
         LOGGER.setLevel(Level.DEBUG);
     }
@@ -300,7 +306,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 }
 
             } else {
-                
+
                 result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, interpreterDefaultContext, true,
                         null, this.stereotypedObject, interpreterDefaultContext.getCurrentResultFrame()
                             .getContents()));
@@ -462,6 +468,86 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
         return result;
 
+    }
+
+    @Override
+    public InterpreterResult caseEventBasedCommunicationScope(EventBasedCommunicationScope scope) {
+
+        InterpreterResult result = InterpreterResult.OK;
+
+        if (callScope.equals(CallScope.REQUEST)) {
+
+            if (qualitygate.getPredicate()
+                .getSpecification()
+                .equals("Start.TYPE")) {
+                // Start measurement
+                eventBasedRegistry.startMeasurement(new ModelElementPassedEvent<QualityGate>(qualitygate,
+                        EventType.BEGIN, interpreterDefaultContext));
+
+            } else {
+                // End measurement
+                MeasuringValue value = eventBasedRegistry.endMeasurement(new ModelElementPassedEvent<QualityGate>(
+                        scope.getQualitygate(), EventType.END, interpreterDefaultContext));
+
+                Measure<Object, Quantity> measuringValue = value
+                    .getMeasureForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
+
+                // set temporary stack for evaluation
+                final SimulatedStackframe<Object> frame = this.interpreterDefaultContext.getStack()
+                    .createAndPushNewStackFrame();
+
+                List<Failure> failureImpactList = new ArrayList<Failure>();
+
+                String metricName = "Stop.TYPE";
+
+                frame.addValue(metricName, (Double) measuringValue.getValue());
+
+                if (!((boolean) interpreterDefaultContext.evaluate(predicate.getSpecification(),
+                        this.interpreterDefaultContext.getStack()
+                            .currentStackFrame()))) {
+
+                    if (LOGGER.isDebugEnabled()) {
+                        LOGGER.debug("Reponsetime Qualitygate broken: " + responseTime);
+                    }
+
+                    ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
+                            this.interpreterDefaultContext.getStack()
+                                .currentStackFrame()
+                                .getContents(),
+                            true);
+
+                    result = BasicInterpreterResult.of(issue);
+
+                    // triggering probe to measure Success-To-Failure-Rate case violated
+                    probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate,
+                            interpreterDefaultContext, false, null, this.stereotypedObject, false));
+
+                    probeRegistry
+                        .triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false,
+                                qualitygate.getSeverity(), this.stereotypedObject, false));
+
+                    recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
+
+                    if (qualitygate.getImpact() != null) {
+                        failureImpactList.addAll(qualitygate.getImpact());
+                    }
+
+                } else {
+                    // triggering probe to measure Success-To-Failure-Rate case successful
+                    probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate,
+                            interpreterDefaultContext, true, null, this.stereotypedObject, false));
+                }
+
+                // pop temporary stack
+                this.interpreterDefaultContext.getStack()
+                    .removeStackFrame();
+
+                result = merger.merge(result, this.handleImpact(failureImpactList, interpreterDefaultContext));
+
+            }
+        }
+
+        return result;
     }
 
 }
