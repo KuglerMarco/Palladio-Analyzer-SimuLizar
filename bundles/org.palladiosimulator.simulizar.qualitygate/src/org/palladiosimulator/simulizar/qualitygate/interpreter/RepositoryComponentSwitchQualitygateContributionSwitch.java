@@ -58,10 +58,10 @@ import org.palladiosimulator.simulizar.qualitygate.eventbasedcommunication.Event
 import org.palladiosimulator.simulizar.qualitygate.eventbasedcommunication.RequestContextFailureRegistry;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.CrashProxyIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ProcessingTimeIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.QualitygateIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ResponseTimeIssue;
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
-import org.palladiosimulator.simulizar.qualitygate.propagation.QualitygatePropagationRecorder;
 import org.palladiosimulator.simulizar.utils.PCMPartitionManager;
 
 import dagger.assisted.Assisted;
@@ -112,7 +112,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     private boolean atRequestMetricCalcAdded = false;
     private QualitygateViolationProbeRegistry probeRegistry;
     private EventBasedCommunicationProbeRegistry eventBasedRegistry;
-    private QualitygatePropagationRecorder recorder;
     private RequestContextFailureRegistry failureRegistry;
     private static final Logger LOGGER = Logger.getLogger(RepositoryComponentSwitchQualitygateContributionSwitch.class);
 
@@ -123,8 +122,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
             @Assisted RepositoryComponentSwitchStereotypeElementDispatcher parentSwitch,
             BasicInterpreterResultMerger merger, ProbeFrameworkContext frameworkContext,
             PCMPartitionManager partManager, QualitygateViolationProbeRegistry probeRegistry,
-            QualitygatePropagationRecorder recorder, EventBasedCommunicationProbeRegistry eventBasedRegistry,
-            RequestContextFailureRegistry failureRegistry) {
+            EventBasedCommunicationProbeRegistry eventBasedRegistry, RequestContextFailureRegistry failureRegistry) {
 
         this.interpreterDefaultContext = context;
         this.operationSignature = signature;
@@ -136,7 +134,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
         this.partManager = partManager;
         this.assembly = assemblyContext;
         this.probeRegistry = probeRegistry;
-        this.recorder = recorder;
         this.eventBasedRegistry = eventBasedRegistry;
         this.failureRegistry = failureRegistry;
 
@@ -249,7 +246,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                         this.interpreterDefaultContext.getStack()
                             .currentStackFrame()
                             .getContents(),
-                            false);
+                        false);
 
                 result = BasicInterpreterResult.of(issue);
 
@@ -259,13 +256,20 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                 probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext,
                         false, qualitygate.getSeverity(), this.stereotypedObject, false));
+                
+                InterpreterResult resultTemp = failureRegistry.getInterpreterResult(this.interpreterDefaultContext.getThread()
+                        .getRequestContext());
 
-                recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
+                result = this.triggerInvolvedIssueProbes(merger.merge(result,
+                        resultTemp));
 
                 if (qualitygate.getImpact() != null) {
                     result = merger.merge(result,
                             this.handleImpact(qualitygate.getImpact(), interpreterDefaultContext));
                 }
+                
+                failureRegistry.putInterpreterResult(this.interpreterDefaultContext.getThread()
+                        .getRequestContext(), result);
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
@@ -274,8 +278,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
             }
 
         }
-        failureRegistry.addInterpreterResult(this.interpreterDefaultContext.getThread().getRequestContext(), result);
-        this.triggerInvolvedIssueProbes(failureRegistry.getInterpreterResult(this.interpreterDefaultContext.getThread().getRequestContext()));
+
+
         return result;
 
     }
@@ -320,7 +324,10 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                             .getContents()));
 
             }
+            
+            failureRegistry.addInterpreterResult(interpreterDefaultContext.getThread().getRequestContext(), result);
         }
+
         return result;
     }
 
@@ -419,8 +426,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                     result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, interpreterDefaultContext,
                             false, qualitygate.getSeverity(), this.stereotypedObject, null));
 
-                    recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
-
                     if (qualitygate.getImpact() != null) {
                         failureImpactList.addAll(qualitygate.getImpact());
                     }
@@ -436,9 +441,12 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                     .removeStackFrame();
 
                 result = merger.merge(result, this.handleImpact(failureImpactList, interpreterDefaultContext));
+                failureRegistry.addInterpreterResult(interpreterDefaultContext.getThread().getRequestContext(), result);
             }
-
+            
         }
+        
+        
         return result;
     }
 
@@ -516,11 +524,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                         LOGGER.debug("Reponsetime Qualitygate broken: " + responseTime);
                     }
 
-                    ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
-                            this.interpreterDefaultContext.getStack()
-                                .currentStackFrame()
-                                .getContents(),
-                            false);
+                    ProcessingTimeIssue issue = new ProcessingTimeIssue((Entity) this.stereotypedObject,
+                            this.qualitygate, false);
 
                     result = BasicInterpreterResult.of(issue);
 
@@ -531,8 +536,12 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                     probeRegistry
                         .triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false,
                                 qualitygate.getSeverity(), this.stereotypedObject, false));
+                    
+                    InterpreterResult resultTemp = failureRegistry.getInterpreterResult(this.interpreterDefaultContext.getThread()
+                            .getRequestContext());
 
-                    recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
+                    result = this.triggerInvolvedIssueProbes(merger.merge(result,
+                            resultTemp));
 
                     if (qualitygate.getImpact() != null) {
                         failureImpactList.addAll(qualitygate.getImpact());
@@ -551,12 +560,15 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 result = merger.merge(result, this.handleImpact(failureImpactList, interpreterDefaultContext));
 
             }
+
+            failureRegistry.putInterpreterResult(this.interpreterDefaultContext.getThread()
+                .getRequestContext(), result);
+
         }
-        failureRegistry.addInterpreterResult(this.interpreterDefaultContext.getThread().getRequestContext(), result);
-        this.triggerInvolvedIssueProbes(failureRegistry.getInterpreterResult(this.interpreterDefaultContext.getThread().getRequestContext()));
+
         return result;
     }
-    
+
     private InterpreterResult triggerInvolvedIssueProbes(InterpreterResult interpreterResult) {
 
         InterpreterResult result = interpreterResult;
@@ -585,15 +597,11 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                     }
                 }
 
-                recorder.recordIssues(issuesWhenBroken, ((QualitygateIssue) issue).getQualitygateRef());
-
                 probeRegistry.triggerInvolvedIssuesProbe(issuesWhenBroken,
                         ((QualitygateIssue) issue).getQualitygateRef());
 
-                if (issue instanceof QualitygateIssue) {
-                    ((QualitygateIssue) issue).setHandled(true);
-                    LOGGER.debug(((QualitygateIssue) issue).getQualitygateId());
-                }
+                ((QualitygateIssue) issue).setHandled(true);
+                LOGGER.debug(((QualitygateIssue) issue).getQualitygateId());
             }
         }
 

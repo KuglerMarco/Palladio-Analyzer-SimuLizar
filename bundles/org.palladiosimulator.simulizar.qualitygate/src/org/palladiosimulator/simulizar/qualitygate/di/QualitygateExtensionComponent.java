@@ -12,7 +12,6 @@ import org.palladiosimulator.simulizar.qualitygate.interpreter.RDSeffSwitchQuali
 import org.palladiosimulator.simulizar.qualitygate.interpreter.RepositoryComponentSwitchQualitygateContributionSwitch;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.QualitygateIssueHandler;
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
-import org.palladiosimulator.simulizar.qualitygate.propagation.QualitygatePropagationRecorder;
 import org.palladiosimulator.simulizar.scopes.RuntimeExtensionScope;
 
 import dagger.Component;
@@ -36,8 +35,6 @@ public interface QualitygateExtensionComponent extends ExtensionComponent {
     QualitygateViolationProbeRegistry probeRegistry();
     
     EventBasedCommunicationProbeRegistry eventRegistry();
-
-    QualitygatePropagationRecorder propagationRecorder();
 
     @Component.Factory
     public static interface Factory extends ExtensionComponent.Factory {

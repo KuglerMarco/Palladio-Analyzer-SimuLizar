@@ -61,10 +61,10 @@ import org.palladiosimulator.simulizar.qualitygate.eventbasedcommunication.Event
 import org.palladiosimulator.simulizar.qualitygate.eventbasedcommunication.RequestContextFailureRegistry;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.CrashProxyIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ProcessingTimeIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.QualitygateIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ResponseTimeProxyIssue;
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
-import org.palladiosimulator.simulizar.qualitygate.propagation.QualitygatePropagationRecorder;
 import org.palladiosimulator.simulizar.utils.PCMPartitionManager;
 import org.palladiosimulator.simulizar.utils.SimulatedStackHelper;
 
@@ -116,7 +116,6 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
     private static final Logger LOGGER = Logger.getLogger(RDSeffSwitchQualitygateContributionSwitch.class);
 
     private QualitygateViolationProbeRegistry probeRegistry;
-    private QualitygatePropagationRecorder recorder;
     private EventBasedCommunicationProbeRegistry eventBasedRegistry;
     private RequestContextFailureRegistry failureRegistry;
 
@@ -124,8 +123,8 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
     public RDSeffSwitchQualitygateContributionSwitch(@Assisted final InterpreterDefaultContext context,
             @Assisted RDSeffSwitchElementDispatcher parentSwitch, BasicInterpreterResultMerger merger,
             ProbeFrameworkContext frameworkContext, PCMPartitionManager partManager,
-            QualitygateViolationProbeRegistry probeRegistry, QualitygatePropagationRecorder recorder,
-            EventBasedCommunicationProbeRegistry eventBasedRegistry, RequestContextFailureRegistry failureRegistry) {
+            QualitygateViolationProbeRegistry probeRegistry, EventBasedCommunicationProbeRegistry eventBasedRegistry,
+            RequestContextFailureRegistry failureRegistry) {
 
         this.context = context;
 
@@ -136,7 +135,6 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         this.probeRegistry = probeRegistry;
         this.assembly = context.getAssemblyContextStack()
             .get(1);
-        this.recorder = recorder;
         this.eventBasedRegistry = eventBasedRegistry;
         this.failureRegistry = failureRegistry;
 
@@ -161,7 +159,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
     }
 
     /**
-     * Entry-Point to process the attached qualitygates at the model element.
+     * Entry-Point to process the attached Qualitygates at the model element.
      *
      */
     @Override
@@ -257,8 +255,8 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
             MetricDescription respTimeMetricDesc = requestMetricScope.getMetric();
 
             /*
-             * TODO ändern MeasuringPointRepository needs to be loaded trough the MonitorRepository,
-             * otherwise the MeasuringPointRepository isn't be found at first run
+             * MeasuringPointRepository needs to be loaded trough the MonitorRepository, otherwise
+             * the MeasuringPointRepository isn't be found at first run
              */
             MonitorRepository monitorRepo = (MonitorRepository) partManager
                 .findModel(MonitorRepositoryPackage.Literals.MONITOR_REPOSITORY);
@@ -310,7 +308,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
             result = InterpreterResult.of(new ResponseTimeProxyIssue(predicate, this, qualitygate, stereotypedObject,
                     this.context, this.requiredRole));
         }
-        
+
         return result;
 
     }
@@ -328,8 +326,8 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         if (callScope.equals(CallScope.REQUEST) && (signatureOfQualitygate == (this.operationSignature))) {
 
             /*
-             * Pushes the new frame for evaluation, because in RDSeffSwitch, stack is only pushed
-             * after this stereotype processing
+             * Pushes the new frame for evaluation, because in RDSeffSwitch, stack is pushed after
+             * this stereotype processing
              */
             SimulatedStackHelper.createAndPushNewStackFrame(this.context.getStack(),
                     ((CallAction) stereotypedObject).getInputVariableUsages__CallAction());
@@ -348,18 +346,22 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                         this.context.getStack()
                             .currentStackFrame()
                             .getContents(),
-                            false);
+                        false);
 
                 result = BasicInterpreterResult.of(issue);
 
-                // triggering probe to measure Success-To-Failure-Rate case violated
+                // triggering probes to measure Success-To-Failure-Rate case violated
                 probeRegistry.triggerViolationProbe(
                         new QualitygatePassedEvent(qualitygate, context, false, null, this.requiredRole, false));
 
                 probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, context, false,
                         qualitygate.getSeverity(), this.requiredRole, false));
+                
+                InterpreterResult resultTemp = failureRegistry.getInterpreterResult(this.context.getThread()
+                        .getRequestContext());
 
-                recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
+                result = this.triggerInvolvedIssueProbes(merger.merge(result,
+                        resultTemp));
 
                 if (qualitygate.getImpact() != null) {
 
@@ -377,12 +379,12 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
             this.context.getStack()
                 .removeStackFrame();
 
-            failureRegistry.addInterpreterResult(this.context.getThread().getRequestContext(), result);
-            this.triggerInvolvedIssueProbes(failureRegistry.getInterpreterResult(this.context.getThread().getRequestContext()));
-            return result;
+            failureRegistry.putInterpreterResult(this.context.getThread()
+                .getRequestContext(), result);
 
         }
-        return InterpreterResult.OK;
+
+        return result;
 
     }
 
@@ -436,6 +438,13 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
         return RDSeffSwitchQualitygateContributionSwitch.responseTime;
     }
 
+    /**
+     * Processes impact of the Qualitygates.
+     * 
+     * @param failureList
+     * @param interpreterDefaultContext
+     * @return
+     */
     private InterpreterResult handleImpact(List<Failure> failureList,
             InterpreterDefaultContext interpreterDefaultContext) {
 
@@ -471,6 +480,10 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
     }
 
+    /**
+     * Processing the EventBasedCommunicationScope.
+     *
+     */
     @Override
     public InterpreterResult caseEventBasedCommunicationScope(EventBasedCommunicationScope scope) {
 
@@ -481,11 +494,13 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
             if (qualitygate.getPredicate()
                 .getSpecification()
                 .equals("Start.TYPE")) {
+
                 // Start measurement
                 eventBasedRegistry
                     .startMeasurement(new ModelElementPassedEvent<QualityGate>(qualitygate, EventType.BEGIN, context));
 
             } else {
+
                 // End measurement
                 MeasuringValue value = eventBasedRegistry.endMeasurement(
                         new ModelElementPassedEvent<QualityGate>(scope.getQualitygate(), EventType.END, context));
@@ -499,9 +514,9 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
                 List<Failure> failureImpactList = new ArrayList<Failure>();
 
-                String metricName = "Stop.TYPE";
+                String parameterName = "Stop.TYPE";
 
-                frame.addValue(metricName, (Double) measuringValue.getValue());
+                frame.addValue(parameterName, (Double) measuringValue.getValue());
 
                 if (!((boolean) context.evaluate(predicate.getSpecification(), this.context.getStack()
                     .currentStackFrame()))) {
@@ -510,29 +525,30 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                         LOGGER.debug("Reponsetime Qualitygate broken: " + responseTime);
                     }
 
-                    ParameterIssue issue = new ParameterIssue((Entity) this.stereotypedObject, this.qualitygate,
-                            this.context.getStack()
-                                .currentStackFrame()
-                                .getContents(),
-                                false);
+                    ProcessingTimeIssue issue = new ProcessingTimeIssue((Entity) this.stereotypedObject,
+                            this.qualitygate, false);
 
                     result = BasicInterpreterResult.of(issue);
 
-                    // triggering probe to measure Success-To-Failure-Rate case violated
+                    // triggering probes to measure Success-To-Failure-Rate case violated
                     probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, false, null,
                             this.stereotypedObject, false));
 
                     probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, context, false,
                             qualitygate.getSeverity(), this.stereotypedObject, false));
+                    
+                    InterpreterResult resultTemp = failureRegistry.getInterpreterResult(this.context.getThread()
+                            .getRequestContext());
 
-                    recorder.recordQualitygateIssue(qualitygate, stereotypedObject, issue);
+                    result = this.triggerInvolvedIssueProbes(
+                            merger.merge(result, resultTemp));
 
                     if (qualitygate.getImpact() != null) {
                         failureImpactList.addAll(qualitygate.getImpact());
                     }
 
                 } else {
-                    // triggering probe to measure Success-To-Failure-Rate case successful
+                    // triggering probes to measure Success-To-Failure-Rate case successful
                     probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, true, null,
                             this.stereotypedObject, false));
                 }
@@ -544,12 +560,16 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 result = merger.merge(result, this.handleImpact(failureImpactList, context));
 
             }
+
+            failureRegistry.putInterpreterResult(this.context.getThread()
+                .getRequestContext(), result);
+
         }
-        failureRegistry.addInterpreterResult(this.context.getThread().getRequestContext(), result);
-        this.triggerInvolvedIssueProbes(failureRegistry.getInterpreterResult(this.context.getThread().getRequestContext()));
+
         return result;
+
     }
-    
+
     private InterpreterResult triggerInvolvedIssueProbes(InterpreterResult interpreterResult) {
 
         InterpreterResult result = interpreterResult;
@@ -578,15 +598,11 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                     }
                 }
 
-                recorder.recordIssues(issuesWhenBroken, ((QualitygateIssue) issue).getQualitygateRef());
-
                 probeRegistry.triggerInvolvedIssuesProbe(issuesWhenBroken,
                         ((QualitygateIssue) issue).getQualitygateRef());
 
-                if (issue instanceof QualitygateIssue) {
-                    ((QualitygateIssue) issue).setHandled(true);
-                    LOGGER.debug(((QualitygateIssue) issue).getQualitygateId());
-                }
+                ((QualitygateIssue) issue).setHandled(true);
+                LOGGER.debug(((QualitygateIssue) issue).getQualitygateId());
             }
         }
 

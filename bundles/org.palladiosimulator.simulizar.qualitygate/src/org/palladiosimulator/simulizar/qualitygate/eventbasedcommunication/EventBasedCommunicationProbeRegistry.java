@@ -9,6 +9,7 @@ import java.util.Objects;
 
 import javax.inject.Inject;
 
+import org.palladiosimulator.failuremodel.qualitygate.EventBasedCommunicationScope;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.failuremodel.qualitygatemeasuringpoint.QualitygateMeasuringPoint;
 import org.palladiosimulator.measurementframework.MeasuringValue;
@@ -33,6 +34,12 @@ import org.palladiosimulator.simulizar.utils.PCMPartitionManager;
 import de.uka.ipd.sdq.simucomframework.model.SimuComModel;
 import de.uka.ipd.sdq.simucomframework.probes.TakeCurrentSimulationTimeProbe;
 
+/**
+ * Manages the measurement of Processing Time between Qualitygates.
+ * 
+ * @author Marco Kugler
+ *
+ */
 @RuntimeExtensionScope
 public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityManager, IMeasurementSourceListener {
 
@@ -42,17 +49,11 @@ public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityM
     protected final SimuComModel simuComModel;
     protected final IGenericCalculatorFactory calculatorFactory;
     private final PCMPartitionManager pcmPartitionManager;
-    
-    private static MeasuringValue responseTime;
+
+    private static MeasuringValue processingTime;
 
     private final Map<String, List<TriggeredProbe>> currentTimeProbes = new HashMap<String, List<TriggeredProbe>>();
 
-    /**
-     * @param modelAccessFactory
-     *            Provides access to simulated models
-     * @param simuComModel
-     *            Provides access to the central simulation
-     */
     @Inject
     public EventBasedCommunicationProbeRegistry(final PCMPartitionManager pcmPartitionManager,
             final SimuComModel simuComModel) {
@@ -65,63 +66,79 @@ public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityM
 
     }
 
+    /**
+     * Creates the Start and Stop Probe for measuring processing time.
+     * 
+     * @param measuringPoint
+     * @param simuComModel
+     * @return
+     */
     @SuppressWarnings({ "unchecked", "rawtypes" })
-    protected List<Probe> createStartAndStopProbe(final QualitygateMeasuringPoint measuringPoint,
+    private List<Probe> createStartAndStopProbe(final QualitygateMeasuringPoint measuringPoint,
             final SimuComModel simuComModel) {
+
         final List probeList = new ArrayList<TriggeredProbe>(2);
         probeList.add(new TakeCurrentSimulationTimeProbe(simuComModel.getSimulationControl()));
         probeList.add(new TakeCurrentSimulationTimeProbe(simuComModel.getSimulationControl()));
-        this.currentTimeProbes.put
-        (measuringPoint.getQualitygate()
+        this.currentTimeProbes.put(measuringPoint.getQualitygate()
             .getId(), Collections.unmodifiableList(probeList));
         return probeList;
+
     }
 
     /**
-     * @param <T>
-     * @param event
+     * Starts measurement at start Qualitygate
+     * 
      */
     public void startMeasurement(final ModelElementPassedEvent<QualityGate> event) {
 
-        
         if (!this.currentTimeProbes.containsKey(event.getModelElement()
             .getId())) {
 
             var probes = this.createStartAndStopProbe(this.findQualitygateMeasuringPoint(event.getModelElement()),
                     this.simuComModel);
 
-            Calculator calc = this.calculatorFactory.buildCalculator(QualitygateMetricDescriptionConstants.PROCESSING_TIME_TUPLE,
-                    this.findQualitygateMeasuringPoint(event.getModelElement()),
+            Calculator calc = this.calculatorFactory.buildCalculator(
+                    QualitygateMetricDescriptionConstants.PROCESSING_TIME_TUPLE,
+                    this.findQualitygateMeasuringPoint(((EventBasedCommunicationScope) event.getModelElement().getScope()).getQualitygate()),
                     DefaultCalculatorProbeSets.createStartStopProbeConfiguration(probes.get(START_PROBE_INDEX),
                             probes.get(STOP_PROBE_INDEX)));
+            
             calc.addObserver(this);
 
         }
 
         if (this.currentTimeProbes.containsKey(((Entity) event.getModelElement()).getId())
                 && this.simulationIsRunning()) {
+            
             this.currentTimeProbes.get(((Entity) event.getModelElement()).getId())
                 .get(START_PROBE_INDEX)
                 .takeMeasurement(this.calcMostParentContext(event.getThread()
-                        .getRequestContext()));
-            
-            
+                    .getRequestContext()));
+
         }
-        
+
     }
 
+    /**
+     * Ends measurement at Stop Qualitygate
+     * 
+     * @param event
+     * @return
+     */
     public MeasuringValue endMeasurement(final ModelElementPassedEvent<QualityGate> event) {
+        
         if (this.currentTimeProbes.containsKey(((Entity) event.getModelElement()).getId())
                 && this.simulationIsRunning()) {
             this.currentTimeProbes.get(((Entity) event.getModelElement()).getId())
                 .get(STOP_PROBE_INDEX)
                 .takeMeasurement(this.calcMostParentContext(event.getThread()
                     .getRequestContext()));
-            
+
         }
-        
-        return responseTime;
-        
+
+        return processingTime;
+
     }
 
     private boolean simulationIsRunning() {
@@ -129,6 +146,12 @@ public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityM
             .isRunning();
     }
 
+    /**
+     * Finds QualitygateMeasuringPoint in MeasuringPointRepository.
+     * 
+     * @param qualitygate
+     * @return measuring point
+     */
     private QualitygateMeasuringPoint findQualitygateMeasuringPoint(QualityGate qualitygate) {
 
         MonitorRepository monitorRepositoryModel = this.pcmPartitionManager
@@ -144,26 +167,25 @@ public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityM
 
                 }
             }
-
         }
 
         return null;
 
     }
-    
+
     @Override
     public void newMeasurementAvailable(MeasuringValue newMeasurement) {
 
-        responseTime = (newMeasurement.getMeasuringValueForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC));
+        processingTime = (newMeasurement.getMeasuringValueForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC));
 
     }
 
     @Override
     public void preUnregister() {
         // TODO Auto-generated method stub
-        
+
     }
-    
+
     /**
      * To handle fork actions.
      * 
@@ -171,16 +193,15 @@ public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityM
      * @return
      */
     private RequestContext calcMostParentContext(RequestContext context) {
-        
+
         RequestContext result = context;
-        
-        while(result.getParentContext() != null) {
+
+        while (result.getParentContext() != null) {
             result = result.getParentContext();
         }
-        
-        return result;
-        
-    }
 
+        return result;
+
+    }
 
 }

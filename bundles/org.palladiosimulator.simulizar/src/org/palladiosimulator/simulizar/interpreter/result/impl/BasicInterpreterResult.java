@@ -8,9 +8,11 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 
 public class BasicInterpreterResult implements InterpreterResult {
     public List<InterpretationIssue> issues;
+    
 
     @Override
     public boolean hasNoIssues() {
@@ -25,6 +27,13 @@ public class BasicInterpreterResult implements InterpreterResult {
     public static BasicInterpreterResult of(InterpretationIssue issue) {
         var result = new BasicInterpreterResult();
         result.issues = new ArrayList<>(Collections.singletonList(issue));
+        return result;                
+    }
+    
+    public static BasicInterpreterResult of(Iterable<InterpretationIssue> iterable) {
+        var result = new BasicInterpreterResult();
+        result.issues = new ArrayList<>();
+        Iterables.addAll(result.issues, iterable);
         return result;                
     }
     

@@ -31,7 +31,6 @@ import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterR
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
 import org.palladiosimulator.simulizar.qualitygate.eventbasedcommunication.RequestContextFailureRegistry;
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
-import org.palladiosimulator.simulizar.qualitygate.propagation.QualitygatePropagationRecorder;
 import org.palladiosimulator.failuremodel.qualitygate.RequestMetricScope;
 import org.palladiosimulator.failuremodel.qualitygate.RequestParameterScope;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
@@ -49,17 +48,15 @@ import de.uka.ipd.sdq.simucomframework.variables.stackframe.SimulatedStackframe;
 public class QualitygateIssueHandler implements InterpreterResultHandler {
 
     private static final Logger LOGGER = Logger.getLogger(QualitygateIssueHandler.class);
-    private QualitygatePropagationRecorder recorder;
     private QualitygateViolationProbeRegistry probeRegistry;
     private BasicInterpreterResultMerger merger;
     private RequestContextFailureRegistry failureRegistry;
 
     @Inject
-    public QualitygateIssueHandler(QualitygatePropagationRecorder recorder,
+    public QualitygateIssueHandler(
             QualitygateViolationProbeRegistry probeRegistry, BasicInterpreterResultMerger merger,
             RequestContextFailureRegistry failureRegistry) {
         LOGGER.setLevel(Level.DEBUG);
-        this.recorder = recorder;
         this.probeRegistry = probeRegistry;
         this.merger = merger;
         this.failureRegistry = failureRegistry;
@@ -352,8 +349,6 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                         LOGGER.debug(((QualitygateIssue) logIssue).getQualitygateId());
                     }
                 }
-
-                recorder.recordIssues(issuesWhenBroken, ((QualitygateIssue) issue).getQualitygateRef());
 
                 probeRegistry.triggerInvolvedIssuesProbe(issuesWhenBroken,
                         ((QualitygateIssue) issue).getQualitygateRef());
