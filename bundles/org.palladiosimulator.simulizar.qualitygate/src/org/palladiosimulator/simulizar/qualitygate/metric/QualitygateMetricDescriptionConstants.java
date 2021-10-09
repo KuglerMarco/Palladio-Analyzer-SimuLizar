@@ -14,6 +14,7 @@ import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
 import org.palladiosimulator.metricspec.MetricSetDescription;
 import org.palladiosimulator.metricspec.MetricSpecPackage;
+import org.palladiosimulator.metricspec.NumericalBaseMetricDescription;
 import org.palladiosimulator.metricspec.TextualBaseMetricDescription;
 
 import org.palladiosimulator.metricspec.Identifier;
@@ -41,6 +42,10 @@ public final class QualitygateMetricDescriptionConstants {
     public final static Identifier VIOLATION;
     
     public final static Identifier CRASH;
+    
+    public final static NumericalBaseMetricDescription PROCESSING_TIME;
+    
+    public final static MetricSetDescription PROCESSING_TIME_TUPLE;
     
     
     static {
@@ -86,6 +91,10 @@ public final class QualitygateMetricDescriptionConstants {
         VIOLATION = (Identifier) resource.getEObject("_k0dO0AJhEeyupI8CZJs1wg");
         
         CRASH = (Identifier) resource.getEObject("_yXCp8CE1EeyB6fGWm4pqeA");
+        
+        PROCESSING_TIME = (NumericalBaseMetricDescription) resource.getEObject("_x4BCEih8EeyofPOU1vRt9w");
+        
+        PROCESSING_TIME_TUPLE = (MetricSetDescription) resource.getEObject("_CPj4QSh9EeyofPOU1vRt9w");
         
     }
     

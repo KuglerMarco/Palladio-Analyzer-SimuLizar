@@ -14,4 +14,10 @@
     <subsumedMetrics xsi:type="metricspec:NumericalBaseMetricDescription" href="pathmap://METRIC_SPEC_MODELS/commonMetrics.metricspec#_NCRBos7pEeOX_4BzImuHbA"/>
     <subsumedMetrics xsi:type="metricspec:TextualBaseMetricDescription" href="#_bnYmwAf9Eey9TNWaDr7jMQ"/>
   </metricDescriptions>
+  <metricDescriptions xsi:type="metricspec:MetricSetDescription" id="_wzVR8Sh8EeyofPOU1vRt9w"/>
+  <metricDescriptions xsi:type="metricspec:NumericalBaseMetricDescription" id="_x4BCEih8EeyofPOU1vRt9w" name="Processing Time Between Qualitygates" textualDescription="This metric represents the processing time between the evaluation of two Qualitygates." captureType="RealNumber" scale="Ratio" scopeOfValidity="Continuous"/>
+  <metricDescriptions xsi:type="metricspec:MetricSetDescription" id="_CPj4QSh9EeyofPOU1vRt9w" name="Processing Time Between Qualitygates Tuple" textualDescription="This metric represents the processing time between two Qualitygates plus the point in time it was measured.">
+    <subsumedMetrics xsi:type="metricspec:NumericalBaseMetricDescription" href="pathmap://METRIC_SPEC_MODELS/commonMetrics.metricspec#_NCRBos7pEeOX_4BzImuHbA"/>
+    <subsumedMetrics xsi:type="metricspec:NumericalBaseMetricDescription" href="pathmap://METRIC_SPEC_MODELS/commonMetrics.metricspec#_6rYmYs7nEeOX_4BzImuHbA"/>
+  </metricDescriptions>
 </metricspec:MetricDescriptionRepository>

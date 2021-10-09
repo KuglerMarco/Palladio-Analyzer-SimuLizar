@@ -21,10 +21,11 @@ import org.palladiosimulator.pcm.core.entity.Entity;
 import org.palladiosimulator.probeframework.calculator.Calculator;
 import org.palladiosimulator.probeframework.calculator.DefaultCalculatorProbeSets;
 import org.palladiosimulator.probeframework.calculator.IGenericCalculatorFactory;
-import org.palladiosimulator.probeframework.measurement.ProbeMeasurement;
+import org.palladiosimulator.probeframework.measurement.RequestContext;
 import org.palladiosimulator.probeframework.probes.Probe;
 import org.palladiosimulator.probeframework.probes.TriggeredProbe;
 import org.palladiosimulator.simulizar.interpreter.listener.ModelElementPassedEvent;
+import org.palladiosimulator.simulizar.qualitygate.metric.QualitygateMetricDescriptionConstants;
 import org.palladiosimulator.simulizar.runtimestate.RuntimeStateEntityManager;
 import org.palladiosimulator.simulizar.scopes.RuntimeExtensionScope;
 import org.palladiosimulator.simulizar.utils.PCMPartitionManager;
@@ -89,7 +90,7 @@ public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityM
             var probes = this.createStartAndStopProbe(this.findQualitygateMeasuringPoint(event.getModelElement()),
                     this.simuComModel);
 
-            Calculator calc = this.calculatorFactory.buildCalculator(MetricDescriptionConstants.RESPONSE_TIME_METRIC_TUPLE,
+            Calculator calc = this.calculatorFactory.buildCalculator(QualitygateMetricDescriptionConstants.PROCESSING_TIME_TUPLE,
                     this.findQualitygateMeasuringPoint(event.getModelElement()),
                     DefaultCalculatorProbeSets.createStartStopProbeConfiguration(probes.get(START_PROBE_INDEX),
                             probes.get(STOP_PROBE_INDEX)));
@@ -101,8 +102,8 @@ public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityM
                 && this.simulationIsRunning()) {
             this.currentTimeProbes.get(((Entity) event.getModelElement()).getId())
                 .get(START_PROBE_INDEX)
-                .takeMeasurement(event.getThread()
-                    .getRequestContext());
+                .takeMeasurement(this.calcMostParentContext(event.getThread()
+                        .getRequestContext()));
             
             
         }
@@ -114,8 +115,8 @@ public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityM
                 && this.simulationIsRunning()) {
             this.currentTimeProbes.get(((Entity) event.getModelElement()).getId())
                 .get(STOP_PROBE_INDEX)
-                .takeMeasurement(event.getThread()
-                    .getRequestContext());
+                .takeMeasurement(this.calcMostParentContext(event.getThread()
+                    .getRequestContext()));
             
         }
         
@@ -160,6 +161,24 @@ public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityM
     @Override
     public void preUnregister() {
         // TODO Auto-generated method stub
+        
+    }
+    
+    /**
+     * To handle fork actions.
+     * 
+     * @param context
+     * @return
+     */
+    private RequestContext calcMostParentContext(RequestContext context) {
+        
+        RequestContext result = context;
+        
+        while(result.getParentContext() != null) {
+            result = result.getParentContext();
+        }
+        
+        return result;
         
     }
 

@@ -29,6 +29,7 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResultHandl
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionPolicy;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
+import org.palladiosimulator.simulizar.qualitygate.eventbasedcommunication.RequestContextFailureRegistry;
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
 import org.palladiosimulator.simulizar.qualitygate.propagation.QualitygatePropagationRecorder;
 import org.palladiosimulator.failuremodel.qualitygate.RequestMetricScope;
@@ -51,14 +52,17 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
     private QualitygatePropagationRecorder recorder;
     private QualitygateViolationProbeRegistry probeRegistry;
     private BasicInterpreterResultMerger merger;
+    private RequestContextFailureRegistry failureRegistry;
 
     @Inject
     public QualitygateIssueHandler(QualitygatePropagationRecorder recorder,
-            QualitygateViolationProbeRegistry probeRegistry, BasicInterpreterResultMerger merger) {
+            QualitygateViolationProbeRegistry probeRegistry, BasicInterpreterResultMerger merger,
+            RequestContextFailureRegistry failureRegistry) {
         LOGGER.setLevel(Level.DEBUG);
         this.recorder = recorder;
         this.probeRegistry = probeRegistry;
         this.merger = merger;
+        this.failureRegistry = failureRegistry;
     }
 
     @Override
@@ -129,15 +133,13 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
 
         } else {
             // no Crash occurred
-            
+
             List<Failure> failureImpactList = new ArrayList<Failure>();
-            
+
             for (InterpretationIssue issue : resultPrevious.getIssues()) {
-                
-                
 
                 if (issue instanceof CrashProxyIssue) {
-                    
+
                     InterpreterDefaultContext interpreterDefaultContext = ((CrashProxyIssue) issue).getContext();
 
                     if (!((CrashProxyIssue) issue).isSuccess()) {
@@ -168,12 +170,12 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                                     ((CrashProxyIssue) issue).getModelElement(), false);
                             resultNew = merger.merge(resultNew, BasicInterpreterResult.of(issueNew));
                         }
-                        
-                        if (((CrashProxyIssue) issue).getModelElement()
-                                .getImpact() != null) {
 
-                                failureImpactList.addAll(((CrashProxyIssue) issue).getModelElement()
-                                    .getImpact());
+                        if (((CrashProxyIssue) issue).getModelElement()
+                            .getImpact() != null) {
+
+                            failureImpactList.addAll(((CrashProxyIssue) issue).getModelElement()
+                                .getImpact());
 
                         }
 
@@ -188,21 +190,16 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
 
                     resultNew.removeIssue(issue);
 
-                    resultNew = merger.merge(resultNew, this.handleImpact(failureImpactList, interpreterDefaultContext));
-            
+                    resultNew = merger.merge(resultNew,
+                            this.handleImpact(failureImpactList, interpreterDefaultContext));
+                    
                     failureImpactList.clear();
-                
+
                 }
-                
-                
-                
-                
 
             }
-            
+
         }
-        
-        
 
         return resultNew;
     }

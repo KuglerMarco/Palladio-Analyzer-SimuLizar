@@ -45,6 +45,7 @@ import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
 import org.palladiosimulator.simulizar.interpreter.listener.EventType;
 import org.palladiosimulator.simulizar.interpreter.listener.ModelElementPassedEvent;
 import org.palladiosimulator.simulizar.interpreter.preinterpretation.PreInterpretationBehavior;
+import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
@@ -54,8 +55,10 @@ import org.palladiosimulator.simulizar.interpreter.stereotype.StereotypeSwitch;
 import org.palladiosimulator.simulizar.interpreter.stereotype.RepositoryComponentSwitchStereotypeContributionFactory.RepositoryComponentSwitchStereotypeElementDispatcher;
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
 import org.palladiosimulator.simulizar.qualitygate.eventbasedcommunication.EventBasedCommunicationProbeRegistry;
+import org.palladiosimulator.simulizar.qualitygate.eventbasedcommunication.RequestContextFailureRegistry;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.CrashProxyIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.QualitygateIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ResponseTimeIssue;
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
 import org.palladiosimulator.simulizar.qualitygate.propagation.QualitygatePropagationRecorder;
@@ -110,6 +113,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     private QualitygateViolationProbeRegistry probeRegistry;
     private EventBasedCommunicationProbeRegistry eventBasedRegistry;
     private QualitygatePropagationRecorder recorder;
+    private RequestContextFailureRegistry failureRegistry;
     private static final Logger LOGGER = Logger.getLogger(RepositoryComponentSwitchQualitygateContributionSwitch.class);
 
     @AssistedInject
@@ -119,7 +123,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
             @Assisted RepositoryComponentSwitchStereotypeElementDispatcher parentSwitch,
             BasicInterpreterResultMerger merger, ProbeFrameworkContext frameworkContext,
             PCMPartitionManager partManager, QualitygateViolationProbeRegistry probeRegistry,
-            QualitygatePropagationRecorder recorder, EventBasedCommunicationProbeRegistry eventBasedRegistry) {
+            QualitygatePropagationRecorder recorder, EventBasedCommunicationProbeRegistry eventBasedRegistry,
+            RequestContextFailureRegistry failureRegistry) {
 
         this.interpreterDefaultContext = context;
         this.operationSignature = signature;
@@ -133,6 +138,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
         this.probeRegistry = probeRegistry;
         this.recorder = recorder;
         this.eventBasedRegistry = eventBasedRegistry;
+        this.failureRegistry = failureRegistry;
 
         LOGGER.setLevel(Level.DEBUG);
     }
@@ -243,7 +249,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                         this.interpreterDefaultContext.getStack()
                             .currentStackFrame()
                             .getContents(),
-                        true);
+                            false);
 
                 result = BasicInterpreterResult.of(issue);
 
@@ -268,6 +274,8 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
             }
 
         }
+        failureRegistry.addInterpreterResult(this.interpreterDefaultContext.getThread().getRequestContext(), result);
+        this.triggerInvolvedIssueProbes(failureRegistry.getInterpreterResult(this.interpreterDefaultContext.getThread().getRequestContext()));
         return result;
 
     }
@@ -431,7 +439,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
             }
 
         }
-
         return result;
     }
 
@@ -465,7 +472,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
             }
 
         }
-
         return result;
 
     }
@@ -514,7 +520,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                             this.interpreterDefaultContext.getStack()
                                 .currentStackFrame()
                                 .getContents(),
-                            true);
+                            false);
 
                     result = BasicInterpreterResult.of(issue);
 
@@ -546,8 +552,53 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
             }
         }
+        failureRegistry.addInterpreterResult(this.interpreterDefaultContext.getThread().getRequestContext(), result);
+        this.triggerInvolvedIssueProbes(failureRegistry.getInterpreterResult(this.interpreterDefaultContext.getThread().getRequestContext()));
+        return result;
+    }
+    
+    private InterpreterResult triggerInvolvedIssueProbes(InterpreterResult interpreterResult) {
+
+        InterpreterResult result = interpreterResult;
+
+        // if unhandled issues are on interpreterResult, then persist the issues
+        // (issues when the unhandled issues where broken
+
+        // List for the issues which where there, when the qualitygates where broken
+        List<InterpretationIssue> issuesWhenBroken = new ArrayList<InterpretationIssue>();
+
+        // handled issues where present when unhandled issues where broken
+        for (InterpretationIssue issue : result.getIssues()) {
+            if (issue.isHandled()) {
+                issuesWhenBroken.add(issue);
+
+            }
+        }
+
+        // for every unhandled Issue persist the Issues
+        for (InterpretationIssue issue : result.getIssues()) {
+            if (!issue.isHandled() && issue instanceof QualitygateIssue) {
+
+                for (InterpretationIssue logIssue : issuesWhenBroken) {
+                    if (issue instanceof QualitygateIssue) {
+                        LOGGER.debug(((QualitygateIssue) logIssue).getQualitygateId());
+                    }
+                }
+
+                recorder.recordIssues(issuesWhenBroken, ((QualitygateIssue) issue).getQualitygateRef());
+
+                probeRegistry.triggerInvolvedIssuesProbe(issuesWhenBroken,
+                        ((QualitygateIssue) issue).getQualitygateRef());
+
+                if (issue instanceof QualitygateIssue) {
+                    ((QualitygateIssue) issue).setHandled(true);
+                    LOGGER.debug(((QualitygateIssue) issue).getQualitygateId());
+                }
+            }
+        }
 
         return result;
+
     }
 
 }
