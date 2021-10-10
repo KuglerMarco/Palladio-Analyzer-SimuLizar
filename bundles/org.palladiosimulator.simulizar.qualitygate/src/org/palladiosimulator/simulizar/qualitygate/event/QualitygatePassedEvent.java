@@ -61,7 +61,6 @@ public class QualitygatePassedEvent {
         return stereotypedObject;
     }
 
-
     /**
      * @return whether the execution crashed at the time of evaluation
      */

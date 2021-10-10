@@ -1,4 +1,4 @@
-package org.palladiosimulator.simulizar.qualitygate.measurement;
+package org.palladiosimulator.simulizar.qualitygate.measurement.probe;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -28,7 +28,7 @@ public class QualitygateCheckingTriggeredProbeList extends TriggeredProbe {
     // Result of the evaluation of the Qualitygate
     private Identifier identifier;
 
-    protected QualitygateCheckingTriggeredProbeList(MetricDescription metricDescription,
+    public QualitygateCheckingTriggeredProbeList(MetricDescription metricDescription,
             final List<TriggeredProbe> subsumedProbes) {
         super(metricDescription);
         this.subsumedProbes = subsumedProbes;

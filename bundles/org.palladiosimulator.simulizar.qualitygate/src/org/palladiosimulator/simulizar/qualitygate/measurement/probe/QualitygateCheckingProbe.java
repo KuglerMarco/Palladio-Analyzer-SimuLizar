@@ -1,4 +1,4 @@
-package org.palladiosimulator.simulizar.qualitygate.measurement;
+package org.palladiosimulator.simulizar.qualitygate.measurement.probe;
 
 import javax.measure.quantity.Dimensionless;
 import javax.measure.unit.Unit;
@@ -23,7 +23,7 @@ public class QualitygateCheckingProbe extends TriggeredProbe {
 
     private Identifier identifier;
 
-    protected QualitygateCheckingProbe(MetricDescription metricDescription) {
+    public QualitygateCheckingProbe(MetricDescription metricDescription) {
         super(metricDescription);
     }
 
@@ -52,6 +52,5 @@ public class QualitygateCheckingProbe extends TriggeredProbe {
     private void setIdentifier(Identifier identifier) {
         this.identifier = identifier;
     }
-
 
 }

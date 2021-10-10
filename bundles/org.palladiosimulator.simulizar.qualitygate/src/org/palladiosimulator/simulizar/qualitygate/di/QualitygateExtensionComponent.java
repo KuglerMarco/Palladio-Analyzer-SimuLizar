@@ -6,12 +6,12 @@ import org.palladiosimulator.simulizar.di.component.core.SimuLizarRuntimeCompone
 import org.palladiosimulator.simulizar.di.component.dependency.QUALComponent;
 import org.palladiosimulator.simulizar.di.component.dependency.SimuComFrameworkComponent;
 import org.palladiosimulator.simulizar.di.extension.ExtensionComponent;
-import org.palladiosimulator.simulizar.qualitygate.eventbasedcommunication.EventBasedCommunicationProbeRegistry;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.ComposedStructureSwitchQualitygateContributionSwitch;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.RDSeffSwitchQualitygateContributionSwitch;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.RepositoryComponentSwitchQualitygateContributionSwitch;
-import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.QualitygateIssueHandler;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.handler.QualitygateIssueHandler;
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
+import org.palladiosimulator.simulizar.qualitygate.measurement.eventbasedcommunication.EventBasedCommunicationProbeRegistry;
 import org.palladiosimulator.simulizar.scopes.RuntimeExtensionScope;
 
 import dagger.Component;

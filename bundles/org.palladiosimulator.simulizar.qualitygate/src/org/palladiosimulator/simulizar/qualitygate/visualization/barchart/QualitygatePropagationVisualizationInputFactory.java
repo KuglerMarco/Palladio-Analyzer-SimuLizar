@@ -7,7 +7,7 @@ import org.palladiosimulator.edp2.visualization.jfreechart.input.JFreeChartVisua
 public class QualitygatePropagationVisualizationInputFactory extends JFreeChartVisualizationInputFactory {
 
     public static final String FACTORY_ID = QualitygatePropagationVisualizationInputFactory.class.getCanonicalName();
-    
+
     @Override
     protected IPropertyConfigurable createElementInternal(IMemento memento) {
         return new QualitygatePropagationVisualizationInput();

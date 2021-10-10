@@ -1,4 +1,4 @@
-package org.palladiosimulator.simulizar.qualitygate.interpreter.issue;
+package org.palladiosimulator.simulizar.qualitygate.interpreter.issue.proxy;
 
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.pcm.core.PCMRandomVariable;
@@ -8,6 +8,12 @@ import org.palladiosimulator.simulizar.interpreter.InterpreterDefaultContext;
 import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.RDSeffSwitchQualitygateContributionSwitch;
 
+/**
+ * Proxy for Response Time
+ * 
+ * @author Marco Kugler
+ *
+ */
 public class ResponseTimeProxyIssue implements InterpretationIssue {
 
     private PCMRandomVariable predicate;

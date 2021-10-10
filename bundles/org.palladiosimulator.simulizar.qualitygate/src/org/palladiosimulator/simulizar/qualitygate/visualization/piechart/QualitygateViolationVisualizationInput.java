@@ -15,6 +15,12 @@ import org.palladiosimulator.metricspec.Identifier;
 import org.palladiosimulator.metricspec.Scale;
 import org.palladiosimulator.metricspec.constants.MetricDescriptionConstants;
 
+/**
+ * Visualization of the Violation to Success rate and the Severity
+ * 
+ * @author Marco Kugler
+ *
+ */
 public class QualitygateViolationVisualizationInput extends PieChartVisualizationInput {
 
     @Override
@@ -60,7 +66,8 @@ public class QualitygateViolationVisualizationInput extends PieChartVisualizatio
             return false;
         }
         if (!subMetricDescriptions[1].getName()
-                    .equals("QualitygateViolation") && !subMetricDescriptions[1].getName()
+            .equals("QualitygateViolation")
+                && !subMetricDescriptions[1].getName()
                     .equals("Severity")) {
             return false;
         }

@@ -38,10 +38,8 @@ public class ParameterIssue implements QualitygateIssue {
             boolean isHandled) {
 
         // Factories for EntityReferences
-        EntityReference.AbstractEntityReferenceFactory<org.palladiosimulator.pcm.core.entity.Entity> stereotypedObjectFac 
-        = new SimuLizarEntityReferenceFactories.Entity();
-        EntityReference.AbstractEntityReferenceFactory<org.palladiosimulator.failuremodel.qualitygate.QualityGate> qualitygateFac 
-        = new SimuLizarEntityReferenceFactories.Qualitygate();
+        EntityReference.AbstractEntityReferenceFactory<org.palladiosimulator.pcm.core.entity.Entity> stereotypedObjectFac = new SimuLizarEntityReferenceFactories.Entity();
+        EntityReference.AbstractEntityReferenceFactory<org.palladiosimulator.failuremodel.qualitygate.QualityGate> qualitygateFac = new SimuLizarEntityReferenceFactories.Qualitygate();
 
         this.stereotypedObjectRef = stereotypedObjectFac.createCached(object);
 

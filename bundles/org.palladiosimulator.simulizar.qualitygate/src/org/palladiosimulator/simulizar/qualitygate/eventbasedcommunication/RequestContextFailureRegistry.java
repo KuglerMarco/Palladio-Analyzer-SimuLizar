@@ -9,7 +9,6 @@ import org.palladiosimulator.probeframework.measurement.RequestContext;
 import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.interpreter.result.InterpreterResult;
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResult;
-import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
 import org.palladiosimulator.simulizar.runtimestate.RuntimeStateEntityManager;
 import org.palladiosimulator.simulizar.scopes.RuntimeExtensionScope;
 
@@ -22,33 +21,46 @@ import org.palladiosimulator.simulizar.scopes.RuntimeExtensionScope;
 @RuntimeExtensionScope
 public class RequestContextFailureRegistry implements RuntimeStateEntityManager {
 
-    private Map<String, InterpreterResult> requestIssues = new HashMap<String, InterpreterResult>();
-    private BasicInterpreterResultMerger merger;
+    private Map<String, InterpreterResult> interpreterResults = new HashMap<String, InterpreterResult>();
 
     @Inject
-    public RequestContextFailureRegistry(BasicInterpreterResultMerger merger) {
-        this.merger = merger;
-
+    public RequestContextFailureRegistry() {
     }
 
+    /**
+     * Returns current InterpreterResult for this RequestContext
+     * 
+     * @param context
+     * @return
+     */
     public InterpreterResult getInterpreterResult(RequestContext context) {
 
         RequestContext mostParentContext = this.calcMostParentContext(context);
 
-        return requestIssues.get(mostParentContext.getRequestContextId());
+        return interpreterResults.get(mostParentContext.getRequestContextId());
 
     }
     
+    /**
+     * Adds InterpretationIssue to
+     * 
+     * @param context
+     * @param issue
+     */
     public void addIssue(RequestContext context, InterpretationIssue issue) {
 
         RequestContext mostParentContext = this.calcMostParentContext(context);
-        if(requestIssues.get(mostParentContext.getRequestContextId()) != null) {
-            requestIssues.get(mostParentContext.getRequestContextId()).addIssue(issue);
+        if(interpreterResults.get(mostParentContext.getRequestContextId()) != null) {
+            interpreterResults.get(mostParentContext.getRequestContextId()).addIssue(issue);
         } else {
-            requestIssues.put(mostParentContext.getRequestContextId(), BasicInterpreterResult.of(issue));
+            interpreterResults.put(mostParentContext.getRequestContextId(), BasicInterpreterResult.of(issue));
         }
+    }
+    
+    public void putInterpreterResult(RequestContext context, InterpreterResult result) {
         
-
+        interpreterResults.put(calcMostParentContext(context).getRequestContextId(), result);
+        
     }
 
     /**

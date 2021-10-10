@@ -11,15 +11,12 @@ import org.palladiosimulator.simulizar.entity.EntityReference;
 import org.palladiosimulator.simulizar.entity.SimuLizarEntityReferenceFactories;
 
 /**
- * Records the broken Qualitygates with Request- or ResponseParameterScope.
+ * Records the crashed Qualitygates
  * 
  * @author Marco Kugler
  *
  */
 public class CrashIssue implements QualitygateIssue {
-
-    // Stack-Content of the time, the Qualitygate was broken
-    private ArrayList<Entry<String, Object>> stackContent;
 
     // Reference of the stereotyped Object
     private EntityReference<Entity> stereotypedObjectRef;
@@ -49,8 +46,6 @@ public class CrashIssue implements QualitygateIssue {
 
         this.qualitygateId = qualitygate.getId();
 
-        this.stackContent = stackContent;
-
         this.isHandled = isHandled;
 
         LOGGER.setLevel(Level.DEBUG);
@@ -63,10 +58,6 @@ public class CrashIssue implements QualitygateIssue {
 
     public boolean isHandled() {
         return isHandled;
-    }
-
-    public ArrayList<Entry<String, Object>> getStackContent() {
-        return stackContent;
     }
 
     public EntityReference<Entity> getStereotypedObjectRef() {

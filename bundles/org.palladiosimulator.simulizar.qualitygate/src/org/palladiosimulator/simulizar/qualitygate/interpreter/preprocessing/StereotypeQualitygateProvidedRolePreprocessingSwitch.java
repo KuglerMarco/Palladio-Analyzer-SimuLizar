@@ -113,7 +113,7 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
 
         measurementSpec.setMonitor(monitor);
 
-        if(LOGGER.isDebugEnabled()) {
+        if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("A monitor was created for: " + monitor.getMeasurementSpecifications()
                 .get(0)
                 .getMetricDescription()
@@ -146,7 +146,7 @@ public class StereotypeQualitygateProvidedRolePreprocessingSwitch extends Qualit
                 monitor.add(this.doSwitch(e));
             }
         }
-        
+
         // Remove null-elements
         monitor.removeAll(Collections.singleton(null));
 

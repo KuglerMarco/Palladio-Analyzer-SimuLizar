@@ -1,4 +1,4 @@
-package org.palladiosimulator.simulizar.qualitygate.interpreter.issue;
+package org.palladiosimulator.simulizar.qualitygate.interpreter.issue.proxy;
 
 import java.util.ArrayList;
 import java.util.Map.Entry;
@@ -11,6 +11,12 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 
 import de.uka.ipd.sdq.simucomframework.SimuComSimProcess;
 
+/**
+ * Proxy for Crashs
+ * 
+ * @author Marco Kugler
+ *
+ */
 public class CrashProxyIssue implements InterpretationIssue {
 
     private final QualityGate modelElement;
@@ -21,8 +27,9 @@ public class CrashProxyIssue implements InterpretationIssue {
     // Stack-Content of the time, the Qualitygate was broken
     private ArrayList<Entry<String, Object>> stackContent;
 
-    public CrashProxyIssue(final QualityGate modelElement, final InterpreterDefaultContext context, final boolean success,
-            final Severity severity, final Entity stereotypedObject, ArrayList<Entry<String, Object>> stackContent) {
+    public CrashProxyIssue(final QualityGate modelElement, final InterpreterDefaultContext context,
+            final boolean success, final Severity severity, final Entity stereotypedObject,
+            ArrayList<Entry<String, Object>> stackContent) {
 
         this.modelElement = modelElement;
         this.context = context;

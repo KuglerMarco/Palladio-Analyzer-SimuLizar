@@ -34,6 +34,8 @@ import org.palladiosimulator.simulizar.entity.EntityReference;
 import org.palladiosimulator.simulizar.interpreter.result.InterpretationIssue;
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.QualitygateIssue;
+import org.palladiosimulator.simulizar.qualitygate.measurement.probe.QualitygateCheckingProbe;
+import org.palladiosimulator.simulizar.qualitygate.measurement.probe.QualitygateCheckingTriggeredProbeList;
 import org.palladiosimulator.simulizar.qualitygate.metric.QualitygateMetricDescriptionConstants;
 import org.palladiosimulator.simulizar.runtimestate.RuntimeStateEntityManager;
 import org.palladiosimulator.simulizar.scopes.RuntimeExtensionScope;

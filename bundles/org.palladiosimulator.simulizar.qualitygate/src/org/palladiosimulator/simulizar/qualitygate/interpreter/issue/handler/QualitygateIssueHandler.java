@@ -1,7 +1,6 @@
-package org.palladiosimulator.simulizar.qualitygate.interpreter.issue;
+package org.palladiosimulator.simulizar.qualitygate.interpreter.issue.handler;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -30,9 +29,13 @@ import org.palladiosimulator.simulizar.interpreter.result.InterpreterResumptionP
 import org.palladiosimulator.simulizar.interpreter.result.impl.BasicInterpreterResultMerger;
 import org.palladiosimulator.simulizar.qualitygate.event.QualitygatePassedEvent;
 import org.palladiosimulator.simulizar.qualitygate.eventbasedcommunication.RequestContextFailureRegistry;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.QualitygateIssue;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.proxy.CrashProxyIssue;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.proxy.ResponseTimeProxyIssue;
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
 import org.palladiosimulator.failuremodel.qualitygate.RequestMetricScope;
 import org.palladiosimulator.failuremodel.qualitygate.ResultParameterScope;
+import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.*;
 
 import com.google.common.collect.Streams;
 
@@ -87,6 +90,12 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
 
     }
 
+    /**
+     * Handles the Crash Proxies on the InterpreterResult
+     * 
+     * @param result
+     * @return
+     */
     private InterpreterResult handleCrashProxy(InterpreterResult result) {
 
         boolean isCrash = Streams.stream(result.getIssues())
@@ -119,8 +128,9 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                                 ((CrashProxyIssue) issue).getModelElement(),
                                 ((CrashProxyIssue) issue).getStackContent(), false);
 
-//                            failureRegistry.addIssue(((CrashProxyIssue) issue).getContext().getThread()
-//                                    .getRequestContext(), issue);
+                        failureRegistry.addIssue(((CrashProxyIssue) issue).getContext()
+                            .getThread()
+                            .getRequestContext(), issueNew);
 
                         result.addIssue(issueNew);
 
@@ -130,8 +140,9 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                                 (Entity) ((CrashProxyIssue) issue).getStereotypedObject(),
                                 ((CrashProxyIssue) issue).getModelElement(), false);
 
-//                            failureRegistry.addIssue(((CrashProxyIssue) issue).getContext().getThread()
-//                                    .getRequestContext(), issue);
+                        failureRegistry.addIssue(((CrashProxyIssue) issue).getContext()
+                            .getThread()
+                            .getRequestContext(), issueNew);
 
                         result.addIssue(issueNew);
                     }
@@ -158,23 +169,20 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                 result = merger.merge(result, this.handleImpact(failureImpactList, interpreterDefaultContext));
 
             }
-
         }
 
         return result;
     }
 
+    /**
+     * Handles the Response Time Proxies on InterpreterResult
+     * 
+     * @param result
+     * @return
+     */
     private InterpreterResult handleResponseTimeProxy(InterpreterResult result) {
 
-        /*
-         * Processing the Proxies in Issues
-         */
-        Iterator<InterpretationIssue> iter = result.getIssues()
-            .iterator();
-
-        while (iter.hasNext()) {
-
-            var issue = iter.next();
+        for (InterpretationIssue issue : result.getIssues()) {
 
             if (issue instanceof ResponseTimeProxyIssue) {
 
@@ -236,13 +244,10 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
                     ((ResponseTimeProxyIssue) issue).setHandledOnce(true);
 
                 }
-
             }
-
         }
 
         return result;
-
     }
 
     private InterpreterResult handleImpact(List<Failure> failureList,
@@ -299,24 +304,16 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
         for (InterpretationIssue issue : interpreterResult.getIssues()) {
             if (!issue.isHandled() && issue instanceof QualitygateIssue) {
 
-                for (InterpretationIssue logIssue : issuesWhenBroken) {
-                    if (issue instanceof QualitygateIssue) {
-                        LOGGER.debug(((QualitygateIssue) logIssue).getQualitygateId());
-                    }
-                }
-
                 probeRegistry.triggerInvolvedIssuesProbe(issuesWhenBroken,
                         ((QualitygateIssue) issue).getQualitygateRef());
 
                 if (issue instanceof QualitygateIssue) {
                     ((QualitygateIssue) issue).setHandled(true);
-                    LOGGER.debug(((QualitygateIssue) issue).getQualitygateId());
                 }
             }
         }
 
         return interpreterResult;
-
     }
 
 }

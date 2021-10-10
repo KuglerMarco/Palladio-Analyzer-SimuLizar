@@ -17,9 +17,9 @@ public interface QualitygateIssue extends InterpretationIssue {
     public EntityReference<Entity> getStereotypedObjectRef();
 
     public EntityReference<QualityGate> getQualitygateRef();
-    
+
     public String getQualitygateId();
-    
+
     public void setHandled(boolean handled);
 
 }

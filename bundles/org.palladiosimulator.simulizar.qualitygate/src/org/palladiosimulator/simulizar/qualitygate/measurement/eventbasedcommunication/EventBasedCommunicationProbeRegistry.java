@@ -1,4 +1,4 @@
-package org.palladiosimulator.simulizar.qualitygate.eventbasedcommunication;
+package org.palladiosimulator.simulizar.qualitygate.measurement.eventbasedcommunication;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -100,17 +100,18 @@ public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityM
 
             Calculator calc = this.calculatorFactory.buildCalculator(
                     QualitygateMetricDescriptionConstants.PROCESSING_TIME_TUPLE,
-                    this.findQualitygateMeasuringPoint(((EventBasedCommunicationScope) event.getModelElement().getScope()).getQualitygate()),
+                    this.findQualitygateMeasuringPoint(((EventBasedCommunicationScope) event.getModelElement()
+                        .getScope()).getQualitygate()),
                     DefaultCalculatorProbeSets.createStartStopProbeConfiguration(probes.get(START_PROBE_INDEX),
                             probes.get(STOP_PROBE_INDEX)));
-            
+
             calc.addObserver(this);
 
         }
 
         if (this.currentTimeProbes.containsKey(((Entity) event.getModelElement()).getId())
                 && this.simulationIsRunning()) {
-            
+
             this.currentTimeProbes.get(((Entity) event.getModelElement()).getId())
                 .get(START_PROBE_INDEX)
                 .takeMeasurement(this.calcMostParentContext(event.getThread()
@@ -127,7 +128,7 @@ public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityM
      * @return
      */
     public MeasuringValue endMeasurement(final ModelElementPassedEvent<QualityGate> event) {
-        
+
         if (this.currentTimeProbes.containsKey(((Entity) event.getModelElement()).getId())
                 && this.simulationIsRunning()) {
             this.currentTimeProbes.get(((Entity) event.getModelElement()).getId())

@@ -30,6 +30,12 @@ import org.palladiosimulator.metricspec.BaseMetricDescription;
 import org.palladiosimulator.metricspec.Identifier;
 import org.palladiosimulator.metricspec.Scale;
 
+/**
+ * Visualization of the correlating failures.
+ * 
+ * @author Marco Kugler
+ *
+ */
 public class QualitygatePropagationVisualizationInput extends JFreeChartVisualizationInput {
 
     public QualitygatePropagationVisualizationInput() {
