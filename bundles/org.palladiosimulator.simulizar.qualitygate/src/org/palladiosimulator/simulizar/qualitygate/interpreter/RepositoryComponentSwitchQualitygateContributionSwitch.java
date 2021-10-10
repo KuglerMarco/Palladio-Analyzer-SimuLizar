@@ -60,7 +60,6 @@ import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.CrashProxyI
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ParameterIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ProcessingTimeIssue;
 import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.QualitygateIssue;
-import org.palladiosimulator.simulizar.qualitygate.interpreter.issue.ResponseTimeIssue;
 import org.palladiosimulator.simulizar.qualitygate.measurement.QualitygateViolationProbeRegistry;
 import org.palladiosimulator.simulizar.utils.PCMPartitionManager;
 
@@ -250,26 +249,25 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                 result = BasicInterpreterResult.of(issue);
 
+                failureRegistry.addIssue(interpreterDefaultContext.getThread()
+                    .getRequestContext(), issue);
+
                 // triggering probe to measure Success-To-Failure-Rate case violated
                 probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext,
                         false, null, this.stereotypedObject, false));
 
                 probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext,
                         false, qualitygate.getSeverity(), this.stereotypedObject, false));
-                
-                InterpreterResult resultTemp = failureRegistry.getInterpreterResult(this.interpreterDefaultContext.getThread()
-                        .getRequestContext());
 
-                result = this.triggerInvolvedIssueProbes(merger.merge(result,
-                        resultTemp));
+                InterpreterResult resultTemp = failureRegistry.getInterpreterResult(this.interpreterDefaultContext.getThread()
+                    .getRequestContext());
+
+                this.triggerInvolvedIssueProbes(resultTemp);
 
                 if (qualitygate.getImpact() != null) {
                     result = merger.merge(result,
                             this.handleImpact(qualitygate.getImpact(), interpreterDefaultContext));
                 }
-                
-                failureRegistry.putInterpreterResult(this.interpreterDefaultContext.getThread()
-                        .getRequestContext(), result);
 
             } else {
                 // triggering probe to measure Success-To-Failure-Rate case successful
@@ -278,7 +276,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
             }
 
         }
-
 
         return result;
 
@@ -324,8 +321,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                             .getContents()));
 
             }
-            
-            failureRegistry.addInterpreterResult(interpreterDefaultContext.getThread().getRequestContext(), result);
+
         }
 
         return result;
@@ -390,8 +386,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                     this.atRequestMetricCalcAdded = true;
                 }
 
-                result = InterpreterResult.OK;
-
             } else if (responseTime != null) {
 
                 // evaluation of the measurements in response scope
@@ -417,11 +411,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                         LOGGER.debug("Reponsetime Qualitygate broken: " + responseTime);
                     }
 
-                    ResponseTimeIssue issue = new ResponseTimeIssue((Entity) this.stereotypedObject, qualitygate,
-                            false);
-
-                    result = BasicInterpreterResult.of(issue);
-
                     // for potential Crash failures
                     result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, interpreterDefaultContext,
                             false, qualitygate.getSeverity(), this.stereotypedObject, null));
@@ -431,7 +420,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                     }
 
                 } else {
-                    // triggering probe to measure Success-To-Failure-Rate case successful
                     result = BasicInterpreterResult.of(new CrashProxyIssue(qualitygate, interpreterDefaultContext, true,
                             null, this.stereotypedObject, null));
                 }
@@ -441,12 +429,10 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                     .removeStackFrame();
 
                 result = merger.merge(result, this.handleImpact(failureImpactList, interpreterDefaultContext));
-                failureRegistry.addInterpreterResult(interpreterDefaultContext.getThread().getRequestContext(), result);
             }
-            
+
         }
-        
-        
+
         return result;
     }
 
@@ -488,8 +474,10 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     public InterpreterResult caseEventBasedCommunicationScope(EventBasedCommunicationScope scope) {
 
         InterpreterResult result = InterpreterResult.OK;
+        
+        Signature signatureOfQualitygate = scope.getSignature();
 
-        if (callScope.equals(CallScope.REQUEST)) {
+        if (callScope.equals(CallScope.REQUEST) && signatureOfQualitygate == this.operationSignature) {
 
             if (qualitygate.getPredicate()
                 .getSpecification()
@@ -498,7 +486,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 eventBasedRegistry.startMeasurement(new ModelElementPassedEvent<QualityGate>(qualitygate,
                         EventType.BEGIN, interpreterDefaultContext));
 
-            } else {
+            } else if (signatureOfQualitygate == this.operationSignature) {
                 // End measurement
                 MeasuringValue value = eventBasedRegistry.endMeasurement(new ModelElementPassedEvent<QualityGate>(
                         scope.getQualitygate(), EventType.END, interpreterDefaultContext));
@@ -529,6 +517,9 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                     result = BasicInterpreterResult.of(issue);
 
+                    failureRegistry.addIssue(interpreterDefaultContext.getThread()
+                        .getRequestContext(), issue);
+
                     // triggering probe to measure Success-To-Failure-Rate case violated
                     probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate,
                             interpreterDefaultContext, false, null, this.stereotypedObject, false));
@@ -536,12 +527,12 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                     probeRegistry
                         .triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, interpreterDefaultContext, false,
                                 qualitygate.getSeverity(), this.stereotypedObject, false));
-                    
-                    InterpreterResult resultTemp = failureRegistry.getInterpreterResult(this.interpreterDefaultContext.getThread()
+
+                    InterpreterResult resultTemp = failureRegistry
+                        .getInterpreterResult(this.interpreterDefaultContext.getThread()
                             .getRequestContext());
 
-                    result = this.triggerInvolvedIssueProbes(merger.merge(result,
-                            resultTemp));
+                    this.triggerInvolvedIssueProbes(resultTemp);
 
                     if (qualitygate.getImpact() != null) {
                         failureImpactList.addAll(qualitygate.getImpact());
@@ -560,9 +551,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 result = merger.merge(result, this.handleImpact(failureImpactList, interpreterDefaultContext));
 
             }
-
-            failureRegistry.putInterpreterResult(this.interpreterDefaultContext.getThread()
-                .getRequestContext(), result);
 
         }
 

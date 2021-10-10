@@ -350,23 +350,21 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
                 result = BasicInterpreterResult.of(issue);
 
+                failureRegistry.addIssue(context.getThread()
+                    .getRequestContext(), issue);
+
                 // triggering probes to measure Success-To-Failure-Rate case violated
                 probeRegistry.triggerViolationProbe(
                         new QualitygatePassedEvent(qualitygate, context, false, null, this.requiredRole, false));
 
                 probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, context, false,
                         qualitygate.getSeverity(), this.requiredRole, false));
-                
-                InterpreterResult resultTemp = failureRegistry.getInterpreterResult(this.context.getThread()
-                        .getRequestContext());
 
-                result = this.triggerInvolvedIssueProbes(merger.merge(result,
-                        resultTemp));
+                this.triggerInvolvedIssueProbes(failureRegistry.getInterpreterResult(this.context.getThread()
+                        .getRequestContext()));
 
                 if (qualitygate.getImpact() != null) {
-
                     result = merger.merge(result, this.handleImpact(qualitygate.getImpact(), context));
-
                 }
 
             } else {
@@ -378,9 +376,6 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
             // Removing Stack again
             this.context.getStack()
                 .removeStackFrame();
-
-            failureRegistry.putInterpreterResult(this.context.getThread()
-                .getRequestContext(), result);
 
         }
 
@@ -486,10 +481,12 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
      */
     @Override
     public InterpreterResult caseEventBasedCommunicationScope(EventBasedCommunicationScope scope) {
+        
+        Signature signatureOfQualitygate = scope.getSignature();
 
         InterpreterResult result = InterpreterResult.OK;
 
-        if (callScope.equals(CallScope.REQUEST)) {
+        if (callScope.equals(CallScope.REQUEST) && signatureOfQualitygate == this.operationSignature) {
 
             if (qualitygate.getPredicate()
                 .getSpecification()
@@ -499,7 +496,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 eventBasedRegistry
                     .startMeasurement(new ModelElementPassedEvent<QualityGate>(qualitygate, EventType.BEGIN, context));
 
-            } else {
+            } else if(signatureOfQualitygate == this.operationSignature) {
 
                 // End measurement
                 MeasuringValue value = eventBasedRegistry.endMeasurement(
@@ -530,18 +527,20 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
                     result = BasicInterpreterResult.of(issue);
 
+                    failureRegistry.addIssue(context.getThread()
+                        .getRequestContext(), issue);
+
                     // triggering probes to measure Success-To-Failure-Rate case violated
                     probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, false, null,
                             this.stereotypedObject, false));
 
                     probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, context, false,
                             qualitygate.getSeverity(), this.stereotypedObject, false));
-                    
-                    InterpreterResult resultTemp = failureRegistry.getInterpreterResult(this.context.getThread()
-                            .getRequestContext());
 
-                    result = this.triggerInvolvedIssueProbes(
-                            merger.merge(result, resultTemp));
+                    InterpreterResult resultTemp = failureRegistry.getInterpreterResult(this.context.getThread()
+                        .getRequestContext());
+
+                    this.triggerInvolvedIssueProbes(resultTemp);
 
                     if (qualitygate.getImpact() != null) {
                         failureImpactList.addAll(qualitygate.getImpact());
@@ -560,9 +559,6 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 result = merger.merge(result, this.handleImpact(failureImpactList, context));
 
             }
-
-            failureRegistry.putInterpreterResult(this.context.getThread()
-                .getRequestContext(), result);
 
         }
 
