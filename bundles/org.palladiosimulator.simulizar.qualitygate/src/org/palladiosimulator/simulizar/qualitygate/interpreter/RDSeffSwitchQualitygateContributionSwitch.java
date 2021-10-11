@@ -494,59 +494,62 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                 MeasuringValue value = eventBasedRegistry.endMeasurement(
                         new ModelElementPassedEvent<QualityGate>(scope.getQualitygate(), EventType.END, context));
 
-                Measure<Object, Quantity> measuringValue = value
-                    .getMeasureForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
+                if (value != null) {
 
-                // set temporary stack for evaluation
-                final SimulatedStackframe<Object> frame = this.context.getStack()
-                    .createAndPushNewStackFrame();
+                    Measure<Object, Quantity> measuringValue = value
+                        .getMeasureForMetric(MetricDescriptionConstants.RESPONSE_TIME_METRIC);
 
-                List<Failure> failureImpactList = new ArrayList<Failure>();
+                    // set temporary stack for evaluation
+                    final SimulatedStackframe<Object> frame = this.context.getStack()
+                        .createAndPushNewStackFrame();
 
-                String parameterName = "Stop.TYPE";
+                    List<Failure> failureImpactList = new ArrayList<Failure>();
 
-                frame.addValue(parameterName, (Double) measuringValue.getValue());
+                    String parameterName = "Stop.TYPE";
 
-                if (!((boolean) context.evaluate(predicate.getSpecification(), this.context.getStack()
-                    .currentStackFrame()))) {
+                    frame.addValue(parameterName, (Double) measuringValue.getValue());
 
-                    if (LOGGER.isDebugEnabled()) {
-                        LOGGER.debug("Reponsetime Qualitygate broken: " + responseTime);
-                    }
+                    if (!((boolean) context.evaluate(predicate.getSpecification(), this.context.getStack()
+                        .currentStackFrame()))) {
 
-                    ProcessingTimeIssue issue = new ProcessingTimeIssue((Entity) this.stereotypedObject,
-                            this.qualitygate, false);
+                        if (LOGGER.isDebugEnabled()) {
+                            LOGGER.debug("Reponsetime Qualitygate broken: " + responseTime);
+                        }
 
-                    result = BasicInterpreterResult.of(issue);
+                        ProcessingTimeIssue issue = new ProcessingTimeIssue((Entity) this.stereotypedObject,
+                                this.qualitygate, false);
 
-                    failureRegistry.addIssue(context.getThread()
-                        .getRequestContext(), issue);
+                        result = BasicInterpreterResult.of(issue);
 
-                    // triggering probes to measure Success-To-Failure-Rate case violated
-                    probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, false, null,
-                            this.stereotypedObject, false));
+                        failureRegistry.addIssue(context.getThread()
+                            .getRequestContext(), issue);
 
-                    probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, context, false,
-                            qualitygate.getSeverity(), this.stereotypedObject, false));
+                        // triggering probes to measure Success-To-Failure-Rate case violated
+                        probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, false,
+                                null, this.stereotypedObject, false));
 
-                    this.triggerInvolvedIssueProbes(failureRegistry.getInterpreterResult(this.context.getThread()
+                        probeRegistry.triggerSeverityProbe(new QualitygatePassedEvent(qualitygate, context, false,
+                                qualitygate.getSeverity(), this.stereotypedObject, false));
+
+                        this.triggerInvolvedIssueProbes(failureRegistry.getInterpreterResult(this.context.getThread()
                             .getRequestContext()));
 
-                    if (qualitygate.getImpact() != null) {
-                        failureImpactList.addAll(qualitygate.getImpact());
+                        if (qualitygate.getImpact() != null) {
+                            failureImpactList.addAll(qualitygate.getImpact());
+                        }
+
+                    } else {
+                        // triggering probes to measure Success-To-Failure-Rate case successful
+                        probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, true, null,
+                                this.stereotypedObject, false));
                     }
 
-                } else {
-                    // triggering probes to measure Success-To-Failure-Rate case successful
-                    probeRegistry.triggerViolationProbe(new QualitygatePassedEvent(qualitygate, context, true, null,
-                            this.stereotypedObject, false));
+                    // pop temporary stack
+                    this.context.getStack()
+                        .removeStackFrame();
+
+                    result = merger.merge(result, this.handleImpact(failureImpactList, context));
                 }
-
-                // pop temporary stack
-                this.context.getStack()
-                    .removeStackFrame();
-
-                result = merger.merge(result, this.handleImpact(failureImpactList, context));
 
             }
 

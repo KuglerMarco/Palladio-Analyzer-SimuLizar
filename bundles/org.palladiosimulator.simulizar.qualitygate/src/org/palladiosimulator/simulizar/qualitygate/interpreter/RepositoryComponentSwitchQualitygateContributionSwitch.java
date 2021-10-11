@@ -484,7 +484,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                 eventBasedRegistry.startMeasurement(new ModelElementPassedEvent<QualityGate>(qualitygate,
                         EventType.BEGIN, interpreterDefaultContext));
 
-            } else {
+            } else if (scope.getSignature() == this.operationSignature) {
                 // End measurement
                 MeasuringValue value = eventBasedRegistry.endMeasurement(new ModelElementPassedEvent<QualityGate>(
                         scope.getQualitygate(), EventType.END, interpreterDefaultContext));
@@ -509,7 +509,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                                 .currentStackFrame()))) {
 
                         if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("Reponsetime Qualitygate broken: " + responseTime);
+                            LOGGER.debug("Reponsetime Qualitygate broken: " + (Double) measuringValue.getValue());
                         }
 
                         ProcessingTimeIssue issue = new ProcessingTimeIssue((Entity) this.stereotypedObject,

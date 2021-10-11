@@ -50,7 +50,10 @@ public class AddDegreeOfCorruptionCharacterisationBehavior extends PreInterpreta
 				}
 			}
 			currentFrame.addValue(id, newValue);
-			resultFrame.addValue(id, newValue);
+			if(resultFrame != null) {
+			    resultFrame.addValue(id, newValue);
+			}
+			
 		}
 	}
 }

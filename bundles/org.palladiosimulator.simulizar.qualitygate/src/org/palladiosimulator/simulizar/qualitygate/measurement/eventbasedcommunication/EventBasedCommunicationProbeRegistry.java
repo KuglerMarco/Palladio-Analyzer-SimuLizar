@@ -50,7 +50,7 @@ public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityM
     protected final IGenericCalculatorFactory calculatorFactory;
     private final PCMPartitionManager pcmPartitionManager;
 
-    private static MeasuringValue processingTime;
+    private MeasuringValue processingTime;
 
     private final Map<String, List<TriggeredProbe>> currentTimeProbes = new HashMap<String, List<TriggeredProbe>>();
 
@@ -203,6 +203,12 @@ public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityM
 
         return result;
 
+    }
+    
+    @Override
+    public void cleanup() {
+        this.currentTimeProbes.clear();
+        processingTime = null;
     }
 
 }

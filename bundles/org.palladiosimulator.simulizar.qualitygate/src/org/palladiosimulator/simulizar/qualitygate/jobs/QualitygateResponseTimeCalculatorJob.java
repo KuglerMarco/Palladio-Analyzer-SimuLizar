@@ -35,6 +35,8 @@ import org.palladiosimulator.pcm.system.SystemPackage;
 import org.palladiosimulator.pcm.repository.BasicComponent;
 import org.palladiosimulator.pcm.seff.AbstractAction;
 import org.palladiosimulator.pcm.seff.ExternalCallAction;
+import org.palladiosimulator.pcm.seff.ForkAction;
+import org.palladiosimulator.pcm.seff.ForkedBehaviour;
 import org.palladiosimulator.pcm.seff.ResourceDemandingSEFF;
 import org.palladiosimulator.pcm.seff.ServiceEffectSpecification;
 import org.palladiosimulator.pcm.repository.ProvidedRole;
@@ -206,13 +208,39 @@ public class QualitygateResponseTimeCalculatorJob implements IBlackboardInteract
 
                                         actionSet.add((ExternalCallAction) abstractAction);
 
-                                        // TODO falls bereits welche gesetzt, mergen
-
                                     }
                                 }
+                                
+                                if(abstractAction instanceof ForkAction) {
+                                    
+                                    for(ForkedBehaviour behaviour : ((ForkAction) abstractAction).getAsynchronousForkedBehaviours_ForkAction()) {
+                                        
+                                        for (AbstractAction abstractActionFork : behaviour.getSteps_Behaviour()) {
+
+                                            if (abstractActionFork instanceof ExternalCallAction) {
+
+                                                if (((ExternalCallAction) abstractActionFork).getCalledService_ExternalService()
+                                                    .equals(signature)
+                                                        && ((ExternalCallAction) abstractActionFork).getRole_ExternalService()
+                                                            .equals(role)) {
+
+                                                    StereotypeAPI.applyStereotype(abstractActionFork, qualitygateElement);
+
+                                                    actionSet.add((ExternalCallAction) abstractActionFork);
+
+                                                }
+                                            }
+                                        }                                        
+                                    }
+                                    
+                                }
+                                
                             }
+                            
 
                         }
+                        
+                        
 
                     }
                 }
