@@ -480,9 +480,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
         if (callScope.equals(CallScope.REQUEST) && scope.getSignature() == this.operationSignature) {
 
-            if (qualitygate.getPredicate()
-                .getSpecification()
-                .equals("Start.TYPE")) {
+            if (qualitygate.getPredicate() == null) {
 
                 // Start measurement
                 eventBasedRegistry
@@ -505,7 +503,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
 
                     List<Failure> failureImpactList = new ArrayList<Failure>();
 
-                    String parameterName = "Stop.TYPE";
+                    String parameterName = "ProcessingTime.VALUE";
 
                     frame.addValue(parameterName, (Double) measuringValue.getValue());
 
@@ -513,7 +511,7 @@ public class RDSeffSwitchQualitygateContributionSwitch extends QualitygateSwitch
                         .currentStackFrame()))) {
 
                         if (LOGGER.isDebugEnabled()) {
-                            LOGGER.debug("Reponsetime Qualitygate broken: " + responseTime);
+                            LOGGER.debug("Reponsetime Qualitygate broken: " + (Double) measuringValue.getValue());
                         }
 
                         ProcessingTimeIssue issue = new ProcessingTimeIssue((Entity) this.stereotypedObject,

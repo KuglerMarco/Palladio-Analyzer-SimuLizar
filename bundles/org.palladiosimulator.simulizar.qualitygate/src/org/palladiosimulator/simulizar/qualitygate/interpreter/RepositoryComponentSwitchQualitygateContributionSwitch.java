@@ -226,6 +226,11 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
     public InterpreterResult caseRequestParameterScope(RequestParameterScope object) {
 
         InterpreterResult result = InterpreterResult.OK;
+        
+        LOGGER.debug("Following StoEx is broken: " + predicate.getSpecification()
+        + " because stackframe is: " + this.interpreterDefaultContext.getStack()
+            .currentStackFrame()
+            .toString());
 
         if (callScope.equals(CallScope.REQUEST) && object.getSignature() == this.operationSignature) {
 
@@ -262,7 +267,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                         failureRegistry.getInterpreterResult(this.interpreterDefaultContext.getThread()
                             .getRequestContext()));
 
-                if (qualitygate.getImpact() != null) {
+                if (!qualitygate.getImpact().isEmpty()) {
                     result = merger.merge(result,
                             this.handleImpact(qualitygate.getImpact(), interpreterDefaultContext));
                 }
@@ -477,9 +482,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
         if (callScope.equals(CallScope.REQUEST) && scope.getSignature() == this.operationSignature) {
 
-            if (qualitygate.getPredicate()
-                .getSpecification()
-                .equals("Start.TYPE")) {
+            if (qualitygate.getPredicate() == null) {
                 // Start measurement
                 eventBasedRegistry.startMeasurement(new ModelElementPassedEvent<QualityGate>(qualitygate,
                         EventType.BEGIN, interpreterDefaultContext));
@@ -500,7 +503,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
 
                     List<Failure> failureImpactList = new ArrayList<Failure>();
 
-                    String metricName = "Stop.TYPE";
+                    String metricName = "ProcessingTime.VALUE";
 
                     frame.addValue(metricName, (Double) measuringValue.getValue());
 
@@ -532,7 +535,7 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
                                 .getInterpreterResult(this.interpreterDefaultContext.getThread()
                                         .getRequestContext()));
 
-                        if (qualitygate.getImpact() != null) {
+                        if (!qualitygate.getImpact().isEmpty()) {
                             failureImpactList.addAll(qualitygate.getImpact());
                         }
 

@@ -13,7 +13,8 @@ Require-Bundle: org.palladiosimulator.simulizar;bundle-version="5.0.0",
  org.palladiosimulator.simulizar.ui;bundle-version="5.0.0",
  de.uka.ipd.sdq.codegen.simucontroller;bundle-version="5.0.0",
  de.uka.ipd.sdq.simucomframework.variables,
- de.uka.ipd.sdq.probfunction.math
+ de.uka.ipd.sdq.probfunction.math,
+ org.palladiosimulator.probeframework
 Import-Package: dagger;version="2.31.0",
  dagger.assisted;version="2.31.0",
  dagger.internal;version="2.31.0",

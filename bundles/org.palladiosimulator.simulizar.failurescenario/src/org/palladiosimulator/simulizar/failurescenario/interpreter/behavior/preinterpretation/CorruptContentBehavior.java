@@ -43,15 +43,15 @@ public class CorruptContentBehavior extends PreInterpretationBehavior {
 		double corruptionSummand = NumberConverter.toDouble(StackContext.evaluateStatic(degreeOfCorruptionSpec));
 
 		List<Entry<String, Object>> entries = context.getStack().currentStackFrame().getContents();
-		List<Entry<String, Object>> entriesOfResult = context.getCurrentResultFrame().getContents();
-		final SimulatedStackframe<Object> resultFrame = context.getCurrentResultFrame();
-		try {
-			resultFrame.getValue("parameter0." + RDSeffSwitch.DEGREE_OF_CORRUPTION);
-		} catch (ValueNotInFrameException e1) {
+//		List<Entry<String, Object>> entriesOfResult = context.getCurrentResultFrame().getContents();
+//		final SimulatedStackframe<Object> resultFrame = context.getCurrentResultFrame();
+//		try {
+//			resultFrame.getValue("parameter0." + RDSeffSwitch.DEGREE_OF_CORRUPTION);
+//		} catch (ValueNotInFrameException e1) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
-		entries.addAll(entriesOfResult);
+//			e1.printStackTrace();
+//		}
+//		entries.addAll(entriesOfResult);
 		entries.forEach(e -> {
 			String key = e.getKey();
 			if (key.endsWith("." + RDSeffSwitch.DEGREE_OF_CORRUPTION)) {
@@ -59,7 +59,7 @@ public class CorruptContentBehavior extends PreInterpretationBehavior {
 					double newDegreeOfCorruption = Math.max(0.0, Math.min(1.0,
 							(double) context.getStack().currentStackFrame().getValue(key) + corruptionSummand));
 					context.getStack().currentStackFrame().addValue(key, newDegreeOfCorruption);
-					resultFrame.addValue(key, newDegreeOfCorruption);
+//					resultFrame.addValue(key, newDegreeOfCorruption);
 				} catch (ValueNotInFrameException exception) {
 					// Not found
 				}
