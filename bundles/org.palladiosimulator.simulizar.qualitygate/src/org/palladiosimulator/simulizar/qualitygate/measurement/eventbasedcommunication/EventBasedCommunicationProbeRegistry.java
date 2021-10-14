@@ -115,7 +115,7 @@ public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityM
             this.currentTimeProbes.get(((Entity) event.getModelElement()).getId())
                 .get(START_PROBE_INDEX)
                 .takeMeasurement(this.calcMostParentContext(event.getThread()
-                    .getRequestContext()));
+                    .getRequestContext(), event.getModelElement()));
 
         }
 
@@ -134,11 +134,15 @@ public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityM
             this.currentTimeProbes.get(((Entity) event.getModelElement()).getId())
                 .get(STOP_PROBE_INDEX)
                 .takeMeasurement(this.calcMostParentContext(event.getThread()
-                    .getRequestContext()));
+                    .getRequestContext(), event.getModelElement()));
 
         }
+        
+        MeasuringValue temp = processingTime;
+        
+        processingTime = null;
 
-        return processingTime;
+        return temp;
 
     }
 
@@ -157,6 +161,8 @@ public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityM
 
         MonitorRepository monitorRepositoryModel = this.pcmPartitionManager
             .findModel(MonitorRepositoryPackage.eINSTANCE.getMonitorRepository());
+        
+        System.out.println(qualitygate.getId());
 
         for (Monitor monitor : monitorRepositoryModel.getMonitors()) {
 
@@ -193,13 +199,15 @@ public class EventBasedCommunicationProbeRegistry implements RuntimeStateEntityM
      * @param context
      * @return
      */
-    private RequestContext calcMostParentContext(RequestContext context) {
+    private RequestContext calcMostParentContext(RequestContext context, QualityGate qualitygate) {
 
         RequestContext result = context;
 
         while (result.getParentContext() != null) {
             result = result.getParentContext();
         }
+        
+        result = new RequestContext(result.getRequestContextId() + qualitygate.getId());
 
         return result;
 
