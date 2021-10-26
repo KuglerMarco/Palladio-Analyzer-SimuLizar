@@ -1,4 +1,4 @@
-package org.palladiosimulator.simulizar.qualitygate.visualization.barchart;
+package org.palladiosimulator.simulizar.qualitygate.visualization.barchart.severity;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,19 +36,19 @@ import org.palladiosimulator.metricspec.Scale;
  * @author Marco Kugler
  *
  */
-public class QualitygatePropagationVisualizationInput extends JFreeChartVisualizationInput {
+public class QualitygateSeverityVisualizationInput extends JFreeChartVisualizationInput {
 
-    public QualitygatePropagationVisualizationInput() {
+    public QualitygateSeverityVisualizationInput() {
         this(null);
     }
 
-    public QualitygatePropagationVisualizationInput(final AbstractDataSource source) {
+    public QualitygateSeverityVisualizationInput(final AbstractDataSource source) {
         super();
     }
 
     @Override
     public void saveState(final IMemento memento) {
-        QualitygatePropagationVisualizationInputFactory.saveState(memento, this);
+        QualitygateSeverityVisualizationInputFactory.saveState(memento, this);
     }
 
     @Override
@@ -61,7 +61,6 @@ public class QualitygatePropagationVisualizationInput extends JFreeChartVisualiz
         }
 
         if (!subMetricDescriptions[1].getName()
-            .equals("InvolvedFailures") && !subMetricDescriptions[1].getName()
             .equals("Severity")) {
             return false;
         }
@@ -73,7 +72,7 @@ public class QualitygatePropagationVisualizationInput extends JFreeChartVisualiz
 
     @Override
     public String getFactoryId() {
-        return QualitygatePropagationVisualizationInputFactory.FACTORY_ID;
+        return QualitygateSeverityVisualizationInputFactory.FACTORY_ID;
     }
 
     @Override
@@ -84,7 +83,7 @@ public class QualitygatePropagationVisualizationInput extends JFreeChartVisualiz
         renderer.setShadowVisible(false);
         renderer.setBarPainter(new StandardBarPainter());
 
-        final CategoryAxis domainAxis = new CategoryAxis("Issues");
+        final CategoryAxis domainAxis = new CategoryAxis("Severity");
 
         final NumberAxis rangeAxis = new NumberAxis("Count");
 
@@ -126,17 +125,8 @@ public class QualitygatePropagationVisualizationInput extends JFreeChartVisualiz
             bins.put(entry.getKey(), entry.getValue());
         }
 
-        // First bar is always overall count of Qualitygate-violation
         for (final String o : bins.keySet()) {
-            if (o.equals("Number of Occurrence")) {
-                dataset.setValue(bins.get(o), "Number of Occurence", o);
-            }
-        }
-
-        for (final String o : bins.keySet()) {
-            if (!o.equals("Number of Occurrence")) {
-                dataset.setValue(bins.get(o), "Correlating Failures", o);
-            }
+            dataset.setValue(bins.get(o), o, o);
         }
 
         return dataset;
@@ -151,7 +141,7 @@ public class QualitygatePropagationVisualizationInput extends JFreeChartVisualiz
      */
     @Override
     public String getName() {
-        return "Propagation Results";
+        return "Severity Results";
     }
 
     @Override

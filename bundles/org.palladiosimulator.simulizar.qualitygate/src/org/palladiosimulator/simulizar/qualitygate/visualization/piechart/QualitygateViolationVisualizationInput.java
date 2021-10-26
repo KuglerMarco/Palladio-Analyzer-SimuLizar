@@ -66,9 +66,7 @@ public class QualitygateViolationVisualizationInput extends PieChartVisualizatio
             return false;
         }
         if (!subMetricDescriptions[1].getName()
-            .equals("QualitygateViolation")
-                && !subMetricDescriptions[1].getName()
-                    .equals("Severity")) {
+            .equals("QualitygateViolation")) {
             return false;
         }
 
