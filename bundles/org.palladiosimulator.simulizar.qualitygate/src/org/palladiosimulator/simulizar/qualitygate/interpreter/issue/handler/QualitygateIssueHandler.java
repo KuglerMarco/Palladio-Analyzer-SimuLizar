@@ -7,8 +7,6 @@ import javax.inject.Inject;
 import javax.measure.Measure;
 import javax.measure.quantity.Quantity;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.palladiosimulator.failuremodel.failuretype.Failure;
 import org.palladiosimulator.failuremodel.failuretype.SWContentFailure;
 import org.palladiosimulator.failuremodel.failuretype.SWCrashFailure;
@@ -49,7 +47,6 @@ import de.uka.ipd.sdq.simucomframework.variables.stackframe.SimulatedStackframe;
  */
 public class QualitygateIssueHandler implements InterpreterResultHandler {
 
-    private static final Logger LOGGER = Logger.getLogger(QualitygateIssueHandler.class);
     private QualitygateViolationProbeRegistry probeRegistry;
     private BasicInterpreterResultMerger merger;
     private RequestContextFailureRegistry failureRegistry;
@@ -57,7 +54,6 @@ public class QualitygateIssueHandler implements InterpreterResultHandler {
     @Inject
     public QualitygateIssueHandler(QualitygateViolationProbeRegistry probeRegistry, BasicInterpreterResultMerger merger,
             RequestContextFailureRegistry failureRegistry) {
-        LOGGER.setLevel(Level.DEBUG);
         this.probeRegistry = probeRegistry;
         this.merger = merger;
         this.failureRegistry = failureRegistry;

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
@@ -50,7 +49,6 @@ public class StereotypeQualitygateExternalCallPreprocessingSwitch extends Qualit
     @AssistedInject
     public StereotypeQualitygateExternalCallPreprocessingSwitch(@Assisted MetricDescriptionRepository metricRepo,
             @Assisted AssemblyContext assembly) {
-        LOGGER.setLevel(Level.DEBUG);
         this.metricRepo = metricRepo;
         this.assembly = assembly;
     }

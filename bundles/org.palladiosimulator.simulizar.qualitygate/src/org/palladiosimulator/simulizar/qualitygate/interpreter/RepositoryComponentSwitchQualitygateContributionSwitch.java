@@ -6,7 +6,6 @@ import java.util.List;
 import javax.measure.Measure;
 import javax.measure.quantity.Quantity;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
@@ -136,7 +135,6 @@ public class RepositoryComponentSwitchQualitygateContributionSwitch extends Qual
         this.eventBasedRegistry = eventBasedRegistry;
         this.failureRegistry = failureRegistry;
 
-        LOGGER.setLevel(Level.DEBUG);
     }
 
     /**

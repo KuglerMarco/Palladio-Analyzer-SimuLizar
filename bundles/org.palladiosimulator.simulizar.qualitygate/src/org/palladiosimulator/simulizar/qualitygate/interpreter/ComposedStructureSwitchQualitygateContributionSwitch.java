@@ -1,6 +1,5 @@
 package org.palladiosimulator.simulizar.qualitygate.interpreter;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
@@ -73,8 +72,6 @@ public class ComposedStructureSwitchQualitygateContributionSwitch extends Qualit
 
         // Injected
         this.merger = merger;
-
-        LOGGER.setLevel(Level.DEBUG);
 
     }
 

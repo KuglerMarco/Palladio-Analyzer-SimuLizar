@@ -3,7 +3,6 @@ package org.palladiosimulator.simulizar.qualitygate.interpreter.issue;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.pcm.core.entity.Entity;
@@ -50,8 +49,6 @@ public class ParameterIssue implements QualitygateIssue {
         this.stackContent = stackContent;
 
         this.isHandled = isHandled;
-
-        LOGGER.setLevel(Level.DEBUG);
 
         if (LOGGER.isDebugEnabled()) {
             LOGGER.debug("New ParameterIssue at qualitygate: " + qualitygate.getEntityName());

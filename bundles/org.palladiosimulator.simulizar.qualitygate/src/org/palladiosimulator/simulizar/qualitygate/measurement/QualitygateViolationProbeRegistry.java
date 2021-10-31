@@ -7,8 +7,6 @@ import java.util.Map;
 
 import javax.inject.Inject;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.palladiosimulator.analyzer.workflow.blackboard.PCMResourceSetPartition;
 import org.palladiosimulator.failuremodel.qualitygate.QualityGate;
 import org.palladiosimulator.failuremodel.qualitygatemeasuringpoint.ComponentInterfaceMeasuringPoint;
@@ -53,8 +51,6 @@ import de.uka.ipd.sdq.simulation.abstractsimengine.ISimulationControl;
  */
 @RuntimeExtensionScope
 public class QualitygateViolationProbeRegistry implements RuntimeStateEntityManager {
-
-    private static final Logger LOGGER = Logger.getLogger(QualitygateViolationProbeRegistry.class);
 
     private final ISimulationControl simulationControl;
     private final PCMResourceSetPartition pcmPartition;
@@ -108,8 +104,6 @@ public class QualitygateViolationProbeRegistry implements RuntimeStateEntityMana
 
         this.severityMetric = this.createSeverityMetric();
         this.severityOverTimeMetric = this.createSeverityMetricSet();
-
-        LOGGER.setLevel(Level.DEBUG);
 
     }
 
